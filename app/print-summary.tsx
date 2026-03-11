@@ -1,0 +1,566 @@
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useState } from "react";
+import {
+  Alert,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Colors } from "../constants";
+
+const TECH_LABELS: Record<
+  string,
+  { title: string; icon: string; color: string }
+> = {
+  "fdm-standart": { title: "Standart FDM", icon: "🏭", color: "#ff6b2b" },
+  "fdm-endustriyel": { title: "Endüstriyel FDM", icon: "⚙️", color: "#f97316" },
+  "sla-standart": { title: "Standart Reçine", icon: "💎", color: "#6366f1" },
+  "sla-endustriyel": {
+    title: "Endüstriyel Reçine",
+    icon: "🔬",
+    color: "#8b5cf6",
+  },
+  mjf: { title: "Multi Jet Fusion", icon: "🚀", color: "#0ea5e9" },
+  sls: { title: "Seçici Lazer Sinterleme", icon: "⚡", color: "#06b6d4" },
+  metal: { title: "Metal Baskı (DMLS)", icon: "🔩", color: "#94a3b8" },
+};
+
+const MATERIAL_LABELS: Record<
+  string,
+  { name: string; color: string; hex: string }
+> = {
+  "abs-beyaz": { name: "ABS", color: "Beyaz", hex: "#f1f5f9" },
+  "abs-siyah": { name: "ABS", color: "Siyah", hex: "#1e293b" },
+  "abs-gri": { name: "ABS", color: "Gri", hex: "#64748b" },
+  "abs-kirmizi": { name: "ABS", color: "Kırmızı", hex: "#ef4444" },
+  "abs-mavi": { name: "ABS", color: "Mavi", hex: "#3b82f6" },
+  "abs-sari": { name: "ABS", color: "Sarı", hex: "#eab308" },
+  "pla-siyah": { name: "PLA", color: "Siyah", hex: "#1e293b" },
+  "resin-beyaz": { name: "Resin", color: "Beyaz", hex: "#f8fafc" },
+  "resin-gri": { name: "Resin", color: "Gri", hex: "#94a3b8" },
+  "resin-seffaf": { name: "Resin", color: "Şeffaf", hex: "#e0f2fe" },
+  "pa12-gri": { name: "PA12", color: "Gri", hex: "#94a3b8" },
+  "pa12-siyah": { name: "PA12", color: "Siyah", hex: "#1e293b" },
+  "pa11-dogal": { name: "PA11", color: "Doğal", hex: "#fef3c7" },
+  "celik-316l": { name: "316L Çelik", color: "Gümüş", hex: "#cbd5e1" },
+  titanium: { name: "Titanyum", color: "Gümüş", hex: "#b0c4de" },
+};
+
+const calculatePrice = (
+  tech: string,
+  material: string,
+  infill: number,
+  quantity: number,
+) => {
+  const basePrices: Record<string, number> = {
+    "fdm-standart": 150,
+    "fdm-endustriyel": 280,
+    "sla-standart": 320,
+    "sla-endustriyel": 520,
+    mjf: 680,
+    sls: 750,
+    metal: 1800,
+  };
+  const infillMultiplier = 1 + (infill - 20) * 0.008;
+  const base = basePrices[tech] || 150;
+  const unitPrice = base * infillMultiplier;
+  const quantityDiscount = quantity >= 10 ? 0.85 : quantity >= 5 ? 0.92 : 1;
+  const total = unitPrice * quantity * quantityDiscount;
+  return {
+    unitPrice: Math.round(unitPrice),
+    total: Math.round(total),
+    discount:
+      quantity >= 5
+        ? Math.round(unitPrice * quantity * (1 - quantityDiscount))
+        : 0,
+  };
+};
+
+const getDeliveryDays = (tech: string) => {
+  const days: Record<string, string> = {
+    "fdm-standart": "2-4 iş günü",
+    "fdm-endustriyel": "3-5 iş günü",
+    "sla-standart": "3-5 iş günü",
+    "sla-endustriyel": "4-6 iş günü",
+    mjf: "5-7 iş günü",
+    sls: "5-7 iş günü",
+    metal: "10-15 iş günü",
+  };
+  return days[tech] || "3-7 iş günü";
+};
+
+const StepIndicator = ({
+  currentStep,
+  totalSteps,
+}: {
+  currentStep: number;
+  totalSteps: number;
+}) => (
+  <View style={styles.stepContainer}>
+    {Array.from({ length: totalSteps }).map((_, i) => (
+      <View key={i} style={styles.stepTrack}>
+        <View
+          style={[
+            styles.stepFill,
+            {
+              backgroundColor: i < currentStep ? Colors.accent : Colors.border,
+            },
+          ]}
+        />
+      </View>
+    ))}
+  </View>
+);
+
+export default function PrintSummaryScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams();
+  const [ordering, setOrdering] = useState(false);
+
+  const tech = params.tech as string;
+  const material = params.material as string;
+  const infill = Number(params.infill) || 20;
+  const quantity = Number(params.quantity) || 1;
+  const fileName = params.fileName as string;
+  const unit = params.unit as string;
+
+  const techData = TECH_LABELS[tech];
+  const materialData = MATERIAL_LABELS[material];
+  const pricing = calculatePrice(tech, material, infill, quantity);
+  const deliveryDays = getDeliveryDays(tech);
+
+  const handleSiparisVer = () => {
+    Alert.alert(
+      "Siparişi Onayla",
+      `Toplam tutar: ₺${pricing.total.toLocaleString("tr-TR")}\n\nSiparişiniz oluşturulsun mu?`,
+      [
+        { text: "İptal", style: "cancel" },
+        {
+          text: "Onayla",
+          onPress: () => {
+            setOrdering(true);
+            setTimeout(() => {
+              setOrdering(false);
+              Alert.alert(
+                "🎉 Sipariş Alındı!",
+                "Siparişiniz başarıyla oluşturuldu. Ekibimiz en kısa sürede üretimi başlatacak.",
+                [
+                  {
+                    text: "Tamam",
+                    onPress: () => router.push("/(tabs)/print"),
+                  },
+                ],
+              );
+            }, 1000);
+          },
+        },
+      ],
+    );
+  };
+
+  const handleTeklifIste = () => {
+    Alert.alert(
+      "Detaylı Teklif",
+      "Uzman ekibimiz dosyanızı inceleyerek en kısa sürede size ulaşacak.",
+      [{ text: "Tamam" }],
+    );
+  };
+
+  return (
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="light-content" />
+
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backArrow}>‹</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>Fiyat Özeti</Text>
+          <Text style={styles.headerSub}>Siparişini gözden geçir</Text>
+        </View>
+        <View style={styles.fidropBadge}>
+          <Text style={styles.fidropText}>by fidrop</Text>
+        </View>
+      </View>
+
+      <StepIndicator currentStep={4} totalSteps={4} />
+      <View style={styles.stepLabelRow}>
+        <Text style={styles.stepLabel}>Adım 4 / 4</Text>
+        <Text style={styles.stepLabelRight}>Fiyat Özeti</Text>
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.priceCard}>
+          <View style={styles.priceCardTop}>
+            <Text style={styles.priceLabel}>Tahmini Toplam</Text>
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceBadgeText}>Mock Fiyat</Text>
+            </View>
+          </View>
+          <Text style={styles.priceAmount}>
+            ₺{pricing.total.toLocaleString("tr-TR")}
+          </Text>
+          {pricing.discount > 0 && (
+            <View style={styles.discountRow}>
+              <Text style={styles.discountText}>
+                🎉 {quantity} adet indirimi: -₺
+                {pricing.discount.toLocaleString("tr-TR")} tasarruf
+              </Text>
+            </View>
+          )}
+          <View style={styles.priceBreakdown}>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceRowLabel}>Birim fiyat</Text>
+              <Text style={styles.priceRowValue}>
+                ₺{pricing.unitPrice.toLocaleString("tr-TR")}
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceRowLabel}>Adet</Text>
+              <Text style={styles.priceRowValue}>{quantity}</Text>
+            </View>
+            <View style={[styles.priceRow, styles.priceRowTotal]}>
+              <Text style={styles.priceRowLabelTotal}>Toplam</Text>
+              <Text style={styles.priceRowValueTotal}>
+                ₺{pricing.total.toLocaleString("tr-TR")}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.deliveryCard}>
+          <Text style={styles.deliveryIcon}>🚚</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.deliveryTitle}>Tahmini Teslimat</Text>
+            <Text style={styles.deliveryDays}>{deliveryDays}</Text>
+          </View>
+          <Text style={styles.deliveryNote}>Onay sonrası</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>Sipariş Detayları</Text>
+
+        <View style={styles.detailCard}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>📄</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Dosya</Text>
+              <Text style={styles.detailValue} numberOfLines={1}>
+                {fileName}
+              </Text>
+            </View>
+            <Text style={styles.detailExtra}>{unit}</Text>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>{techData?.icon}</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Üretim Teknolojisi</Text>
+              <Text style={[styles.detailValue, { color: techData?.color }]}>
+                {techData?.title}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <View
+              style={[
+                styles.colorDotSmall,
+                {
+                  backgroundColor: materialData?.hex,
+                  borderWidth:
+                    materialData?.hex === "#f1f5f9" ||
+                    materialData?.hex === "#f8fafc"
+                      ? 1
+                      : 0,
+                  borderColor: "#cbd5e1",
+                },
+              ]}
+            />
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Malzeme & Renk</Text>
+              <Text style={styles.detailValue}>
+                {materialData?.name} — {materialData?.color}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>⬛</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Dolgu Oranı</Text>
+              <Text style={styles.detailValue}>%{infill}</Text>
+            </View>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>📦</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Adet</Text>
+              <Text style={styles.detailValue}>{quantity} adet</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.warningBox}>
+          <Text style={styles.warningIcon}>⚠️</Text>
+          <Text style={styles.warningText}>
+            Bu fiyat tahminidir. Gerçek fiyat dosya analizi sonrası kesinleşir.
+            Kesin fiyat için "Detaylı Teklif İste" seçeneğini kullan.
+          </Text>
+        </View>
+
+        <View style={{ height: 120 }} />
+      </ScrollView>
+
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+        <TouchableOpacity
+          style={styles.teklifBtn}
+          onPress={handleTeklifIste}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.teklifBtnText}>Detaylı Teklif İste</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.siparisBtn, ordering && { opacity: 0.7 }]}
+          onPress={handleSiparisVer}
+          disabled={ordering}
+          activeOpacity={0.85}
+        >
+          <Text style={styles.siparisBtnText}>
+            {ordering
+              ? "İşleniyor..."
+              : `Sipariş Ver — ₺${pricing.total.toLocaleString("tr-TR")}`}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: Colors.bg },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
+  },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backArrow: {
+    fontSize: 28,
+    color: Colors.text,
+    lineHeight: 32,
+    marginTop: -2,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: Colors.text,
+    letterSpacing: -0.5,
+  },
+  headerSub: { fontSize: 12, color: Colors.text2, marginTop: 1 },
+  fidropBadge: {
+    backgroundColor: Colors.accent + "22",
+    borderColor: Colors.accent + "55",
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  fidropText: {
+    color: Colors.accent,
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+  stepContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    gap: 6,
+    marginTop: 4,
+  },
+  stepTrack: {
+    flex: 1,
+    height: 3,
+    backgroundColor: Colors.border,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  stepFill: { height: "100%", width: "100%", borderRadius: 2 },
+  stepLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  stepLabel: { fontSize: 11, color: Colors.text3 },
+  stepLabelRight: { fontSize: 11, color: Colors.accent, fontWeight: "600" },
+  scroll: { flex: 1 },
+  scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
+  priceCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.accent + "44",
+    padding: 20,
+    marginBottom: 14,
+  },
+  priceCardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  priceLabel: { fontSize: 13, color: Colors.text2, fontWeight: "500" },
+  priceBadge: {
+    backgroundColor: Colors.accent + "22",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  priceBadgeText: { fontSize: 10, color: Colors.accent, fontWeight: "700" },
+  priceAmount: {
+    fontSize: 42,
+    fontWeight: "800",
+    color: Colors.text,
+    letterSpacing: -1,
+    marginBottom: 8,
+  },
+  discountRow: {
+    backgroundColor: Colors.green + "18",
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 12,
+  },
+  discountText: { fontSize: 12, color: Colors.green, fontWeight: "500" },
+  priceBreakdown: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: 12,
+    gap: 8,
+  },
+  priceRow: { flexDirection: "row", justifyContent: "space-between" },
+  priceRowTotal: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: 8,
+    marginTop: 4,
+  },
+  priceRowLabel: { fontSize: 13, color: Colors.text2 },
+  priceRowValue: { fontSize: 13, color: Colors.text, fontWeight: "600" },
+  priceRowLabelTotal: { fontSize: 14, color: Colors.text, fontWeight: "700" },
+  priceRowValueTotal: { fontSize: 14, color: Colors.accent, fontWeight: "800" },
+  deliveryCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 16,
+    marginBottom: 24,
+    gap: 12,
+  },
+  deliveryIcon: { fontSize: 24 },
+  deliveryTitle: { fontSize: 12, color: Colors.text2, marginBottom: 2 },
+  deliveryDays: { fontSize: 15, fontWeight: "700", color: Colors.green },
+  deliveryNote: { fontSize: 11, color: Colors.text3 },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  detailCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 14,
+    overflow: "hidden",
+  },
+  detailRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 14,
+    gap: 12,
+  },
+  detailIcon: { fontSize: 18, width: 24, textAlign: "center" },
+  detailInfo: { flex: 1 },
+  detailLabel: { fontSize: 11, color: Colors.text3, marginBottom: 2 },
+  detailValue: { fontSize: 14, color: Colors.text, fontWeight: "500" },
+  detailExtra: {
+    fontSize: 11,
+    color: Colors.accent,
+    fontWeight: "600",
+    backgroundColor: Colors.accent + "22",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  detailDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginHorizontal: 14,
+  },
+  colorDotSmall: { width: 24, height: 24, borderRadius: 12 },
+  warningBox: {
+    flexDirection: "row",
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: 14,
+    gap: 10,
+  },
+  warningIcon: { fontSize: 16, marginTop: 1 },
+  warningText: { flex: 1, fontSize: 12, color: Colors.text2, lineHeight: 18 },
+  footer: {
+    padding: 16,
+    backgroundColor: Colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: 10,
+  },
+  teklifBtn: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  teklifBtnText: { color: Colors.text2, fontSize: 14, fontWeight: "600" },
+  siparisBtn: {
+    backgroundColor: Colors.accent,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: "center",
+  },
+  siparisBtnText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+    letterSpacing: 0.2,
+  },
+});
