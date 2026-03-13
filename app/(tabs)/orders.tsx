@@ -99,8 +99,10 @@ export default function OrdersScreen() {
   const loadOrders = async () => {
     setLoading(true);
     const token = await AsyncStorage.getItem("sanatkat_token");
+
     if (token) {
       const data = await getMyOrders(token);
+
       setOrders(data);
     }
     setLoading(false);

@@ -1,12 +1,14 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ActivityIndicator, View } from "react-native";
+import { useNotifications } from "../hooks/useNotifications";
 import { AuthProvider, useAuth } from "../src/store/AuthContext";
 import { CartProvider } from "../src/store/CartContext";
 import { FavoritesProvider } from "../src/store/FavoritesContext";
 
 function RootNavigator() {
-  const { isLoading } = useAuth();
+  const { isLoading, user } = useAuth();
+  useNotifications(user?.id ?? null);
 
   if (isLoading) {
     return (

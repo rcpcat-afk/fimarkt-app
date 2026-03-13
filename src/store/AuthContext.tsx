@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
-
+import { BACKEND_URL } from "../../constants";
 interface User {
   id: number;
   name: string;
@@ -120,7 +120,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (e) {}
 
       const userData: User = {
-        id: data.user_id,
+        id: (() => {
+          try {
+            const payload = JSON.parse(atob(data.token.split(".")[1]));
+            return parseInt(payload.data?.user?.id || "0");
+          } catch {
+            return 0;
+          }
+        })(),
         name: data.user_display_name,
         email: data.user_email,
         token: data.token,
@@ -148,58 +155,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         country: "TR",
       };
 
-      const customerData = {
-        first_name: data.firstName,
-        last_name: data.lastName,
-        email: data.email,
-        username: data.email,
-        password: data.password,
-        billing: {
-          ...billing,
+      const res = await fetch(`${BACKEND_URL}/api/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
           phone: data.phone,
-          country: "TR",
-          company:
-            data.accountType === "kurumsal" ? data.companyName || "" : "",
-        },
-        shipping: {
-          first_name: data.firstName,
-          last_name: data.lastName,
-          address_1: billing.address_1,
-          city: billing.city,
-          state: billing.state,
-          postcode: billing.postcode,
-          country: "TR",
-          company:
-            data.accountType === "kurumsal" ? data.companyName || "" : "",
-        },
-      };
-
-      await Promise.allSettled([
-        fetch("https://fimarkt.com.tr/wp-json/wc/v3/customers", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${btoa("ck_c896f9e8d17b48b61488508546dd67322b5064e0:cs_2d4c19af217a83676846dafb9ecb4a57e8821c0b")}`,
-          },
-          body: JSON.stringify(customerData),
+          password: data.password,
+          accountType: data.accountType,
+          companyName: data.companyName,
+          billing: data.billing,
         }),
-        fetch("https://sanatkat.com/wp-json/wc/v3/customers", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${btoa("ck_d9135020ff96f07c045ee8160e4dfcd7d440e9f8:cs_6c6e2f75cf3514b5cc0b41197af4c2981f221684")}`,
-          },
-          body: JSON.stringify(customerData),
-        }),
-        fetch("https://fidrop.com.tr/wp-json/wc/v3/customers", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Basic ${btoa("ck_361eed22c0bd2b4b4d94c6788bd4b2c784c41a80:cs_eb985b341f03f5ca30a17f6cdf12d4fbd2977e24")}`,
-          },
-          body: JSON.stringify(customerData),
-        }),
-      ]);
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Kayıt başarısız");
 
       await login(data.email, data.password);
     } catch (error) {

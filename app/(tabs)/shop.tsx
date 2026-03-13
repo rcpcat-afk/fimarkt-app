@@ -8,6 +8,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -39,6 +40,7 @@ export default function ShopScreen() {
   useEffect(() => {
     loadCategories();
   }, []);
+
   useEffect(() => {
     loadProducts(1, false);
   }, [selectedCat, searchQuery]);
@@ -89,15 +91,29 @@ export default function ShopScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Başlık */}
       <View style={styles.header}>
         <Text style={styles.title}>
           Sanatkat <Text style={styles.accent}>Mağaza</Text>
         </Text>
         <Text style={styles.sub}>Soğuk döküm mermer heykel & biblolar</Text>
+        <View style={styles.searchBox}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Ürün ara..."
+            placeholderTextColor={Colors.text3}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            returnKeyType="search"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Text style={styles.searchClear}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
-      {/* Kategori Bar */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -154,7 +170,6 @@ export default function ShopScreen() {
         ))}
       </ScrollView>
 
-      {/* Ürünler */}
       {loading ? (
         <View style={styles.loadingArea}>
           <ActivityIndicator color={Colors.accent} size="large" />
@@ -176,7 +191,7 @@ export default function ShopScreen() {
             <View style={styles.emptyWrap}>
               <Text style={styles.emptyEmoji}>🔍</Text>
               <Text style={styles.emptyTitle}>Ürün bulunamadı</Text>
-              <Text style={styles.emptyDesc}>Bu kategoride henüz ürün yok</Text>
+              <Text style={styles.emptyDesc}>Arama sonucu bulunamadı</Text>
             </View>
           ) : (
             products.map((product) => (
@@ -273,7 +288,21 @@ const styles = StyleSheet.create({
   },
   accent: { color: Colors.accent },
   sub: { fontSize: 12, color: Colors.text2, marginTop: 3 },
-
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    height: 40,
+    gap: 8,
+    marginTop: 10,
+  },
+  searchIcon: { fontSize: 14 },
+  searchInput: { flex: 1, fontSize: 13, color: Colors.text },
+  searchClear: { fontSize: 12, color: Colors.text3 },
   catScroll: { marginBottom: 12, flexGrow: 0, flexShrink: 0 },
   catItem: { alignItems: "center" as const, width: 70 },
   catImgWrap: {
@@ -297,7 +326,6 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
   catLabelActive: { color: Colors.accent, fontWeight: "700" },
-
   loadingArea: {
     flex: 1,
     alignItems: "center",
@@ -305,7 +333,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loadingText: { fontSize: 13, color: Colors.text2 },
-
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -368,7 +395,6 @@ const styles = StyleSheet.create({
   },
   addBtnDone: { backgroundColor: Colors.green },
   addBtnText: { fontSize: 11, fontWeight: "700", color: "#fff" },
-
   emptyWrap: { width: "100%", alignItems: "center", paddingTop: 60, gap: 8 },
   emptyEmoji: { fontSize: 40, marginBottom: 4 },
   emptyTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },

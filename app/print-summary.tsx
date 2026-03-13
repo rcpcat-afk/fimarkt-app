@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -50,47 +50,14 @@ const MATERIAL_LABELS: Record<
   titanium: { name: "Titanyum", color: "Gümüş", hex: "#b0c4de" },
 };
 
-const calculatePrice = (
-  tech: string,
-  material: string,
-  infill: number,
-  quantity: number,
-) => {
-  const basePrices: Record<string, number> = {
-    "fdm-standart": 150,
-    "fdm-endustriyel": 280,
-    "sla-standart": 320,
-    "sla-endustriyel": 520,
-    mjf: 680,
-    sls: 750,
-    metal: 1800,
-  };
-  const infillMultiplier = 1 + (infill - 20) * 0.008;
-  const base = basePrices[tech] || 150;
-  const unitPrice = base * infillMultiplier;
-  const quantityDiscount = quantity >= 10 ? 0.85 : quantity >= 5 ? 0.92 : 1;
-  const total = unitPrice * quantity * quantityDiscount;
-  return {
-    unitPrice: Math.round(unitPrice),
-    total: Math.round(total),
-    discount:
-      quantity >= 5
-        ? Math.round(unitPrice * quantity * (1 - quantityDiscount))
-        : 0,
-  };
-};
-
-const getDeliveryDays = (tech: string) => {
-  const days: Record<string, string> = {
-    "fdm-standart": "2-4 iş günü",
-    "fdm-endustriyel": "3-5 iş günü",
-    "sla-standart": "3-5 iş günü",
-    "sla-endustriyel": "4-6 iş günü",
-    mjf: "5-7 iş günü",
-    sls: "5-7 iş günü",
-    metal: "10-15 iş günü",
-  };
-  return days[tech] || "3-7 iş günü";
+const DELIVERY_DAYS: Record<string, string> = {
+  "fdm-standart": "2-4 iş günü",
+  "fdm-endustriyel": "3-5 iş günü",
+  "sla-standart": "3-5 iş günü",
+  "sla-endustriyel": "4-6 iş günü",
+  mjf: "5-7 iş günü",
+  sls: "5-7 iş günü",
+  metal: "10-15 iş günü",
 };
 
 const StepIndicator = ({
@@ -121,6 +88,14 @@ export default function PrintSummaryScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const [ordering, setOrdering] = useState(false);
+  const [priceData, setPriceData] = useState<{
+    unitPrice: number;
+    totalPrice: number;
+    discount: number;
+    weightGram: number;
+    printHours: number;
+  } | null>(null);
+  const [priceLoading, setPriceLoading] = useState(true);
 
   const tech = params.tech as string;
   const material = params.material as string;
@@ -131,13 +106,41 @@ export default function PrintSummaryScreen() {
 
   const techData = TECH_LABELS[tech];
   const materialData = MATERIAL_LABELS[material];
-  const pricing = calculatePrice(tech, material, infill, quantity);
-  const deliveryDays = getDeliveryDays(tech);
+  const deliveryDays = DELIVERY_DAYS[tech] || "3-7 iş günü";
+
+  // Malzeme ID'sini backend formatına çevir
+
+  useEffect(() => {
+    if (!tech || !material) return;
+    setPriceLoading(true);
+    fetch(
+      "https://fimarkt-backend-production.up.railway.app/api/print/calculate",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          volumeCm3:
+            Number(params.volumeCm3) > 0.1 ? Number(params.volumeCm3) : 25,
+          infill,
+          materialId: material,
+          technologyId: tech,
+          quantity,
+        }),
+      },
+    )
+      .then((r) => r.json())
+      .then((data) => {
+        setPriceData(data);
+        setPriceLoading(false);
+      })
+      .catch(() => setPriceLoading(false));
+  }, []);
 
   const handleSiparisVer = () => {
+    if (!priceData) return;
     Alert.alert(
       "Siparişi Onayla",
-      `Toplam tutar: ₺${pricing.total.toLocaleString("tr-TR")}\n\nSiparişiniz oluşturulsun mu?`,
+      `Toplam tutar: ₺${priceData.totalPrice.toLocaleString("tr-TR")}\n\nSiparişiniz oluşturulsun mu?`,
       [
         { text: "İptal", style: "cancel" },
         {
@@ -203,25 +206,44 @@ export default function PrintSummaryScreen() {
           <View style={styles.priceCardTop}>
             <Text style={styles.priceLabel}>Tahmini Toplam</Text>
             <View style={styles.priceBadge}>
-              <Text style={styles.priceBadgeText}>Mock Fiyat</Text>
+              <Text style={styles.priceBadgeText}>Hesaplanan Fiyat</Text>
             </View>
           </View>
-          <Text style={styles.priceAmount}>
-            ₺{pricing.total.toLocaleString("tr-TR")}
-          </Text>
-          {pricing.discount > 0 && (
+
+          {priceLoading ? (
+            <Text style={styles.priceAmount}>Hesaplanıyor...</Text>
+          ) : (
+            <Text style={styles.priceAmount}>
+              ₺{(priceData?.totalPrice ?? 0).toLocaleString("tr-TR")}
+            </Text>
+          )}
+
+          {!priceLoading && priceData && priceData.discount > 0 && (
             <View style={styles.discountRow}>
               <Text style={styles.discountText}>
                 🎉 {quantity} adet indirimi: -₺
-                {pricing.discount.toLocaleString("tr-TR")} tasarruf
+                {priceData.discount.toLocaleString("tr-TR")} tasarruf
               </Text>
             </View>
           )}
+
           <View style={styles.priceBreakdown}>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceRowLabel}>Ağırlık</Text>
+              <Text style={styles.priceRowValue}>
+                {priceData?.weightGram ?? "-"} g
+              </Text>
+            </View>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceRowLabel}>Baskı süresi</Text>
+              <Text style={styles.priceRowValue}>
+                {priceData?.printHours ?? "-"} saat
+              </Text>
+            </View>
             <View style={styles.priceRow}>
               <Text style={styles.priceRowLabel}>Birim fiyat</Text>
               <Text style={styles.priceRowValue}>
-                ₺{pricing.unitPrice.toLocaleString("tr-TR")}
+                ₺{(priceData?.unitPrice ?? 0).toLocaleString("tr-TR")}
               </Text>
             </View>
             <View style={styles.priceRow}>
@@ -231,7 +253,7 @@ export default function PrintSummaryScreen() {
             <View style={[styles.priceRow, styles.priceRowTotal]}>
               <Text style={styles.priceRowLabelTotal}>Toplam</Text>
               <Text style={styles.priceRowValueTotal}>
-                ₺{pricing.total.toLocaleString("tr-TR")}
+                ₺{(priceData?.totalPrice ?? 0).toLocaleString("tr-TR")}
               </Text>
             </View>
           </View>
@@ -330,15 +352,20 @@ export default function PrintSummaryScreen() {
           <Text style={styles.teklifBtnText}>Detaylı Teklif İste</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.siparisBtn, ordering && { opacity: 0.7 }]}
+          style={[
+            styles.siparisBtn,
+            (ordering || priceLoading) && { opacity: 0.7 },
+          ]}
           onPress={handleSiparisVer}
-          disabled={ordering}
+          disabled={ordering || priceLoading}
           activeOpacity={0.85}
         >
           <Text style={styles.siparisBtnText}>
             {ordering
               ? "İşleniyor..."
-              : `Sipariş Ver — ₺${pricing.total.toLocaleString("tr-TR")}`}
+              : priceLoading
+                ? "Hesaplanıyor..."
+                : `Sipariş Ver — ₺${(priceData?.totalPrice ?? 0).toLocaleString("tr-TR")}`}
           </Text>
         </TouchableOpacity>
       </View>

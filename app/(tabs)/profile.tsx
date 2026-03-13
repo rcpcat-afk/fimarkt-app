@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -330,11 +331,7 @@ export default function ProfileScreen() {
               icon="📄"
               label="Gizlilik Politikası"
               onPress={() =>
-                Alert.alert(
-                  "📄 Gizlilik",
-                  "fimarkt.com.tr/gizlilik adresinden okuyabilirsiniz.",
-                  [{ text: "Tamam" }],
-                )
+                Linking.openURL("https://fimarkt.com.tr/gizlilik-politikasi/")
               }
             />
             <SettingRow icon="ℹ️" label="Versiyon" value="1.0.0" />
