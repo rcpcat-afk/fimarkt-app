@@ -94,6 +94,9 @@ export default function PrintSummaryScreen() {
     discount: number;
     weightGram: number;
     printHours: number;
+    volumeCm3?: number;
+    dimensionsMm?: { x: number; y: number; z: number };
+    triangleCount?: number;
   } | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
 
@@ -105,37 +108,72 @@ export default function PrintSummaryScreen() {
   const unit = params.unit as string;
 
   const techData = TECH_LABELS[tech];
-  const materialData = MATERIAL_LABELS[material];
+  const materialData = MATERIAL_LABELS[material] ?? {
+    name: (params.materialName as string) ?? material,
+    color: (params.color as string) ?? "",
+    hex: "#94a3b8",
+  };
+
   const deliveryDays = DELIVERY_DAYS[tech] || "3-7 iş günü";
 
   // Malzeme ID'sini backend formatına çevir
 
   useEffect(() => {
-    if (!tech || !material) return;
     setPriceLoading(true);
+    const volCm3 =
+      Number(params.volumeCm3) > 0.1 ? Number(params.volumeCm3) : 25;
+    const fileUri = params.fileUri as string;
+
+    const form = new FormData();
+    form.append("file", {
+      uri: fileUri,
+      name: "model.stl",
+      type: "application/octet-stream",
+    } as any);
+    form.append("volume_cm3", String(volCm3));
+    form.append("technology_id", tech);
+    form.append("infill", String(infill));
+    form.append("gram_price", String(params.gramPrice ?? 0));
+    form.append("hourly_rate", String(params.hourlyRate ?? 0));
+    form.append("fixed_cost", String(params.fixedCost ?? 0));
+    form.append("profit_margin", String(params.profitMargin ?? 30));
+    form.append("quantity", String(quantity));
+
+    const backendForm = new FormData();
+    backendForm.append("file", {
+      uri: fileUri,
+      name: "model.stl",
+      type: "application/octet-stream",
+    } as any);
+    backendForm.append("volumeCm3", String(volCm3));
+    backendForm.append("technology_id", tech);
+    backendForm.append("infill", String(infill));
+    backendForm.append("materialId", material);
+    backendForm.append("quantity", String(quantity));
+
     fetch(
       "https://fimarkt-backend-production.up.railway.app/api/print/calculate",
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          volumeCm3:
-            Number(params.volumeCm3) > 0.1 ? Number(params.volumeCm3) : 25,
-          infill,
-          materialId: material,
-          technologyId: tech,
-          quantity,
-        }),
+        body: backendForm,
       },
     )
       .then((r) => r.json())
-      .then((data) => {
-        setPriceData(data);
+      .then((result) => {
+        setPriceData({
+          unitPrice: result.unitPrice ?? result.unit_price,
+          totalPrice: result.totalPrice ?? result.total_price,
+          discount: result.discount ?? 0,
+          weightGram: result.weightGram ?? result.weight_gram,
+          printHours: result.printHours ?? result.print_hours,
+          volumeCm3: result.volumeCm3 ?? result.volume_cm3,
+          dimensionsMm: result.dimensionsMm ?? result.dimensions_mm,
+          triangleCount: result.triangleCount ?? result.triangle_count,
+        });
         setPriceLoading(false);
       })
       .catch(() => setPriceLoading(false));
   }, []);
-
   const handleSiparisVer = () => {
     if (!priceData) return;
     Alert.alert(
@@ -191,9 +229,9 @@ export default function PrintSummaryScreen() {
         </View>
       </View>
 
-      <StepIndicator currentStep={4} totalSteps={4} />
+      <StepIndicator currentStep={3} totalSteps={3} />
       <View style={styles.stepLabelRow}>
-        <Text style={styles.stepLabel}>Adım 4 / 4</Text>
+        <Text style={styles.stepLabel}>Adım 3 / 3</Text>
         <Text style={styles.stepLabelRight}>Fiyat Özeti</Text>
       </View>
 
@@ -204,12 +242,11 @@ export default function PrintSummaryScreen() {
       >
         <View style={styles.priceCard}>
           <View style={styles.priceCardTop}>
-            <Text style={styles.priceLabel}>Tahmini Toplam</Text>
+            <Text style={styles.priceLabel}>Toplam Fiyat</Text>
             <View style={styles.priceBadge}>
-              <Text style={styles.priceBadgeText}>Hesaplanan Fiyat</Text>
+              <Text style={styles.priceBadgeText}>CuraEngine ✓</Text>
             </View>
           </View>
-
           {priceLoading ? (
             <Text style={styles.priceAmount}>Hesaplanıyor...</Text>
           ) : (
@@ -218,30 +255,9 @@ export default function PrintSummaryScreen() {
             </Text>
           )}
 
-          {!priceLoading && priceData && priceData.discount > 0 && (
-            <View style={styles.discountRow}>
-              <Text style={styles.discountText}>
-                🎉 {quantity} adet indirimi: -₺
-                {priceData.discount.toLocaleString("tr-TR")} tasarruf
-              </Text>
-            </View>
-          )}
-
           <View style={styles.priceBreakdown}>
             <View style={styles.priceRow}>
-              <Text style={styles.priceRowLabel}>Ağırlık</Text>
-              <Text style={styles.priceRowValue}>
-                {priceData?.weightGram ?? "-"} g
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceRowLabel}>Baskı süresi</Text>
-              <Text style={styles.priceRowValue}>
-                {priceData?.printHours ?? "-"} saat
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceRowLabel}>Birim fiyat</Text>
+              <Text style={styles.priceRowLabel}>Birim Fiyat</Text>
               <Text style={styles.priceRowValue}>
                 ₺{(priceData?.unitPrice ?? 0).toLocaleString("tr-TR")}
               </Text>
@@ -250,6 +266,16 @@ export default function PrintSummaryScreen() {
               <Text style={styles.priceRowLabel}>Adet</Text>
               <Text style={styles.priceRowValue}>{quantity}</Text>
             </View>
+            {priceData && priceData.discount > 0 && (
+              <View style={styles.priceRow}>
+                <Text style={[styles.priceRowLabel, { color: Colors.green }]}>
+                  İndirim
+                </Text>
+                <Text style={[styles.priceRowValue, { color: Colors.green }]}>
+                  -₺{priceData.discount.toLocaleString("tr-TR")}
+                </Text>
+              </View>
+            )}
             <View style={[styles.priceRow, styles.priceRowTotal]}>
               <Text style={styles.priceRowLabelTotal}>Toplam</Text>
               <Text style={styles.priceRowValueTotal}>
@@ -258,7 +284,87 @@ export default function PrintSummaryScreen() {
             </View>
           </View>
         </View>
-
+        <View style={styles.detailCard}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>🧊</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Model & Baskı Detayları</Text>
+            </View>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>{techData?.icon}</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Teknoloji</Text>
+              <Text style={[styles.detailValue, { color: techData?.color }]}>
+                {techData?.title}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.colorDotSmall,
+                {
+                  backgroundColor: materialData?.hex,
+                  borderWidth: materialData?.hex === "#f1f5f9" ? 1 : 0,
+                  borderColor: "#cbd5e1",
+                },
+              ]}
+            />
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Malzeme</Text>
+              <Text style={styles.detailValue}>
+                {materialData?.name} — {materialData?.color}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>⚖️</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Ağırlık</Text>
+              <Text style={styles.detailValue}>
+                {priceData?.weightGram ?? "-"} g
+              </Text>
+            </View>
+            <Text style={styles.detailIcon}>⏱️</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Baskı Süresi</Text>
+              <Text style={styles.detailValue}>
+                {priceData?.printHours ?? "-"} saat
+              </Text>
+            </View>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>📦</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Hacim</Text>
+              <Text style={styles.detailValue}>
+                {priceData?.volumeCm3 ?? "-"} cm³
+              </Text>
+            </View>
+            <Text style={styles.detailIcon}>⬛</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Dolgu Oranı</Text>
+              <Text style={styles.detailValue}>%{infill}</Text>
+            </View>
+          </View>
+          {priceData?.dimensionsMm && (
+            <>
+              <View style={styles.detailDivider} />
+              <View style={styles.detailRow}>
+                <Text style={styles.detailIcon}>📐</Text>
+                <View style={styles.detailInfo}>
+                  <Text style={styles.detailLabel}>Boyutlar</Text>
+                  <Text style={styles.detailValue}>
+                    {priceData.dimensionsMm.x} × {priceData.dimensionsMm.y} ×{" "}
+                    {priceData.dimensionsMm.z} mm
+                  </Text>
+                </View>
+              </View>
+            </>
+          )}
+        </View>
         <View style={styles.deliveryCard}>
           <Text style={styles.deliveryIcon}>🚚</Text>
           <View style={{ flex: 1 }}>
@@ -315,13 +421,7 @@ export default function PrintSummaryScreen() {
             </View>
           </View>
           <View style={styles.detailDivider} />
-          <View style={styles.detailRow}>
-            <Text style={styles.detailIcon}>⬛</Text>
-            <View style={styles.detailInfo}>
-              <Text style={styles.detailLabel}>Dolgu Oranı</Text>
-              <Text style={styles.detailValue}>%{infill}</Text>
-            </View>
-          </View>
+
           <View style={styles.detailDivider} />
           <View style={styles.detailRow}>
             <Text style={styles.detailIcon}>📦</Text>
@@ -333,10 +433,10 @@ export default function PrintSummaryScreen() {
         </View>
 
         <View style={styles.warningBox}>
-          <Text style={styles.warningIcon}>⚠️</Text>
+          <Text style={styles.warningIcon}>ℹ️</Text>
           <Text style={styles.warningText}>
-            Bu fiyat tahminidir. Gerçek fiyat dosya analizi sonrası kesinleşir.
-            Kesin fiyat için "Detaylı Teklif İste" seçeneğini kullan.
+            Fiyat, modelinizin gerçek geometrisine göre CuraEngine ile
+            hesaplanmıştır. Sipariş onaylandıktan sonra üretim süreci başlar.
           </Text>
         </View>
 

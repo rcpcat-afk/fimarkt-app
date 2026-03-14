@@ -1,5 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
+// file system
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -66,12 +67,18 @@ const StepIndicator = ({
     ))}
   </View>
 );
-
 export default function PrintUploadScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { service } = useLocalSearchParams();
-
+  const [priceResult, setPriceResult] = useState<{
+    unitPrice: number;
+    totalPrice: number;
+    discount: number;
+    weightGram: number;
+    printHours: number;
+    source: string;
+  } | null>(null);
   const [file, setFile] = useState<{
     name: string;
     size: number;
@@ -82,6 +89,7 @@ export default function PrintUploadScreen() {
   const [volumeData, setVolumeData] = useState<{
     volumeCm3: number;
     weightGram: number;
+    printHours: number;
   } | null>(null);
   const [techLoading, setTechLoading] = useState(false);
   const [technologies, setTechnologies] = useState<Technology[]>([]);
@@ -92,6 +100,8 @@ export default function PrintUploadScreen() {
   const [quantity, setQuantity] = useState(1);
   const [fullscreen, setFullscreen] = useState(false);
   const [modelReady, setModelReady] = useState(false);
+  const [stlVertices, setStlVertices] = useState<number[] | null>(null);
+  const [stlNormals, setStlNormals] = useState<number[] | null>(null);
 
   const selectedTechData = technologies.find((t) => t.id === selectedTech);
   const selectedMaterialData = selectedTechData?.materials.find(
@@ -126,6 +136,7 @@ export default function PrintUploadScreen() {
         ]);
         return;
       }
+
       setFile({ name: picked.name, size: picked.size ?? 0, uri: picked.uri });
       setIsSTL(picked.name.toLowerCase().endsWith(".stl"));
       setSelectedTech(null);
@@ -161,16 +172,20 @@ export default function PrintUploadScreen() {
 
   const handleDevam = () => {
     if (!canProceed) return;
+
     router.push({
       pathname: "/print-summary",
       params: {
+        gramPrice: selectedMaterialData?.gramPrice ?? 0,
+        hourlyRate: selectedMaterialData?.hourlyRate ?? 0,
+        fixedCost: selectedMaterialData?.fixedCost ?? 0,
+        profitMargin: (selectedMaterialData as any)?.profitMargin ?? 30,
         service,
         fileName: file.name,
         fileSize: file.size,
         fileUri: file.uri,
         unit,
         volumeCm3: volumeData?.volumeCm3 ?? 0,
-        weightGram: volumeData?.weightGram ?? 0,
         tech: selectedTech,
         techName: selectedTechData?.name,
         material: selectedMaterial,
@@ -181,7 +196,6 @@ export default function PrintUploadScreen() {
       },
     });
   };
-
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -244,10 +258,27 @@ export default function PrintUploadScreen() {
                 uri={file.uri}
                 color={modelColor}
                 height={220}
-                onVolumeCalculated={(volumeCm3, weightGram) => {
-                  setVolumeData({ volumeCm3, weightGram });
+                onVolumeCalculated={(volumeCm3, weightGram, printHours) => {
+                  setVolumeData({ volumeCm3, weightGram, printHours });
                   setModelReady(true);
                 }}
+                onVerticesReady={(v) => setStlVertices(v)}
+                onNormalsReady={(n) => setStlNormals(n)}
+                onPriceCalculated={(data) => setPriceResult(data)}
+                priceParams={
+                  selectedTech && selectedMaterial && selectedMaterialData
+                    ? {
+                        technologyId: selectedTech,
+                        infill: selectedInfill,
+                        gramPrice: selectedMaterialData.gramPrice,
+                        hourlyRate: selectedMaterialData.hourlyRate,
+                        fixedCost: selectedMaterialData.fixedCost,
+                        profitMargin:
+                          (selectedMaterialData as any).profitMargin ?? 30,
+                        quantity,
+                      }
+                    : undefined
+                }
               />
             ) : (
               <View style={styles.nonStlPlaceholder}>
