@@ -234,7 +234,7 @@ export default function PrintSummaryScreen() {
                     material_id: material,
                     material_name: materialData?.name,
                     color: materialData?.color,
-                    infill,
+                    infill: FDM_TECHNOLOGIES.includes(tech) ? infill : null,
                     quantity,
                     unit_price: priceData.unitPrice,
                     total_price: priceData.totalPrice,
@@ -253,6 +253,7 @@ export default function PrintSummaryScreen() {
                 },
               );
               const result = await res.json();
+              console.log("Sipariş result:", JSON.stringify(result));
               setOrdering(false);
               if (result.success) {
                 Alert.alert(
