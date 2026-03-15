@@ -176,7 +176,14 @@ export default function PrintSummaryScreen() {
     backendForm.append("materialId", material);
     backendForm.append("density_g_cm3", String(params.density ?? 0));
     backendForm.append("quantity", String(quantity));
-
+    console.log(
+      "fetch başlıyor, tech:",
+      tech,
+      "material:",
+      material,
+      "infill:",
+      infill,
+    );
     fetch(
       "https://fimarkt-backend-production.up.railway.app/api/print/calculate",
       {
