@@ -1170,16 +1170,23 @@ export default function AdminSettingsScreen() {
   const [techSaved, setTechSaved] = useState(false);
   const [techLoading, setTechLoading] = useState(false);
   const [techProfiles, setTechProfiles] = useState({
-    fdm: { shell_flow_rate: 4.0, infill_flow_rate: 8.0, power_w: 200.0 },
+    fdm: {
+      shell_flow_rate: 4.0,
+      infill_flow_rate: 8.0,
+      power_w: 200.0,
+      default_support_ratio: 0.15,
+    },
     fdm_endustriyel: {
       shell_flow_rate: 8.0,
       infill_flow_rate: 16.0,
       power_w: 300.0,
+      default_support_ratio: 0.15,
     },
     fdm_yuksek: {
       shell_flow_rate: 12.0,
       infill_flow_rate: 24.0,
       power_w: 350.0,
+      default_support_ratio: 0.15,
     },
     sla: {
       bottom_layer_count: 5,
@@ -1853,20 +1860,40 @@ export default function AdminSettingsScreen() {
                   />
                 </View>
               </View>
-              <View style={styles.matField}>
-                <Text style={styles.label}>Güç Tüketimi (W)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="decimal-pad"
-                  placeholderTextColor={Colors.text3}
-                  value={String(techProfiles.fdm.power_w)}
-                  onChangeText={(v) =>
-                    setTechProfiles((p) => ({
-                      ...p,
-                      fdm: { ...p.fdm, power_w: parseFloat(v) || 0 },
-                    }))
-                  }
-                />
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm: { ...p.fdm, power_w: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm.default_support_ratio)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm: {
+                          ...p.fdm,
+                          default_support_ratio: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
               </View>
             </View>
 
@@ -1912,23 +1939,45 @@ export default function AdminSettingsScreen() {
                   />
                 </View>
               </View>
-              <View style={styles.matField}>
-                <Text style={styles.label}>Güç Tüketimi (W)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="decimal-pad"
-                  placeholderTextColor={Colors.text3}
-                  value={String(techProfiles.fdm_endustriyel.power_w)}
-                  onChangeText={(v) =>
-                    setTechProfiles((p) => ({
-                      ...p,
-                      fdm_endustriyel: {
-                        ...p.fdm_endustriyel,
-                        power_w: parseFloat(v) || 0,
-                      },
-                    }))
-                  }
-                />
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm_endustriyel.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_endustriyel: {
+                          ...p.fdm_endustriyel,
+                          power_w: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(
+                      techProfiles.fdm_endustriyel.default_support_ratio,
+                    )}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_endustriyel: {
+                          ...p.fdm_endustriyel,
+                          default_support_ratio: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
               </View>
             </View>
 
@@ -1966,6 +2015,46 @@ export default function AdminSettingsScreen() {
                         fdm_yuksek: {
                           ...p.fdm_yuksek,
                           infill_flow_rate: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm_yuksek.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_yuksek: {
+                          ...p.fdm_yuksek,
+                          power_w: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(
+                      techProfiles.fdm_yuksek.default_support_ratio,
+                    )}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_yuksek: {
+                          ...p.fdm_yuksek,
+                          default_support_ratio: parseFloat(v) || 0,
                         },
                       }))
                     }
