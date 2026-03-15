@@ -117,6 +117,8 @@ export default function PrintSummaryScreen() {
     volumeCm3?: number;
     dimensionsMm?: { x: number; y: number; z: number };
     triangleCount?: number;
+    meshWarning?: string;
+    source?: string;
   } | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
 
@@ -189,6 +191,8 @@ export default function PrintSummaryScreen() {
           volumeCm3: result.volumeCm3 ?? result.volume_cm3,
           dimensionsMm: result.dimensionsMm ?? result.dimensions_mm,
           triangleCount: result.triangleCount ?? result.triangle_count,
+          meshWarning: result.mesh_warning,
+          source: result.source,
         });
         setPriceLoading(false);
       })
@@ -263,9 +267,27 @@ export default function PrintSummaryScreen() {
         <View style={styles.priceCard}>
           <View style={styles.priceCardTop}>
             <Text style={styles.priceLabel}>Toplam Fiyat</Text>
-            <View style={styles.priceBadge}>
-              <Text style={styles.priceBadgeText}>CuraEngine ✓</Text>
-            </View>
+            {priceData?.source && (
+              <View style={styles.priceBadge}>
+                <Text style={styles.priceBadgeText}>
+                  {priceData.source === "volumetric-fdm"
+                    ? "Volumetric Flow ✓"
+                    : priceData.source === "resin"
+                      ? "Reçine Motor ✓"
+                      : priceData.source === "powder"
+                        ? "Toz Motor ✓"
+                        : priceData.source === "metal"
+                          ? "Metal Motor ✓"
+                          : priceData.source === "polyjet"
+                            ? "Polyjet Motor ✓"
+                            : priceData.source === "ceramic"
+                              ? "Seramik Motor ✓"
+                              : priceData.source === "carbon-fiber"
+                                ? "Karbon Fiber Motor ✓"
+                                : "Hesaplama Motoru ✓"}
+                </Text>
+              </View>
+            )}
           </View>
           {priceLoading ? (
             <Text style={styles.priceAmount}>Hesaplanıyor...</Text>
@@ -452,11 +474,25 @@ export default function PrintSummaryScreen() {
           </View>
         </View>
 
+        {priceData?.meshWarning && (
+          <View
+            style={[
+              styles.warningBox,
+              { borderColor: "#f59e0b", marginBottom: 10 },
+            ]}
+          >
+            <Text style={styles.warningIcon}>⚠️</Text>
+            <Text style={[styles.warningText, { color: "#f59e0b" }]}>
+              {priceData.meshWarning}
+            </Text>
+          </View>
+        )}
+
         <View style={styles.warningBox}>
           <Text style={styles.warningIcon}>ℹ️</Text>
           <Text style={styles.warningText}>
-            Fiyat, modelinizin gerçek geometrisine göre CuraEngine ile
-            hesaplanmıştır. Sipariş onaylandıktan sonra üretim süreci başlar.
+            Fiyat, modelinizin gerçek geometrisine göre hesaplanmıştır. Sipariş
+            onaylandıktan sonra üretim süreci başlar.
           </Text>
         </View>
 
