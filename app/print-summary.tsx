@@ -124,7 +124,10 @@ export default function PrintSummaryScreen() {
 
   const tech = params.tech as string;
   const material = params.material as string;
-  const infill = Number(params.infill) || 20;
+  const FDM_TECHNOLOGIES = ["fdm-standart", "fdm-endustriyel", "fdm-yuksek"];
+  const infill = FDM_TECHNOLOGIES.includes(tech)
+    ? Number(params.infill) || 20
+    : 20;
   const quantity = Number(params.quantity) || 1;
   const fileName = params.fileName as string;
   const unit = params.unit as string;
@@ -386,11 +389,15 @@ export default function PrintSummaryScreen() {
                 {priceData?.volumeCm3 ?? "-"} cm³
               </Text>
             </View>
-            <Text style={styles.detailIcon}>⬛</Text>
-            <View style={styles.detailInfo}>
-              <Text style={styles.detailLabel}>Dolgu Oranı</Text>
-              <Text style={styles.detailValue}>%{infill}</Text>
-            </View>
+            {FDM_TECHNOLOGIES.includes(tech) && (
+              <>
+                <Text style={styles.detailIcon}>⬛</Text>
+                <View style={styles.detailInfo}>
+                  <Text style={styles.detailLabel}>Dolgu Oranı</Text>
+                  <Text style={styles.detailValue}>%{infill}</Text>
+                </View>
+              </>
+            )}
           </View>
           {priceData?.dimensionsMm && (
             <>
