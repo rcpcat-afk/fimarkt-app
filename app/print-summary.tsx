@@ -176,14 +176,7 @@ export default function PrintSummaryScreen() {
     backendForm.append("materialId", material);
     backendForm.append("density_g_cm3", String(params.density ?? 0));
     backendForm.append("quantity", String(quantity));
-    console.log(
-      "fetch başlıyor, tech:",
-      tech,
-      "material:",
-      material,
-      "infill:",
-      infill,
-    );
+
     fetch(
       "https://fimarkt-backend-production.up.railway.app/api/print/calculate",
       {
@@ -193,7 +186,6 @@ export default function PrintSummaryScreen() {
     )
       .then((r) => r.json())
       .then((result) => {
-        console.log("backend cevap:", JSON.stringify(result));
         setPriceData({
           unitPrice: result.unitPrice ?? result.unit_price,
           totalPrice: result.totalPrice ?? result.total_price,
@@ -208,10 +200,7 @@ export default function PrintSummaryScreen() {
         });
         setPriceLoading(false);
       })
-      .catch((err) => {
-        console.log("fetch hata:", err);
-        setPriceLoading(false);
-      });
+      .catch(() => setPriceLoading(false));
   }, []);
   const handleSiparisVer = () => {
     if (!priceData) return;
