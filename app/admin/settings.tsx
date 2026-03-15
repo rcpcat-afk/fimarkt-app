@@ -1398,7 +1398,7 @@ export default function AdminSettingsScreen() {
             </TouchableOpacity>
           </View>
         </>
-      ) : (
+      ) : activeTab === "print3d" ? (
         <>
           <ScrollView
             style={styles.scroll}
@@ -1708,7 +1708,7 @@ export default function AdminSettingsScreen() {
             </TouchableOpacity>
           </View>
         </>
-      )}
+      ) : null}
 
       {activeTab === "techprofiles" && (
         <>
