@@ -1,6 +1,5 @@
 import * as DocumentPicker from "expo-document-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-// file system
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -24,6 +23,26 @@ const INFILL_OPTIONS = [
   { value: 30, label: "%30", desc: "Sağlam" },
   { value: 50, label: "%50", desc: "Güçlü" },
   { value: 100, label: "%100", desc: "Tam Dolu" },
+];
+
+const TECH_GROUPS = [
+  {
+    groupId: "fdm",
+    label: "🏭 FDM Baskı",
+    ids: ["fdm-standart", "fdm-endustriyel", "fdm-yuksek"],
+  },
+  { groupId: "recine", label: "💎 Reçine Baskı", ids: ["sla", "dlp", "msla"] },
+  { groupId: "toz", label: "⚡ Toz Baskı", ids: ["sls", "mjf"] },
+  {
+    groupId: "metal",
+    label: "🔩 Metal Baskı",
+    ids: ["dmls", "binder-jetting"],
+  },
+  {
+    groupId: "ozel",
+    label: "🎨 Özel",
+    ids: ["polyjet", "seramik", "karbon-fiber"],
+  },
 ];
 
 type Material = {
@@ -67,6 +86,7 @@ const StepIndicator = ({
     ))}
   </View>
 );
+
 export default function PrintUploadScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -136,14 +156,12 @@ export default function PrintUploadScreen() {
         ]);
         return;
       }
-
       setFile({ name: picked.name, size: picked.size ?? 0, uri: picked.uri });
       setIsSTL(picked.name.toLowerCase().endsWith(".stl"));
       setSelectedTech(null);
       setSelectedMaterial(null);
       setSelectedColor(null);
       setVolumeData(null);
-      // Teknolojileri yükle
       if (technologies.length === 0) {
         setTechLoading(true);
         fetch(`${BACKEND_URL}/api/print-materials`)
@@ -172,7 +190,6 @@ export default function PrintUploadScreen() {
 
   const handleDevam = () => {
     if (!canProceed) return;
-
     router.push({
       pathname: "/print-summary",
       params: {
@@ -196,17 +213,255 @@ export default function PrintUploadScreen() {
       },
     });
   };
+
   const formatFileSize = (bytes: number) => {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   };
 
+  const renderTechCard = (tech: Technology) => {
+    const isSelected = selectedTech === tech.id;
+    const activeMaterials = tech.materials.filter((m) => m.active);
+    const selMat = activeMaterials.find((m) => m.id === selectedMaterial);
+
+    return (
+      <View
+        key={tech.id}
+        style={[
+          styles.techCard,
+          isSelected && { borderColor: tech.color, borderWidth: 2 },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.techCardHeader}
+          onPress={() => handleTechSelect(tech.id)}
+          activeOpacity={0.85}
+        >
+          <View
+            style={[
+              styles.techIconWrap,
+              { backgroundColor: tech.color + "22" },
+            ]}
+          >
+            <Text style={styles.techIcon}>{tech.icon}</Text>
+          </View>
+          <View style={styles.techInfo}>
+            <Text style={styles.techTitle}>{tech.name}</Text>
+            <Text style={styles.techDesc}>
+              {activeMaterials.length} malzeme mevcut
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.techRadio,
+              isSelected && {
+                borderColor: tech.color,
+                backgroundColor: tech.color,
+              },
+            ]}
+          >
+            {isSelected && <Text style={styles.techRadioCheck}>✓</Text>}
+          </View>
+        </TouchableOpacity>
+
+        {isSelected && (
+          <View style={styles.techExpanded}>
+            <Text style={styles.expandedLabel}>Malzeme</Text>
+            <View style={styles.chipRow}>
+              {activeMaterials.map((mat) => (
+                <TouchableOpacity
+                  key={mat.id}
+                  style={[
+                    styles.chip,
+                    selectedMaterial === mat.id && {
+                      backgroundColor: tech.color,
+                      borderColor: tech.color,
+                    },
+                  ]}
+                  onPress={() => handleMaterialSelect(mat.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.chipText,
+                      selectedMaterial === mat.id && { color: "#fff" },
+                    ]}
+                  >
+                    {mat.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {selMat && (
+              <>
+                <Text style={[styles.expandedLabel, { marginTop: 16 }]}>
+                  Renk
+                </Text>
+                <View style={styles.colorRow}>
+                  {selMat.colors
+                    .filter((c) => c.active)
+                    .map((colorObj) => (
+                      <TouchableOpacity
+                        key={colorObj.name}
+                        style={[
+                          styles.colorItem,
+                          selectedColor === colorObj.name && {
+                            borderColor: tech.color,
+                            borderWidth: 2,
+                          },
+                        ]}
+                        onPress={() => setSelectedColor(colorObj.name)}
+                        activeOpacity={0.8}
+                      >
+                        <View
+                          style={[
+                            styles.colorDot,
+                            {
+                              backgroundColor:
+                                COLOR_HEX[colorObj.name] ?? "#94a3b8",
+                              borderColor:
+                                colorObj.name === "Beyaz" ||
+                                colorObj.name === "Şeffaf"
+                                  ? "#cbd5e1"
+                                  : "transparent",
+                              borderWidth:
+                                colorObj.name === "Beyaz" ||
+                                colorObj.name === "Şeffaf"
+                                  ? 1
+                                  : 0,
+                            },
+                          ]}
+                        />
+                        <Text
+                          style={[
+                            styles.colorName,
+                            selectedColor === colorObj.name && {
+                              color: tech.color,
+                              fontWeight: "700",
+                            },
+                          ]}
+                          numberOfLines={2}
+                        >
+                          {colorObj.name}
+                        </Text>
+                        {selectedColor === colorObj.name && (
+                          <View
+                            style={[
+                              styles.colorCheckBadge,
+                              { backgroundColor: tech.color },
+                            ]}
+                          >
+                            <Text style={styles.colorCheckText}>✓</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    ))}
+                </View>
+              </>
+            )}
+
+            {selectedColor && (
+              <>
+                <Text style={[styles.expandedLabel, { marginTop: 16 }]}>
+                  Dolgu Oranı
+                </Text>
+                <View style={styles.infillRow}>
+                  {INFILL_OPTIONS.map((opt) => (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[
+                        styles.infillBtn,
+                        selectedInfill === opt.value && {
+                          borderColor: tech.color,
+                          backgroundColor: tech.color + "15",
+                        },
+                      ]}
+                      onPress={() => setSelectedInfill(opt.value)}
+                      activeOpacity={0.8}
+                    >
+                      {opt.recommended && (
+                        <View style={styles.infillRecommended}>
+                          <Text
+                            style={[
+                              styles.infillRecommendedText,
+                              { color: tech.color },
+                            ]}
+                          >
+                            ✦
+                          </Text>
+                        </View>
+                      )}
+                      <Text
+                        style={[
+                          styles.infillLabel,
+                          selectedInfill === opt.value && { color: tech.color },
+                        ]}
+                      >
+                        {opt.label}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.infillDesc,
+                          selectedInfill === opt.value && { color: tech.color },
+                        ]}
+                      >
+                        {opt.desc}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </>
+            )}
+
+            {selectedColor && (
+              <>
+                <Text style={[styles.expandedLabel, { marginTop: 16 }]}>
+                  Adet
+                </Text>
+                <View style={styles.quantityRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.qtyBtn,
+                      quantity <= 1 && styles.qtyBtnDisabled,
+                    ]}
+                    onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                    disabled={quantity <= 1}
+                  >
+                    <Text style={styles.qtyBtnText}>−</Text>
+                  </TouchableOpacity>
+                  <View
+                    style={[
+                      styles.qtyDisplay,
+                      { borderColor: tech.color + "44" },
+                    ]}
+                  >
+                    <Text style={styles.qtyNumber}>{quantity}</Text>
+                    <Text style={styles.qtyUnit}>adet</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[
+                      styles.qtyBtn,
+                      quantity >= 999 && styles.qtyBtnDisabled,
+                    ]}
+                    onPress={() => setQuantity(Math.min(999, quantity + 1))}
+                    disabled={quantity >= 999}
+                  >
+                    <Text style={styles.qtyBtnText}>+</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={[styles.safe, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
-
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backArrow}>‹</Text>
@@ -230,7 +485,6 @@ export default function PrintUploadScreen() {
         </Text>
       </View>
 
-      {/* Model Viewer — sabit üstte */}
       <View style={styles.viewerWrapper}>
         {!file ? (
           <TouchableOpacity
@@ -291,7 +545,6 @@ export default function PrintUploadScreen() {
                 </Text>
               </View>
             )}
-            {/* Dosya bilgisi + tam ekran + değiştir */}
             <View style={styles.viewerBar}>
               <TouchableOpacity
                 onPress={handleFilePick}
@@ -315,7 +568,6 @@ export default function PrintUploadScreen() {
         )}
       </View>
 
-      {/* Tam ekran modal */}
       <Modal visible={fullscreen} animationType="fade" statusBarTranslucent>
         <View style={styles.modalContainer}>
           <TouchableOpacity
@@ -330,7 +582,6 @@ export default function PrintUploadScreen() {
         </View>
       </Modal>
 
-      {/* Scroll içerik — seçimler */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -351,7 +602,6 @@ export default function PrintUploadScreen() {
 
         {file && (
           <>
-            {/* Birim seçimi */}
             {isSTL && (
               <View style={styles.sectionBlock}>
                 <Text style={styles.blockTitle}>Dosya Birimi</Text>
@@ -383,7 +633,6 @@ export default function PrintUploadScreen() {
               </View>
             )}
 
-            {/* Teknoloji seçimi */}
             {(!isSTL || modelReady) && (
               <>
                 <Text style={styles.sectionTitle}>Üretim Teknolojisi</Text>
@@ -393,283 +642,15 @@ export default function PrintUploadScreen() {
                     style={{ marginVertical: 20 }}
                   />
                 ) : (
-                  technologies.map((tech) => {
-                    const isSelected = selectedTech === tech.id;
-                    const activeMaterials = tech.materials.filter(
-                      (m) => m.active,
+                  TECH_GROUPS.map((group) => {
+                    const groupTechs = technologies.filter((t) =>
+                      group.ids.includes(t.id),
                     );
-                    const selMat = activeMaterials.find(
-                      (m) => m.id === selectedMaterial,
-                    );
+                    if (groupTechs.length === 0) return null;
                     return (
-                      <View
-                        key={tech.id}
-                        style={[
-                          styles.techCard,
-                          isSelected && {
-                            borderColor: tech.color,
-                            borderWidth: 2,
-                          },
-                        ]}
-                      >
-                        <TouchableOpacity
-                          style={styles.techCardHeader}
-                          onPress={() => handleTechSelect(tech.id)}
-                          activeOpacity={0.85}
-                        >
-                          <View
-                            style={[
-                              styles.techIconWrap,
-                              { backgroundColor: tech.color + "22" },
-                            ]}
-                          >
-                            <Text style={styles.techIcon}>{tech.icon}</Text>
-                          </View>
-                          <View style={styles.techInfo}>
-                            <Text style={styles.techTitle}>{tech.name}</Text>
-                            <Text style={styles.techDesc}>
-                              {activeMaterials.length} malzeme mevcut
-                            </Text>
-                          </View>
-                          <View
-                            style={[
-                              styles.techRadio,
-                              isSelected && {
-                                borderColor: tech.color,
-                                backgroundColor: tech.color,
-                              },
-                            ]}
-                          >
-                            {isSelected && (
-                              <Text style={styles.techRadioCheck}>✓</Text>
-                            )}
-                          </View>
-                        </TouchableOpacity>
-
-                        {isSelected && (
-                          <View style={styles.techExpanded}>
-                            <Text style={styles.expandedLabel}>Malzeme</Text>
-                            <View style={styles.chipRow}>
-                              {activeMaterials.map((mat) => (
-                                <TouchableOpacity
-                                  key={mat.id}
-                                  style={[
-                                    styles.chip,
-                                    selectedMaterial === mat.id && {
-                                      backgroundColor: tech.color,
-                                      borderColor: tech.color,
-                                    },
-                                  ]}
-                                  onPress={() => handleMaterialSelect(mat.id)}
-                                  activeOpacity={0.8}
-                                >
-                                  <Text
-                                    style={[
-                                      styles.chipText,
-                                      selectedMaterial === mat.id && {
-                                        color: "#fff",
-                                      },
-                                    ]}
-                                  >
-                                    {mat.name}
-                                  </Text>
-                                </TouchableOpacity>
-                              ))}
-                            </View>
-
-                            {selMat && (
-                              <>
-                                <Text
-                                  style={[
-                                    styles.expandedLabel,
-                                    { marginTop: 16 },
-                                  ]}
-                                >
-                                  Renk
-                                </Text>
-                                <View style={styles.colorRow}>
-                                  {selMat.colors
-                                    .filter((c) => c.active)
-                                    .map((colorObj) => (
-                                      <TouchableOpacity
-                                        key={colorObj.name}
-                                        style={[
-                                          styles.colorItem,
-                                          selectedColor === colorObj.name && {
-                                            borderColor: tech.color,
-                                            borderWidth: 2,
-                                          },
-                                        ]}
-                                        onPress={() =>
-                                          setSelectedColor(colorObj.name)
-                                        }
-                                        activeOpacity={0.8}
-                                      >
-                                        <View
-                                          style={[
-                                            styles.colorDot,
-                                            {
-                                              backgroundColor:
-                                                COLOR_HEX[colorObj.name] ??
-                                                "#94a3b8",
-                                              borderColor:
-                                                colorObj.name === "Beyaz" ||
-                                                colorObj.name === "Şeffaf"
-                                                  ? "#cbd5e1"
-                                                  : "transparent",
-                                              borderWidth:
-                                                colorObj.name === "Beyaz" ||
-                                                colorObj.name === "Şeffaf"
-                                                  ? 1
-                                                  : 0,
-                                            },
-                                          ]}
-                                        />
-                                        <Text
-                                          style={[
-                                            styles.colorName,
-                                            selectedColor === colorObj.name && {
-                                              color: tech.color,
-                                              fontWeight: "700",
-                                            },
-                                          ]}
-                                          numberOfLines={2}
-                                        >
-                                          {colorObj.name}
-                                        </Text>
-                                        {selectedColor === colorObj.name && (
-                                          <View
-                                            style={[
-                                              styles.colorCheckBadge,
-                                              { backgroundColor: tech.color },
-                                            ]}
-                                          >
-                                            <Text style={styles.colorCheckText}>
-                                              ✓
-                                            </Text>
-                                          </View>
-                                        )}
-                                      </TouchableOpacity>
-                                    ))}
-                                </View>
-                              </>
-                            )}
-
-                            {selectedColor && (
-                              <>
-                                <Text
-                                  style={[
-                                    styles.expandedLabel,
-                                    { marginTop: 16 },
-                                  ]}
-                                >
-                                  Dolgu Oranı
-                                </Text>
-                                <View style={styles.infillRow}>
-                                  {INFILL_OPTIONS.map((opt) => (
-                                    <TouchableOpacity
-                                      key={opt.value}
-                                      style={[
-                                        styles.infillBtn,
-                                        selectedInfill === opt.value && {
-                                          borderColor: tech.color,
-                                          backgroundColor: tech.color + "15",
-                                        },
-                                      ]}
-                                      onPress={() =>
-                                        setSelectedInfill(opt.value)
-                                      }
-                                      activeOpacity={0.8}
-                                    >
-                                      {opt.recommended && (
-                                        <View style={styles.infillRecommended}>
-                                          <Text
-                                            style={[
-                                              styles.infillRecommendedText,
-                                              { color: tech.color },
-                                            ]}
-                                          >
-                                            ✦
-                                          </Text>
-                                        </View>
-                                      )}
-                                      <Text
-                                        style={[
-                                          styles.infillLabel,
-                                          selectedInfill === opt.value && {
-                                            color: tech.color,
-                                          },
-                                        ]}
-                                      >
-                                        {opt.label}
-                                      </Text>
-                                      <Text
-                                        style={[
-                                          styles.infillDesc,
-                                          selectedInfill === opt.value && {
-                                            color: tech.color,
-                                          },
-                                        ]}
-                                      >
-                                        {opt.desc}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  ))}
-                                </View>
-                              </>
-                            )}
-
-                            {selectedColor && (
-                              <>
-                                <Text
-                                  style={[
-                                    styles.expandedLabel,
-                                    { marginTop: 16 },
-                                  ]}
-                                >
-                                  Adet
-                                </Text>
-                                <View style={styles.quantityRow}>
-                                  <TouchableOpacity
-                                    style={[
-                                      styles.qtyBtn,
-                                      quantity <= 1 && styles.qtyBtnDisabled,
-                                    ]}
-                                    onPress={() =>
-                                      setQuantity(Math.max(1, quantity - 1))
-                                    }
-                                    disabled={quantity <= 1}
-                                  >
-                                    <Text style={styles.qtyBtnText}>−</Text>
-                                  </TouchableOpacity>
-                                  <View
-                                    style={[
-                                      styles.qtyDisplay,
-                                      { borderColor: tech.color + "44" },
-                                    ]}
-                                  >
-                                    <Text style={styles.qtyNumber}>
-                                      {quantity}
-                                    </Text>
-                                    <Text style={styles.qtyUnit}>adet</Text>
-                                  </View>
-                                  <TouchableOpacity
-                                    style={[
-                                      styles.qtyBtn,
-                                      quantity >= 999 && styles.qtyBtnDisabled,
-                                    ]}
-                                    onPress={() =>
-                                      setQuantity(Math.min(999, quantity + 1))
-                                    }
-                                    disabled={quantity >= 999}
-                                  >
-                                    <Text style={styles.qtyBtnText}>+</Text>
-                                  </TouchableOpacity>
-                                </View>
-                              </>
-                            )}
-                          </View>
-                        )}
+                      <View key={group.groupId}>
+                        <Text style={styles.groupLabel}>{group.label}</Text>
+                        {groupTechs.map((tech) => renderTechCard(tech))}
                       </View>
                     );
                   })
@@ -678,11 +659,9 @@ export default function PrintUploadScreen() {
             )}
           </>
         )}
-
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Footer */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
         {canProceed && (
           <View style={styles.selectionSummary}>
@@ -909,6 +888,16 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.text,
     marginBottom: 4,
+  },
+  groupLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.text3,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 12,
+    paddingLeft: 4,
   },
   techCard: {
     backgroundColor: Colors.surface,
