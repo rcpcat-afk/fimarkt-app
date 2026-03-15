@@ -193,6 +193,7 @@ export default function PrintSummaryScreen() {
     )
       .then((r) => r.json())
       .then((result) => {
+        console.log("backend cevap:", JSON.stringify(result));
         setPriceData({
           unitPrice: result.unitPrice ?? result.unit_price,
           totalPrice: result.totalPrice ?? result.total_price,
