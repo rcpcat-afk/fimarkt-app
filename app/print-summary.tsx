@@ -119,6 +119,7 @@ export default function PrintSummaryScreen() {
     triangleCount?: number;
     meshWarning?: string;
     source?: string;
+    partWeightGram?: number;
   } | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
 
@@ -197,6 +198,7 @@ export default function PrintSummaryScreen() {
           triangleCount: result.triangleCount ?? result.triangle_count,
           meshWarning: result.mesh_warning,
           source: result.source,
+          partWeightGram: result.part_weight_gram ?? result.weight_gram,
         });
         setPriceLoading(false);
       })
@@ -369,7 +371,7 @@ export default function PrintSummaryScreen() {
             <View style={styles.detailInfo}>
               <Text style={styles.detailLabel}>Ağırlık</Text>
               <Text style={styles.detailValue}>
-                {priceData?.weightGram ?? "-"} g
+                {priceData?.partWeightGram ?? priceData?.weightGram ?? "-"} g
               </Text>
             </View>
             <Text style={styles.detailIcon}>⏱️</Text>
