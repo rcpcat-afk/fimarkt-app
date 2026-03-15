@@ -1094,7 +1094,9 @@ const ALL_ACTIVE_TECHNOLOGIES = DEFAULT_TECHNOLOGIES.map((t) => ({
 export default function AdminSettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"general" | "print3d">("general");
+  const [activeTab, setActiveTab] = useState<
+    "general" | "print3d" | "techprofiles"
+  >("general");
   const [values, setValues] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState(false);
   const [technologies, setTechnologies] = useState<Technology[]>(
@@ -1104,6 +1106,84 @@ export default function AdminSettingsScreen() {
   const [expandedMat, setExpandedMat] = useState<string | null>(null);
   const [techSaved, setTechSaved] = useState(false);
   const [techLoading, setTechLoading] = useState(false);
+  const [techProfiles, setTechProfiles] = useState({
+    fdm: { shell_flow_rate: 4.0, infill_flow_rate: 8.0, power_w: 200.0 },
+    fdm_endustriyel: {
+      shell_flow_rate: 8.0,
+      infill_flow_rate: 16.0,
+      power_w: 300.0,
+    },
+    fdm_yuksek: {
+      shell_flow_rate: 12.0,
+      infill_flow_rate: 24.0,
+      power_w: 350.0,
+    },
+    sla: {
+      bottom_layer_count: 5,
+      bottom_exposure_sec: 30.0,
+      normal_exposure_sec: 8.0,
+      lift_distance_mm: 5.0,
+      lift_speed: 60.0,
+      retract_speed: 120.0,
+      light_off_delay: 1.0,
+    },
+    dlp: {
+      bottom_layer_count: 5,
+      bottom_exposure_sec: 20.0,
+      normal_exposure_sec: 4.0,
+      lift_distance_mm: 5.0,
+      lift_speed: 90.0,
+      retract_speed: 150.0,
+      light_off_delay: 0.5,
+    },
+    msla: {
+      bottom_layer_count: 5,
+      bottom_exposure_sec: 15.0,
+      normal_exposure_sec: 3.0,
+      lift_distance_mm: 4.0,
+      lift_speed: 90.0,
+      retract_speed: 150.0,
+      light_off_delay: 0.5,
+    },
+    sls: {
+      recoater_time: 8.0,
+      fusion_time: 3.0,
+      warmup_hours: 1.5,
+      cooldown_multiplier: 1.0,
+      refresh_ratio: 0.2,
+      bed_x_cm: 38.0,
+      bed_y_cm: 28.4,
+    },
+    mjf: {
+      recoater_time: 8.0,
+      fusion_time: 3.0,
+      warmup_hours: 1.5,
+      cooldown_multiplier: 1.0,
+      refresh_ratio: 0.2,
+      bed_x_cm: 38.0,
+      bed_y_cm: 28.4,
+    },
+    dmls: {
+      laser_count: 2,
+      melt_rate_cm3_hr: 15.0,
+      recoater_time: 7.0,
+      purge_warmup_hours: 2.0,
+      cooldown_hours: 4.0,
+      thermal_support_ratio: 0.35,
+    },
+    binder_jetting: {
+      laser_count: 1,
+      melt_rate_cm3_hr: 30.0,
+      recoater_time: 5.0,
+      purge_warmup_hours: 1.0,
+      cooldown_hours: 2.0,
+      thermal_support_ratio: 0.05,
+    },
+    seramik: { shrinkage_factor: 0.18 },
+    karbon_fiber: { spool_length_m: 50.0 },
+  });
+  const [profilesSaved, setProfilesSaved] = useState(false);
+  const [profilesLoading, setProfilesLoading] = useState(false);
 
   useEffect(() => {
     fetch(
@@ -1259,7 +1339,20 @@ export default function AdminSettingsScreen() {
               activeTab === "print3d" && styles.tabTextActive,
             ]}
           >
-            🖨️ 3D Fiyat Aracı
+            🖨️ 3D Fiyat
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === "techprofiles" && styles.tabActive]}
+          onPress={() => setActiveTab("techprofiles")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "techprofiles" && styles.tabTextActive,
+            ]}
+          >
+            🔧 Üretim
           </Text>
         </TouchableOpacity>
       </View>
@@ -1611,6 +1704,535 @@ export default function AdminSettingsScreen() {
                   : techSaved
                     ? "✅ Kaydedildi"
                     : "3D Ayarlarını Kaydet"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
+      {activeTab === "techprofiles" && (
+        <>
+          <ScrollView
+            style={styles.scroll}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.infoBox}>
+              <Text style={styles.infoIcon}>🔧</Text>
+              <Text style={styles.infoText}>
+                Hesaplama motorunun kullandığı teknik parametreler.
+                Değiştirmeden önce teknik bilgi edindiğinizden emin olun.
+              </Text>
+            </View>
+
+            {/* FDM */}
+            <Text style={styles.groupLabel}>🏭 FDM STANDART</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Shell Flow Rate (mm³/s)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm.shell_flow_rate)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm: { ...p.fdm, shell_flow_rate: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Infill Flow Rate (mm³/s)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm.infill_flow_rate)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm: { ...p.fdm, infill_flow_rate: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matField}>
+                <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor={Colors.text3}
+                  value={String(techProfiles.fdm.power_w)}
+                  onChangeText={(v) =>
+                    setTechProfiles((p) => ({
+                      ...p,
+                      fdm: { ...p.fdm, power_w: parseFloat(v) || 0 },
+                    }))
+                  }
+                />
+              </View>
+            </View>
+
+            <Text style={styles.groupLabel}>⚙️ FDM ENDÜSTRİYEL</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Shell Flow Rate (mm³/s)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm_endustriyel.shell_flow_rate)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_endustriyel: {
+                          ...p.fdm_endustriyel,
+                          shell_flow_rate: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Infill Flow Rate (mm³/s)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(
+                      techProfiles.fdm_endustriyel.infill_flow_rate,
+                    )}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_endustriyel: {
+                          ...p.fdm_endustriyel,
+                          infill_flow_rate: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matField}>
+                <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor={Colors.text3}
+                  value={String(techProfiles.fdm_endustriyel.power_w)}
+                  onChangeText={(v) =>
+                    setTechProfiles((p) => ({
+                      ...p,
+                      fdm_endustriyel: {
+                        ...p.fdm_endustriyel,
+                        power_w: parseFloat(v) || 0,
+                      },
+                    }))
+                  }
+                />
+              </View>
+            </View>
+
+            <Text style={styles.groupLabel}>🔥 FDM YÜKSEK PERFORMANS</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Shell Flow Rate (mm³/s)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm_yuksek.shell_flow_rate)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_yuksek: {
+                          ...p.fdm_yuksek,
+                          shell_flow_rate: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Infill Flow Rate (mm³/s)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.fdm_yuksek.infill_flow_rate)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        fdm_yuksek: {
+                          ...p.fdm_yuksek,
+                          infill_flow_rate: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* REÇİNE */}
+            <Text style={styles.groupLabel}>💎 SLA REÇİNE</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Alt Katman Sayısı</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.bottom_layer_count)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: {
+                          ...p.sla,
+                          bottom_layer_count: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Alt Kat Pozlama (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.bottom_exposure_sec)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: {
+                          ...p.sla,
+                          bottom_exposure_sec: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Normal Pozlama (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.normal_exposure_sec)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: {
+                          ...p.sla,
+                          normal_exposure_sec: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lift Mesafe (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.lift_distance_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: { ...p.sla, lift_distance_mm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lift Hız (mm/dak)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.lift_speed)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: { ...p.sla, lift_speed: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Retract Hız (mm/dak)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.retract_speed)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: { ...p.sla, retract_speed: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* TOZ */}
+            <Text style={styles.groupLabel}>⚡ SLS / MJF TOZ</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Recoater Süresi (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.recoater_time)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, recoater_time: parseFloat(v) || 0 },
+                        mjf: { ...p.mjf, recoater_time: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Fusion Süresi (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.fusion_time)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, fusion_time: parseFloat(v) || 0 },
+                        mjf: { ...p.mjf, fusion_time: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Isınma (saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.warmup_hours)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, warmup_hours: parseFloat(v) || 0 },
+                        mjf: { ...p.mjf, warmup_hours: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Refresh Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.refresh_ratio)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, refresh_ratio: parseFloat(v) || 0 },
+                        mjf: { ...p.mjf, refresh_ratio: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* METAL */}
+            <Text style={styles.groupLabel}>🔩 METAL (DMLS)</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lazer Sayısı</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.laser_count)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: { ...p.dmls, laser_count: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Eritme Hızı (cm³/saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.melt_rate_cm3_hr)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: {
+                          ...p.dmls,
+                          melt_rate_cm3_hr: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Isınma + Purge (saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.purge_warmup_hours)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: {
+                          ...p.dmls,
+                          purge_warmup_hours: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Soğuma (saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.cooldown_hours)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: { ...p.dmls, cooldown_hours: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matField}>
+                <Text style={styles.label}>Termal Destek Oranı (0-1)</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor={Colors.text3}
+                  value={String(techProfiles.dmls.thermal_support_ratio)}
+                  onChangeText={(v) =>
+                    setTechProfiles((p) => ({
+                      ...p,
+                      dmls: {
+                        ...p.dmls,
+                        thermal_support_ratio: parseFloat(v) || 0,
+                      },
+                    }))
+                  }
+                />
+              </View>
+            </View>
+
+            {/* ÖZEL */}
+            <Text style={styles.groupLabel}>🏺 SERAMİK</Text>
+            <View style={styles.section}>
+              <View style={styles.matField}>
+                <Text style={styles.label}>
+                  Büzülme Faktörü (0-1, örn: 0.18)
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor={Colors.text3}
+                  value={String(techProfiles.seramik.shrinkage_factor)}
+                  onChangeText={(v) =>
+                    setTechProfiles((p) => ({
+                      ...p,
+                      seramik: { shrinkage_factor: parseFloat(v) || 0 },
+                    }))
+                  }
+                />
+              </View>
+            </View>
+
+            <Text style={styles.groupLabel}>🏎️ KARBON FİBER</Text>
+            <View style={styles.section}>
+              <View style={styles.matField}>
+                <Text style={styles.label}>Makara Uzunluğu (metre)</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor={Colors.text3}
+                  value={String(techProfiles.karbon_fiber.spool_length_m)}
+                  onChangeText={(v) =>
+                    setTechProfiles((p) => ({
+                      ...p,
+                      karbon_fiber: { spool_length_m: parseFloat(v) || 0 },
+                    }))
+                  }
+                />
+              </View>
+            </View>
+
+            <View style={{ height: 120 }} />
+          </ScrollView>
+          <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+            <TouchableOpacity
+              style={styles.saveBtn}
+              onPress={async () => {
+                setProfilesLoading(true);
+                try {
+                  const res = await fetch(
+                    "https://fimarkt-backend-production.up.railway.app/api/print-tech-profiles",
+                    {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify(techProfiles),
+                    },
+                  );
+                  const data = await res.json();
+                  if (data.success) {
+                    setProfilesSaved(true);
+                    Alert.alert("Kaydedildi", "Üretim profilleri kaydedildi");
+                    setTimeout(() => setProfilesSaved(false), 3000);
+                  }
+                } catch (e) {
+                  Alert.alert("Hata", "Kaydedilemedi, tekrar dene");
+                } finally {
+                  setProfilesLoading(false);
+                }
+              }}
+              disabled={profilesLoading}
+            >
+              <Text style={styles.saveBtnText}>
+                {profilesLoading
+                  ? "Kaydediliyor..."
+                  : profilesSaved
+                    ? "✅ Kaydedildi"
+                    : "Profilleri Kaydet"}
               </Text>
             </TouchableOpacity>
           </View>
