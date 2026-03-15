@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../constants";
-
+import { useAuth } from "../src/store/AuthContext";
 const TECH_LABELS: Record<
   string,
   { title: string; icon: string; color: string }
@@ -105,6 +105,7 @@ const StepIndicator = ({
 
 export default function PrintSummaryScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const [ordering, setOrdering] = useState(false);
@@ -122,7 +123,7 @@ export default function PrintSummaryScreen() {
     partWeightGram?: number;
   } | null>(null);
   const [priceLoading, setPriceLoading] = useState(true);
-
+  const [stlUrl, setStlUrl] = useState<string | null>(null);
   const tech = params.tech as string;
   const material = params.material as string;
   const FDM_TECHNOLOGIES = ["fdm-standart", "fdm-endustriyel", "fdm-yuksek"];
@@ -200,6 +201,7 @@ export default function PrintSummaryScreen() {
           source: result.source,
           partWeightGram: result.part_weight_gram ?? result.weight_gram,
         });
+        if (result.stl_url) setStlUrl(result.stl_url);
         setPriceLoading(false);
       })
       .catch(() => setPriceLoading(false));
@@ -213,21 +215,63 @@ export default function PrintSummaryScreen() {
         { text: "İptal", style: "cancel" },
         {
           text: "Onayla",
-          onPress: () => {
+          onPress: async () => {
             setOrdering(true);
-            setTimeout(() => {
-              setOrdering(false);
-              Alert.alert(
-                "🎉 Sipariş Alındı!",
-                "Siparişiniz başarıyla oluşturuldu. Ekibimiz en kısa sürede üretimi başlatacak.",
-                [
-                  {
-                    text: "Tamam",
-                    onPress: () => router.push("/(tabs)/print"),
+            try {
+              const currentStlUrl = stlUrl || (params.stlUrl as string) || null;
+              const res = await fetch(
+                "https://fimarkt-backend-production.up.railway.app/api/print-order",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${user?.token || ""}`,
                   },
-                ],
+                  body: JSON.stringify({
+                    stl_url: currentStlUrl,
+                    technology_id: tech,
+                    technology_name: techData?.title,
+                    material_id: material,
+                    material_name: materialData?.name,
+                    color: materialData?.color,
+                    infill,
+                    quantity,
+                    unit_price: priceData.unitPrice,
+                    total_price: priceData.totalPrice,
+                    weight_gram:
+                      priceData.partWeightGram ?? priceData.weightGram,
+                    print_hours: priceData.printHours,
+                    volume_cm3: priceData.volumeCm3,
+                    file_name: fileName,
+                    billing: {
+                      first_name: user?.name?.split(" ")[0] || "",
+                      last_name:
+                        user?.name?.split(" ").slice(1).join(" ") || "",
+                      email: user?.email || "",
+                    },
+                  }),
+                },
               );
-            }, 1000);
+              const result = await res.json();
+              setOrdering(false);
+              if (result.success) {
+                Alert.alert(
+                  "🎉 Sipariş Alındı!",
+                  `Sipariş #${result.order_number} başarıyla oluşturuldu. Ekibimiz en kısa sürede üretimi başlatacak.`,
+                  [
+                    {
+                      text: "Tamam",
+                      onPress: () => router.push("/(tabs)/print"),
+                    },
+                  ],
+                );
+              } else {
+                Alert.alert("Hata", result.error || "Sipariş oluşturulamadı.");
+              }
+            } catch (e) {
+              setOrdering(false);
+              Alert.alert("Hata", "Bağlantı hatası, lütfen tekrar deneyin.");
+            }
           },
         },
       ],
