@@ -1249,20 +1249,24 @@ export default function AdminSettingsScreen() {
       power_w: 3500.0,
     },
     dmls: {
+      layer_height_mm: 0.03,
       laser_count: 2,
       melt_rate_cm3_hr: 15.0,
       recoater_time: 7.0,
       purge_warmup_hours: 2.0,
       cooldown_hours: 4.0,
       thermal_support_ratio: 0.35,
+      power_w: 5000.0,
     },
     binder_jetting: {
+      layer_height_mm: 0.05,
       laser_count: 1,
       melt_rate_cm3_hr: 30.0,
       recoater_time: 5.0,
       purge_warmup_hours: 1.0,
       cooldown_hours: 2.0,
       thermal_support_ratio: 0.05,
+      power_w: 3000.0,
     },
     seramik: {
       shrinkage_factor: 0.18,
@@ -2953,6 +2957,24 @@ export default function AdminSettingsScreen() {
             <View style={styles.section}>
               <View style={styles.matFieldRow}>
                 <View style={styles.matField}>
+                  <Text style={styles.label}>Katman Yüksekliği (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.layer_height_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: {
+                          ...p.dmls,
+                          layer_height_mm: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
                   <Text style={styles.label}>Lazer Sayısı</Text>
                   <TextInput
                     style={styles.input}
@@ -2967,6 +2989,8 @@ export default function AdminSettingsScreen() {
                     }
                   />
                 </View>
+              </View>
+              <View style={styles.matFieldRow}>
                 <View style={styles.matField}>
                   <Text style={styles.label}>Eritme Hızı (cm³/saat)</Text>
                   <TextInput
@@ -2981,6 +3005,21 @@ export default function AdminSettingsScreen() {
                           ...p.dmls,
                           melt_rate_cm3_hr: parseFloat(v) || 0,
                         },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Recoater Süresi (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.recoater_time)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: { ...p.dmls, recoater_time: parseFloat(v) || 0 },
                       }))
                     }
                   />
@@ -3021,23 +3060,200 @@ export default function AdminSettingsScreen() {
                   />
                 </View>
               </View>
-              <View style={styles.matField}>
-                <Text style={styles.label}>Termal Destek Oranı (0-1)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="decimal-pad"
-                  placeholderTextColor={Colors.text3}
-                  value={String(techProfiles.dmls.thermal_support_ratio)}
-                  onChangeText={(v) =>
-                    setTechProfiles((p) => ({
-                      ...p,
-                      dmls: {
-                        ...p.dmls,
-                        thermal_support_ratio: parseFloat(v) || 0,
-                      },
-                    }))
-                  }
-                />
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Termal Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.thermal_support_ratio)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: {
+                          ...p.dmls,
+                          thermal_support_ratio: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dmls.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dmls: { ...p.dmls, power_w: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.groupLabel}>🏗️ BINDER JETTING (METAL)</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Katman Yüksekliği (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.binder_jetting.layer_height_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          layer_height_mm: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lazer Sayısı</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.binder_jetting.laser_count)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          laser_count: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Eritme Hızı (cm³/saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.binder_jetting.melt_rate_cm3_hr)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          melt_rate_cm3_hr: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Recoater Süresi (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.binder_jetting.recoater_time)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          recoater_time: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Isınma + Purge (saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(
+                      techProfiles.binder_jetting.purge_warmup_hours,
+                    )}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          purge_warmup_hours: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Soğuma (saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.binder_jetting.cooldown_hours)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          cooldown_hours: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Termal Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(
+                      techProfiles.binder_jetting.thermal_support_ratio,
+                    )}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          thermal_support_ratio: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.binder_jetting.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        binder_jetting: {
+                          ...p.binder_jetting,
+                          power_w: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
               </View>
             </View>
 
