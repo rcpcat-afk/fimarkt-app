@@ -1189,6 +1189,8 @@ export default function AdminSettingsScreen() {
       default_support_ratio: 0.15,
     },
     sla: {
+      layer_height_mm: 0.05,
+      support_ratio: 0.12,
       bottom_layer_count: 5,
       bottom_exposure_sec: 30.0,
       normal_exposure_sec: 8.0,
@@ -1196,8 +1198,11 @@ export default function AdminSettingsScreen() {
       lift_speed: 60.0,
       retract_speed: 120.0,
       light_off_delay: 1.0,
+      power_w: 50.0,
     },
     dlp: {
+      layer_height_mm: 0.05,
+      support_ratio: 0.1,
       bottom_layer_count: 5,
       bottom_exposure_sec: 20.0,
       normal_exposure_sec: 4.0,
@@ -1205,8 +1210,11 @@ export default function AdminSettingsScreen() {
       lift_speed: 90.0,
       retract_speed: 150.0,
       light_off_delay: 0.5,
+      power_w: 80.0,
     },
     msla: {
+      layer_height_mm: 0.05,
+      support_ratio: 0.1,
       bottom_layer_count: 5,
       bottom_exposure_sec: 15.0,
       normal_exposure_sec: 3.0,
@@ -1214,6 +1222,7 @@ export default function AdminSettingsScreen() {
       lift_speed: 90.0,
       retract_speed: 150.0,
       light_off_delay: 0.5,
+      power_w: 60.0,
     },
     sls: {
       recoater_time: 8.0,
@@ -2068,6 +2077,38 @@ export default function AdminSettingsScreen() {
             <View style={styles.section}>
               <View style={styles.matFieldRow}>
                 <View style={styles.matField}>
+                  <Text style={styles.label}>Katman Yüksekliği (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.layer_height_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: { ...p.sla, layer_height_mm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.support_ratio)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: { ...p.sla, support_ratio: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
                   <Text style={styles.label}>Alt Katman Sayısı</Text>
                   <TextInput
                     style={styles.input}
@@ -2166,6 +2207,393 @@ export default function AdminSettingsScreen() {
                       setTechProfiles((p) => ({
                         ...p,
                         sla: { ...p.sla, retract_speed: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Light Off Delay (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.light_off_delay)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: { ...p.sla, light_off_delay: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sla.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sla: { ...p.sla, power_w: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.groupLabel}>🔵 DLP REÇİNE</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Katman Yüksekliği (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.layer_height_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: { ...p.dlp, layer_height_mm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.support_ratio)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: { ...p.dlp, support_ratio: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Alt Katman Sayısı</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.bottom_layer_count)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: {
+                          ...p.dlp,
+                          bottom_layer_count: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Alt Kat Pozlama (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.bottom_exposure_sec)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: {
+                          ...p.dlp,
+                          bottom_exposure_sec: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Normal Pozlama (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.normal_exposure_sec)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: {
+                          ...p.dlp,
+                          normal_exposure_sec: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lift Mesafe (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.lift_distance_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: { ...p.dlp, lift_distance_mm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lift Hız (mm/dak)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.lift_speed)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: { ...p.dlp, lift_speed: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Retract Hız (mm/dak)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.retract_speed)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: { ...p.dlp, retract_speed: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Light Off Delay (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.light_off_delay)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: { ...p.dlp, light_off_delay: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.dlp.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        dlp: { ...p.dlp, power_w: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.groupLabel}>📱 MSLA REÇİNE</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Katman Yüksekliği (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.layer_height_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: {
+                          ...p.msla,
+                          layer_height_mm: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Destek Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.support_ratio)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: { ...p.msla, support_ratio: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Alt Katman Sayısı</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.bottom_layer_count)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: {
+                          ...p.msla,
+                          bottom_layer_count: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Alt Kat Pozlama (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.bottom_exposure_sec)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: {
+                          ...p.msla,
+                          bottom_exposure_sec: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Normal Pozlama (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.normal_exposure_sec)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: {
+                          ...p.msla,
+                          normal_exposure_sec: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lift Mesafe (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.lift_distance_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: {
+                          ...p.msla,
+                          lift_distance_mm: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Lift Hız (mm/dak)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.lift_speed)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: { ...p.msla, lift_speed: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Retract Hız (mm/dak)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.retract_speed)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: { ...p.msla, retract_speed: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Light Off Delay (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.light_off_delay)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: {
+                          ...p.msla,
+                          light_off_delay: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.msla.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        msla: { ...p.msla, power_w: parseFloat(v) || 0 },
                       }))
                     }
                   />
