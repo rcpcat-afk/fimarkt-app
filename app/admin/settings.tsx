@@ -1225,6 +1225,8 @@ export default function AdminSettingsScreen() {
       power_w: 60.0,
     },
     sls: {
+      layer_height_mm: 0.1,
+      powder_density_g_cm3: 0.45,
       recoater_time: 8.0,
       fusion_time: 3.0,
       warmup_hours: 1.5,
@@ -1232,8 +1234,11 @@ export default function AdminSettingsScreen() {
       refresh_ratio: 0.2,
       bed_x_cm: 38.0,
       bed_y_cm: 28.4,
+      power_w: 3500.0,
     },
     mjf: {
+      layer_height_mm: 0.08,
+      powder_density_g_cm3: 0.45,
       recoater_time: 8.0,
       fusion_time: 3.0,
       warmup_hours: 1.5,
@@ -1241,6 +1246,7 @@ export default function AdminSettingsScreen() {
       refresh_ratio: 0.2,
       bed_x_cm: 38.0,
       bed_y_cm: 28.4,
+      power_w: 3500.0,
     },
     dmls: {
       laser_count: 2,
@@ -2602,8 +2608,43 @@ export default function AdminSettingsScreen() {
             </View>
 
             {/* TOZ */}
-            <Text style={styles.groupLabel}>⚡ SLS / MJF TOZ</Text>
+            <Text style={styles.groupLabel}>⚡ SLS TOZ</Text>
             <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Katman Yüksekliği (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.layer_height_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, layer_height_mm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Toz Yoğunluğu (g/cm³)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.powder_density_g_cm3)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: {
+                          ...p.sls,
+                          powder_density_g_cm3: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
               <View style={styles.matFieldRow}>
                 <View style={styles.matField}>
                   <Text style={styles.label}>Recoater Süresi (sn)</Text>
@@ -2616,7 +2657,6 @@ export default function AdminSettingsScreen() {
                       setTechProfiles((p) => ({
                         ...p,
                         sls: { ...p.sls, recoater_time: parseFloat(v) || 0 },
-                        mjf: { ...p.mjf, recoater_time: parseFloat(v) || 0 },
                       }))
                     }
                   />
@@ -2632,7 +2672,6 @@ export default function AdminSettingsScreen() {
                       setTechProfiles((p) => ({
                         ...p,
                         sls: { ...p.sls, fusion_time: parseFloat(v) || 0 },
-                        mjf: { ...p.mjf, fusion_time: parseFloat(v) || 0 },
                       }))
                     }
                   />
@@ -2650,11 +2689,30 @@ export default function AdminSettingsScreen() {
                       setTechProfiles((p) => ({
                         ...p,
                         sls: { ...p.sls, warmup_hours: parseFloat(v) || 0 },
-                        mjf: { ...p.mjf, warmup_hours: parseFloat(v) || 0 },
                       }))
                     }
                   />
                 </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Soğuma Çarpanı</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.cooldown_multiplier)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: {
+                          ...p.sls,
+                          cooldown_multiplier: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
                 <View style={styles.matField}>
                   <Text style={styles.label}>Refresh Oranı (0-1)</Text>
                   <TextInput
@@ -2666,7 +2724,223 @@ export default function AdminSettingsScreen() {
                       setTechProfiles((p) => ({
                         ...p,
                         sls: { ...p.sls, refresh_ratio: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, power_w: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Yatak X (cm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.bed_x_cm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, bed_x_cm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Yatak Y (cm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.sls.bed_y_cm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        sls: { ...p.sls, bed_y_cm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.groupLabel}>🚀 MJF TOZ</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Katman Yüksekliği (mm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.layer_height_mm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: { ...p.mjf, layer_height_mm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Toz Yoğunluğu (g/cm³)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.powder_density_g_cm3)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: {
+                          ...p.mjf,
+                          powder_density_g_cm3: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Recoater Süresi (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.recoater_time)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: { ...p.mjf, recoater_time: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Fusion Süresi (sn)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.fusion_time)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: { ...p.mjf, fusion_time: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Isınma (saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.warmup_hours)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: { ...p.mjf, warmup_hours: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Soğuma Çarpanı</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.cooldown_multiplier)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: {
+                          ...p.mjf,
+                          cooldown_multiplier: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Refresh Oranı (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.refresh_ratio)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
                         mjf: { ...p.mjf, refresh_ratio: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Güç Tüketimi (W)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.power_w)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: { ...p.mjf, power_w: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Yatak X (cm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.bed_x_cm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: { ...p.mjf, bed_x_cm: parseFloat(v) || 0 },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Yatak Y (cm)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.mjf.bed_y_cm)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        mjf: { ...p.mjf, bed_y_cm: parseFloat(v) || 0 },
                       }))
                     }
                   />
