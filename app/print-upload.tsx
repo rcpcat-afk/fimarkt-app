@@ -24,7 +24,7 @@ const INFILL_OPTIONS = [
   { value: 50, label: "%50", desc: "Güçlü" },
   { value: 100, label: "%100", desc: "Tam Dolu" },
 ];
-
+const FDM_TECHNOLOGIES = ["fdm-standart", "fdm-endustriyel", "fdm-yuksek"];
 const TECH_GROUPS = [
   {
     groupId: "fdm",
@@ -685,7 +685,11 @@ export default function PrintUploadScreen() {
           <View style={styles.selectionSummary}>
             <Text style={styles.summaryText} numberOfLines={1}>
               {selectedTechData?.name} · {selectedMaterialData?.name} ·{" "}
-              {selectedColor} · %{selectedInfill} · {quantity} adet
+              {selectedColor} ·{" "}
+              {FDM_TECHNOLOGIES.includes(selectedTech ?? "")
+                ? `%${selectedInfill} · `
+                : ""}
+              {quantity} adet
             </Text>
           </View>
         )}
