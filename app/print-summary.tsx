@@ -207,7 +207,10 @@ export default function PrintSummaryScreen() {
         });
         setPriceLoading(false);
       })
-      .catch(() => setPriceLoading(false));
+      .catch((err) => {
+        console.log("fetch hata:", err);
+        setPriceLoading(false);
+      });
   }, []);
   const handleSiparisVer = () => {
     if (!priceData) return;
