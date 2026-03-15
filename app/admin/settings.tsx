@@ -1148,7 +1148,27 @@ export default function AdminSettingsScreen() {
       ),
     );
   };
-
+  const toggleColor = (techId: string, matId: string, colorName: string) => {
+    setTechnologies((prev) =>
+      prev.map((t) =>
+        t.id === techId
+          ? {
+              ...t,
+              materials: t.materials.map((m) =>
+                m.id === matId
+                  ? {
+                      ...m,
+                      colors: m.colors.map((c) =>
+                        c.name === colorName ? { ...c, active: !c.active } : c,
+                      ),
+                    }
+                  : m,
+              ),
+            }
+          : t,
+      ),
+    );
+  };
   const handleMatFieldChange = (
     techId: string,
     matId: string,
@@ -1299,202 +1319,284 @@ export default function AdminSettingsScreen() {
               </Text>
             </View>
 
-            {technologies.map((tech) => (
-              <View
-                key={tech.id}
-                style={[
-                  styles.techSection,
-                  !tech.active && styles.techSectionPassive,
-                ]}
-              >
-                {/* Teknoloji başlığı */}
-                <TouchableOpacity
-                  style={styles.techHeader}
-                  onPress={() =>
-                    setExpandedTech(expandedTech === tech.id ? null : tech.id)
-                  }
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.techIcon}>{tech.icon}</Text>
-                  <View style={{ flex: 1 }}>
-                    <Text
+            {[
+              {
+                groupId: "fdm",
+                label: "🏭 FDM Baskı",
+                ids: ["fdm-standart", "fdm-endustriyel", "fdm-yuksek"],
+              },
+              {
+                groupId: "recine",
+                label: "💎 Reçine Baskı",
+                ids: ["sla", "dlp", "msla"],
+              },
+              { groupId: "toz", label: "⚡ Toz Baskı", ids: ["sls", "mjf"] },
+              {
+                groupId: "metal",
+                label: "🔩 Metal Baskı",
+                ids: ["dmls", "binder-jetting"],
+              },
+              {
+                groupId: "ozel",
+                label: "🎨 Özel",
+                ids: ["polyjet", "seramik", "karbon-fiber"],
+              },
+            ].map((group) => {
+              const groupTechs = technologies.filter((t) =>
+                group.ids.includes(t.id),
+              );
+              if (groupTechs.length === 0) return null;
+              return (
+                <View key={group.groupId}>
+                  <Text style={styles.groupLabel}>{group.label}</Text>
+                  {groupTechs.map((tech) => (
+                    <View
+                      key={tech.id}
                       style={[
-                        styles.techName,
-                        !tech.active && styles.passiveText,
+                        styles.techSection,
+                        !tech.active && styles.techSectionPassive,
                       ]}
                     >
-                      {tech.name}
-                    </Text>
-                    <Text style={styles.techMeta}>
-                      {tech.materials.filter((m) => m.active).length}/
-                      {tech.materials.length} malzeme aktif
-                    </Text>
-                  </View>
-                  <Switch
-                    value={tech.active}
-                    onValueChange={(v) => toggleTech(tech.id, v)}
-                    trackColor={{
-                      false: Colors.border,
-                      true: Colors.accent + "88",
-                    }}
-                    thumbColor={tech.active ? Colors.accent : Colors.text3}
-                  />
-                  <Text style={styles.chevron}>
-                    {expandedTech === tech.id ? "▲" : "▼"}
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Malzemeler */}
-                {expandedTech === tech.id && (
-                  <View style={styles.matList}>
-                    {tech.materials.map((mat) => (
-                      <View
-                        key={mat.id}
-                        style={[
-                          styles.matItem,
-                          !mat.active && styles.matItemPassive,
-                        ]}
+                      <TouchableOpacity
+                        style={styles.techHeader}
+                        onPress={() =>
+                          setExpandedTech(
+                            expandedTech === tech.id ? null : tech.id,
+                          )
+                        }
+                        activeOpacity={0.8}
                       >
-                        <TouchableOpacity
-                          style={styles.matItemHeader}
-                          onPress={() =>
-                            setExpandedMat(
-                              expandedMat === `${tech.id}-${mat.id}`
-                                ? null
-                                : `${tech.id}-${mat.id}`,
-                            )
+                        <Text style={styles.techIcon}>{tech.icon}</Text>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={[
+                              styles.techName,
+                              !tech.active && styles.passiveText,
+                            ]}
+                          >
+                            {tech.name}
+                          </Text>
+                          <Text style={styles.techMeta}>
+                            {tech.materials.filter((m) => m.active).length}/
+                            {tech.materials.length} malzeme aktif
+                          </Text>
+                        </View>
+                        <Switch
+                          value={tech.active}
+                          onValueChange={(v) => toggleTech(tech.id, v)}
+                          trackColor={{
+                            false: Colors.border,
+                            true: Colors.accent + "88",
+                          }}
+                          thumbColor={
+                            tech.active ? Colors.accent : Colors.text3
                           }
-                          activeOpacity={0.8}
-                        >
-                          <View style={{ flex: 1 }}>
-                            <Text
+                        />
+                        <Text style={styles.chevron}>
+                          {expandedTech === tech.id ? "▲" : "▼"}
+                        </Text>
+                      </TouchableOpacity>
+
+                      {expandedTech === tech.id && (
+                        <View style={styles.matList}>
+                          {tech.materials.map((mat) => (
+                            <View
+                              key={mat.id}
                               style={[
-                                styles.matName,
-                                !mat.active && styles.passiveText,
+                                styles.matItem,
+                                !mat.active && styles.matItemPassive,
                               ]}
                             >
-                              {mat.name}
-                            </Text>
-                            <Text style={styles.matMeta}>
-                              ₺{mat.gramPrice}/g · ₺{mat.hourlyRate}/saat · %
-                              {mat.profitMargin} kar
-                            </Text>
-                          </View>
-                          <Switch
-                            value={mat.active}
-                            onValueChange={(v) =>
-                              toggleMaterial(tech.id, mat.id, v)
-                            }
-                            trackColor={{
-                              false: Colors.border,
-                              true: Colors.accent + "88",
-                            }}
-                            thumbColor={
-                              mat.active ? Colors.accent : Colors.text3
-                            }
-                          />
-                          <Text style={styles.chevronSm}>
-                            {expandedMat === `${tech.id}-${mat.id}` ? "▲" : "▼"}
-                          </Text>
-                        </TouchableOpacity>
+                              <TouchableOpacity
+                                style={styles.matItemHeader}
+                                onPress={() =>
+                                  setExpandedMat(
+                                    expandedMat === `${tech.id}-${mat.id}`
+                                      ? null
+                                      : `${tech.id}-${mat.id}`,
+                                  )
+                                }
+                                activeOpacity={0.8}
+                              >
+                                <View style={{ flex: 1 }}>
+                                  <Text
+                                    style={[
+                                      styles.matName,
+                                      !mat.active && styles.passiveText,
+                                    ]}
+                                  >
+                                    {mat.name}
+                                  </Text>
+                                  <Text style={styles.matMeta}>
+                                    ₺{mat.gramPrice}/g · ₺{mat.hourlyRate}/saat
+                                    · %{mat.profitMargin} kar
+                                  </Text>
+                                </View>
+                                <Switch
+                                  value={mat.active}
+                                  onValueChange={(v) =>
+                                    toggleMaterial(tech.id, mat.id, v)
+                                  }
+                                  trackColor={{
+                                    false: Colors.border,
+                                    true: Colors.accent + "88",
+                                  }}
+                                  thumbColor={
+                                    mat.active ? Colors.accent : Colors.text3
+                                  }
+                                />
+                                <Text style={styles.chevronSm}>
+                                  {expandedMat === `${tech.id}-${mat.id}`
+                                    ? "▲"
+                                    : "▼"}
+                                </Text>
+                              </TouchableOpacity>
 
-                        {expandedMat === `${tech.id}-${mat.id}` && (
-                          <View style={styles.matFields}>
-                            <Text style={styles.matColorsLabel}>
-                              Renkler:{" "}
-                              {mat.colors
-                                .filter((c) => c.active)
-                                .map((c) => c.name)
-                                .join(", ")}{" "}
-                              ({mat.colors.filter((c) => c.active).length} aktif
-                              / {mat.colors.length} toplam)
-                            </Text>
-                            <View style={styles.matFieldRow}>
-                              <View style={styles.matField}>
-                                <Text style={styles.label}>
-                                  Gram Fiyatı (₺/g)
-                                </Text>
-                                <TextInput
-                                  style={styles.input}
-                                  value={String(mat.gramPrice)}
-                                  onChangeText={(v) =>
-                                    handleMatFieldChange(
-                                      tech.id,
-                                      mat.id,
-                                      "gramPrice",
-                                      v,
-                                    )
-                                  }
-                                  keyboardType="decimal-pad"
-                                  placeholderTextColor={Colors.text3}
-                                />
-                              </View>
-                              <View style={styles.matField}>
-                                <Text style={styles.label}>
-                                  Saat Fiyatı (₺/saat)
-                                </Text>
-                                <TextInput
-                                  style={styles.input}
-                                  value={String(mat.hourlyRate)}
-                                  onChangeText={(v) =>
-                                    handleMatFieldChange(
-                                      tech.id,
-                                      mat.id,
-                                      "hourlyRate",
-                                      v,
-                                    )
-                                  }
-                                  keyboardType="decimal-pad"
-                                  placeholderTextColor={Colors.text3}
-                                />
-                              </View>
+                              {expandedMat === `${tech.id}-${mat.id}` && (
+                                <View style={styles.matFields}>
+                                  <Text style={styles.matColorsLabel}>
+                                    {mat.colors.filter((c) => c.active).length}{" "}
+                                    aktif / {mat.colors.length} toplam renk
+                                  </Text>
+                                  <View
+                                    style={{
+                                      flexDirection: "row",
+                                      flexWrap: "wrap",
+                                      gap: 6,
+                                      marginBottom: 12,
+                                    }}
+                                  >
+                                    {mat.colors.map((colorObj) => (
+                                      <TouchableOpacity
+                                        key={colorObj.name}
+                                        style={{
+                                          flexDirection: "row",
+                                          alignItems: "center",
+                                          backgroundColor: colorObj.active
+                                            ? Colors.accent + "22"
+                                            : Colors.surface2,
+                                          borderRadius: 20,
+                                          paddingHorizontal: 10,
+                                          paddingVertical: 5,
+                                          borderWidth: 1,
+                                          borderColor: colorObj.active
+                                            ? Colors.accent
+                                            : Colors.border,
+                                        }}
+                                        onPress={() =>
+                                          toggleColor(
+                                            tech.id,
+                                            mat.id,
+                                            colorObj.name,
+                                          )
+                                        }
+                                      >
+                                        <Text
+                                          style={{
+                                            fontSize: 10,
+                                            color: colorObj.active
+                                              ? Colors.accent
+                                              : Colors.text3,
+                                            fontWeight: "600",
+                                          }}
+                                        >
+                                          {colorObj.active ? "✓" : "○"}{" "}
+                                          {colorObj.name}
+                                        </Text>
+                                      </TouchableOpacity>
+                                    ))}
+                                  </View>
+                                  <View style={styles.matFieldRow}>
+                                    <View style={styles.matField}>
+                                      <Text style={styles.label}>
+                                        Gram Fiyatı (₺/g)
+                                      </Text>
+                                      <TextInput
+                                        style={styles.input}
+                                        value={String(mat.gramPrice)}
+                                        onChangeText={(v) =>
+                                          handleMatFieldChange(
+                                            tech.id,
+                                            mat.id,
+                                            "gramPrice",
+                                            v,
+                                          )
+                                        }
+                                        keyboardType="decimal-pad"
+                                        placeholderTextColor={Colors.text3}
+                                      />
+                                    </View>
+                                    <View style={styles.matField}>
+                                      <Text style={styles.label}>
+                                        Saat Fiyatı (₺/saat)
+                                      </Text>
+                                      <TextInput
+                                        style={styles.input}
+                                        value={String(mat.hourlyRate)}
+                                        onChangeText={(v) =>
+                                          handleMatFieldChange(
+                                            tech.id,
+                                            mat.id,
+                                            "hourlyRate",
+                                            v,
+                                          )
+                                        }
+                                        keyboardType="decimal-pad"
+                                        placeholderTextColor={Colors.text3}
+                                      />
+                                    </View>
+                                  </View>
+                                  <View style={styles.matFieldRow}>
+                                    <View style={styles.matField}>
+                                      <Text style={styles.label}>
+                                        Sabit Maliyet (₺)
+                                      </Text>
+                                      <TextInput
+                                        style={styles.input}
+                                        value={String(mat.fixedCost)}
+                                        onChangeText={(v) =>
+                                          handleMatFieldChange(
+                                            tech.id,
+                                            mat.id,
+                                            "fixedCost",
+                                            v,
+                                          )
+                                        }
+                                        keyboardType="decimal-pad"
+                                        placeholderTextColor={Colors.text3}
+                                      />
+                                    </View>
+                                    <View style={styles.matField}>
+                                      <Text style={styles.label}>
+                                        Kar Marjı (%)
+                                      </Text>
+                                      <TextInput
+                                        style={styles.input}
+                                        value={String(mat.profitMargin)}
+                                        onChangeText={(v) =>
+                                          handleMatFieldChange(
+                                            tech.id,
+                                            mat.id,
+                                            "profitMargin",
+                                            v,
+                                          )
+                                        }
+                                        keyboardType="decimal-pad"
+                                        placeholderTextColor={Colors.text3}
+                                      />
+                                    </View>
+                                  </View>
+                                </View>
+                              )}
                             </View>
-                            <View style={styles.matFieldRow}>
-                              <View style={styles.matField}>
-                                <Text style={styles.label}>
-                                  Sabit Maliyet (₺)
-                                </Text>
-                                <TextInput
-                                  style={styles.input}
-                                  value={String(mat.fixedCost)}
-                                  onChangeText={(v) =>
-                                    handleMatFieldChange(
-                                      tech.id,
-                                      mat.id,
-                                      "fixedCost",
-                                      v,
-                                    )
-                                  }
-                                  keyboardType="decimal-pad"
-                                  placeholderTextColor={Colors.text3}
-                                />
-                              </View>
-                              <View style={styles.matField}>
-                                <Text style={styles.label}>Kar Marjı (%)</Text>
-                                <TextInput
-                                  style={styles.input}
-                                  value={String(mat.profitMargin)}
-                                  onChangeText={(v) =>
-                                    handleMatFieldChange(
-                                      tech.id,
-                                      mat.id,
-                                      "profitMargin",
-                                      v,
-                                    )
-                                  }
-                                  keyboardType="decimal-pad"
-                                  placeholderTextColor={Colors.text3}
-                                />
-                              </View>
-                            </View>
-                          </View>
-                        )}
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  ))}
+                </View>
+              );
+            })}
             <View style={{ height: 120 }} />
           </ScrollView>
           <View style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
@@ -1673,4 +1775,14 @@ const styles = StyleSheet.create({
   },
   matFieldRow: { flexDirection: "row", gap: 10 },
   matField: { flex: 1 },
+  groupLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: Colors.text3,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 8,
+    marginTop: 16,
+    paddingLeft: 4,
+  },
 });
