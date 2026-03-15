@@ -258,7 +258,7 @@ export default function PrintSummaryScreen() {
               if (result.success) {
                 Alert.alert(
                   "🎉 Sipariş Alındı!",
-                  `Sipariş #${result.order_number} başarıyla oluşturuldu. Ekibimiz en kısa sürede üretimi başlatacak.`,
+                  `Siparişiniz başarıyla alındı! Ekibimiz en kısa sürede üretime başlayacak.`,
                   [
                     {
                       text: "Tamam",
