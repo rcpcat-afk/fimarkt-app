@@ -364,58 +364,74 @@ export default function PrintUploadScreen() {
               </>
             )}
 
-            {selectedColor && (
-              <>
-                <Text style={[styles.expandedLabel, { marginTop: 16 }]}>
-                  Dolgu Oranı
-                </Text>
-                <View style={styles.infillRow}>
-                  {INFILL_OPTIONS.map((opt) => (
-                    <TouchableOpacity
-                      key={opt.value}
-                      style={[
-                        styles.infillBtn,
-                        selectedInfill === opt.value && {
-                          borderColor: tech.color,
-                          backgroundColor: tech.color + "15",
-                        },
-                      ]}
-                      onPress={() => setSelectedInfill(opt.value)}
-                      activeOpacity={0.8}
-                    >
-                      {opt.recommended && (
-                        <View style={styles.infillRecommended}>
-                          <Text
-                            style={[
-                              styles.infillRecommendedText,
-                              { color: tech.color },
-                            ]}
-                          >
-                            ✦
-                          </Text>
-                        </View>
-                      )}
-                      <Text
+            {selectedColor &&
+              ![
+                "sla",
+                "dlp",
+                "msla",
+                "sls",
+                "mjf",
+                "dmls",
+                "binder-jetting",
+                "polyjet",
+                "seramik",
+                "karbon-fiber",
+              ].includes(tech.id) && (
+                <>
+                  <Text style={[styles.expandedLabel, { marginTop: 16 }]}>
+                    Dolgu Oranı
+                  </Text>
+                  <View style={styles.infillRow}>
+                    {INFILL_OPTIONS.map((opt) => (
+                      <TouchableOpacity
+                        key={opt.value}
                         style={[
-                          styles.infillLabel,
-                          selectedInfill === opt.value && { color: tech.color },
+                          styles.infillBtn,
+                          selectedInfill === opt.value && {
+                            borderColor: tech.color,
+                            backgroundColor: tech.color + "15",
+                          },
                         ]}
+                        onPress={() => setSelectedInfill(opt.value)}
+                        activeOpacity={0.8}
                       >
-                        {opt.label}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.infillDesc,
-                          selectedInfill === opt.value && { color: tech.color },
-                        ]}
-                      >
-                        {opt.desc}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </>
-            )}
+                        {opt.recommended && (
+                          <View style={styles.infillRecommended}>
+                            <Text
+                              style={[
+                                styles.infillRecommendedText,
+                                { color: tech.color },
+                              ]}
+                            >
+                              ✦
+                            </Text>
+                          </View>
+                        )}
+                        <Text
+                          style={[
+                            styles.infillLabel,
+                            selectedInfill === opt.value && {
+                              color: tech.color,
+                            },
+                          ]}
+                        >
+                          {opt.label}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.infillDesc,
+                            selectedInfill === opt.value && {
+                              color: tech.color,
+                            },
+                          ]}
+                        >
+                          {opt.desc}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </>
+              )}
 
             {selectedColor && (
               <>
