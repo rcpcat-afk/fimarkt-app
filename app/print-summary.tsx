@@ -129,7 +129,7 @@ export default function PrintSummaryScreen() {
   const FDM_TECHNOLOGIES = ["fdm-standart", "fdm-endustriyel", "fdm-yuksek"];
   const infill = FDM_TECHNOLOGIES.includes(tech)
     ? Number(params.infill) || 20
-    : 20;
+    : 0;
   const quantity = Number(params.quantity) || 1;
   const fileName = params.fileName as string;
   const unit = params.unit as string;
