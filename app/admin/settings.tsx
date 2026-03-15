@@ -95,6 +95,7 @@ type Material = {
   hourlyRate: number;
   fixedCost: number;
   profitMargin: number;
+  density?: number;
   active: boolean;
 };
 
@@ -160,6 +161,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 20,
         profitMargin: 30,
+        density: 1.24,
         active: true,
       },
       {
@@ -188,6 +190,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 20,
         profitMargin: 30,
+        density: 1.24,
         active: true,
       },
       {
@@ -212,6 +215,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 20,
         profitMargin: 30,
+        density: 1.04,
         active: true,
       },
       {
@@ -235,6 +239,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 20,
         profitMargin: 30,
+        density: 1.27,
         active: true,
       },
       {
@@ -257,6 +262,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 45,
         fixedCost: 25,
         profitMargin: 30,
+        density: 1.21,
         active: true,
       },
       {
@@ -277,6 +283,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 20,
         profitMargin: 30,
+        density: 1.07,
         active: true,
       },
       {
@@ -294,6 +301,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 20,
         profitMargin: 30,
+        density: 1.07,
         active: true,
       },
       {
@@ -304,6 +312,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 20,
         profitMargin: 30,
+        density: 1.19,
         active: true,
       },
     ],
@@ -326,6 +335,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.13,
         active: true,
       },
       {
@@ -339,6 +349,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.01,
         active: true,
       },
       {
@@ -353,6 +364,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.2,
         active: true,
       },
       {
@@ -363,6 +375,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 35,
         profitMargin: 30,
+        density: 1.3,
         active: true,
       },
       {
@@ -373,6 +386,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 35,
         profitMargin: 30,
+        density: 1.3,
         active: true,
       },
       {
@@ -383,6 +397,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 60,
         fixedCost: 35,
         profitMargin: 30,
+        density: 1.15,
         active: true,
       },
       {
@@ -397,6 +412,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 40,
         profitMargin: 30,
+        density: 3.5,
         active: true,
       },
       {
@@ -411,6 +427,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 40,
         fixedCost: 25,
         profitMargin: 30,
+        density: 1.15,
         active: true,
       },
     ],
@@ -433,6 +450,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 200,
         fixedCost: 150,
         profitMargin: 30,
+        density: 1.32,
         active: false,
       },
       {
@@ -443,6 +461,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 180,
         fixedCost: 150,
         profitMargin: 30,
+        density: 1.27,
         active: false,
       },
       {
@@ -453,6 +472,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 200,
         fixedCost: 150,
         profitMargin: 30,
+        density: 1.34,
         active: false,
       },
       {
@@ -463,6 +483,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 220,
         fixedCost: 180,
         profitMargin: 30,
+        density: 1.4,
         active: false,
       },
     ],
@@ -494,6 +515,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 60,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
       {
@@ -508,6 +530,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 60,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
       {
@@ -523,6 +546,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 65,
         fixedCost: 35,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
       {
@@ -536,6 +560,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 65,
         fixedCost: 35,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
       {
@@ -549,6 +574,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 80,
         fixedCost: 50,
         profitMargin: 30,
+        density: 1.15,
         active: true,
       },
       {
@@ -563,6 +589,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 90,
         fixedCost: 60,
         profitMargin: 30,
+        density: 1.12,
         active: true,
       },
       {
@@ -576,6 +603,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 75,
         fixedCost: 45,
         profitMargin: 30,
+        density: 1.15,
         active: true,
       },
     ],
@@ -600,6 +628,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.1,
         active: false,
       },
       {
@@ -613,6 +642,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.1,
         active: false,
       },
       {
@@ -626,6 +656,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 60,
         fixedCost: 35,
         profitMargin: 30,
+        density: 1.1,
         active: false,
       },
     ],
@@ -657,6 +688,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 25,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
       {
@@ -671,6 +703,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 55,
         fixedCost: 25,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
       {
@@ -684,6 +717,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 60,
         fixedCost: 30,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
       {
@@ -697,6 +731,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 70,
         fixedCost: 40,
         profitMargin: 30,
+        density: 1.1,
         active: true,
       },
     ],
@@ -721,6 +756,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 120,
         fixedCost: 80,
         profitMargin: 30,
+        density: 1.01,
         active: true,
       },
       {
@@ -734,6 +770,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 120,
         fixedCost: 80,
         profitMargin: 30,
+        density: 1.03,
         active: true,
       },
       {
@@ -747,6 +784,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 130,
         fixedCost: 90,
         profitMargin: 30,
+        density: 1.2,
         active: true,
       },
       {
@@ -760,6 +798,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 120,
         fixedCost: 80,
         profitMargin: 30,
+        density: 0.91,
         active: true,
       },
       {
@@ -770,6 +809,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 125,
         fixedCost: 85,
         profitMargin: 30,
+        density: 1.08,
         active: true,
       },
     ],
@@ -792,6 +832,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 150,
         fixedCost: 100,
         profitMargin: 30,
+        density: 1.01,
         active: true,
       },
       {
@@ -802,6 +843,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 155,
         fixedCost: 105,
         profitMargin: 30,
+        density: 1.08,
         active: true,
       },
       {
@@ -815,6 +857,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 160,
         fixedCost: 110,
         profitMargin: 30,
+        density: 1.2,
         active: true,
       },
       {
@@ -825,6 +868,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 150,
         fixedCost: 100,
         profitMargin: 30,
+        density: 1.03,
         active: true,
       },
     ],
@@ -844,6 +888,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 400,
         fixedCost: 200,
         profitMargin: 30,
+        density: 7.9,
         active: false,
       },
       {
@@ -854,6 +899,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 420,
         fixedCost: 200,
         profitMargin: 30,
+        density: 7.78,
         active: false,
       },
       {
@@ -864,6 +910,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 500,
         fixedCost: 300,
         profitMargin: 30,
+        density: 4.43,
         active: false,
       },
       {
@@ -874,6 +921,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 350,
         fixedCost: 180,
         profitMargin: 30,
+        density: 2.67,
         active: false,
       },
       {
@@ -884,6 +932,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 550,
         fixedCost: 350,
         profitMargin: 30,
+        density: 8.3,
         active: false,
       },
       {
@@ -894,6 +943,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 600,
         fixedCost: 400,
         profitMargin: 30,
+        density: 8.44,
         active: false,
       },
       {
@@ -904,6 +954,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 480,
         fixedCost: 280,
         profitMargin: 30,
+        density: 8.0,
         active: false,
       },
     ],
@@ -923,6 +974,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 380,
         fixedCost: 180,
         profitMargin: 30,
+        density: 7.9,
         active: false,
       },
       {
@@ -933,6 +985,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 400,
         fixedCost: 200,
         profitMargin: 30,
+        density: 8.96,
         active: false,
       },
       {
@@ -943,6 +996,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 350,
         fixedCost: 170,
         profitMargin: 30,
+        density: 7.87,
         active: false,
       },
     ],
@@ -967,6 +1021,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 250,
         fixedCost: 150,
         profitMargin: 30,
+        density: 1.18,
         active: false,
       },
       {
@@ -980,6 +1035,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 270,
         fixedCost: 160,
         profitMargin: 30,
+        density: 1.18,
         active: false,
       },
       {
@@ -990,6 +1046,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 300,
         fixedCost: 200,
         profitMargin: 30,
+        density: 1.18,
         active: false,
       },
     ],
@@ -1012,6 +1069,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 180,
         fixedCost: 100,
         profitMargin: 30,
+        density: 1.7,
         active: false,
       },
       {
@@ -1022,6 +1080,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 150,
         fixedCost: 80,
         profitMargin: 30,
+        density: 2.3,
         active: false,
       },
     ],
@@ -1041,6 +1100,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 200,
         fixedCost: 120,
         profitMargin: 30,
+        density: 1.2,
         active: false,
       },
       {
@@ -1051,6 +1111,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 190,
         fixedCost: 110,
         profitMargin: 30,
+        density: 1.2,
         active: false,
       },
       {
@@ -1064,6 +1125,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 220,
         fixedCost: 140,
         profitMargin: 30,
+        density: 1.38,
         active: false,
       },
       {
@@ -1077,6 +1139,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         hourlyRate: 190,
         fixedCost: 110,
         profitMargin: 30,
+        density: 1.2,
         active: false,
       },
     ],
@@ -1179,8 +1242,16 @@ export default function AdminSettingsScreen() {
       cooldown_hours: 2.0,
       thermal_support_ratio: 0.05,
     },
-    seramik: { shrinkage_factor: 0.18 },
-    karbon_fiber: { spool_length_m: 50.0 },
+    seramik: {
+      shrinkage_factor: 0.18,
+      resin_density_g_cm3: 1.7,
+      furnace_cost_per_hour: 2.5,
+    },
+    karbon_fiber: {
+      spool_length_m: 50.0,
+      plastic_density_g_cm3: 1.2,
+      fiber_volume_ratio: 0.3,
+    },
   });
   const [profilesSaved, setProfilesSaved] = useState(false);
   const [profilesLoading, setProfilesLoading] = useState(false);
@@ -1679,6 +1750,29 @@ export default function AdminSettingsScreen() {
                                       />
                                     </View>
                                   </View>
+
+                                  <View style={styles.matFieldRow}>
+                                    <View style={styles.matField}>
+                                      <Text style={styles.label}>
+                                        Yoğunluk (g/cm³)
+                                      </Text>
+                                      <TextInput
+                                        style={styles.input}
+                                        value={String(mat.density ?? "")}
+                                        onChangeText={(v) =>
+                                          handleMatFieldChange(
+                                            tech.id,
+                                            mat.id,
+                                            "density",
+                                            v,
+                                          )
+                                        }
+                                        keyboardType="decimal-pad"
+                                        placeholder="örn: 1.24"
+                                        placeholderTextColor={Colors.text3}
+                                      />
+                                    </View>
+                                  </View>
                                 </View>
                               )}
                             </View>
@@ -2159,19 +2253,58 @@ export default function AdminSettingsScreen() {
             {/* ÖZEL */}
             <Text style={styles.groupLabel}>🏺 SERAMİK</Text>
             <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Büzülme Faktörü (0-1)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.seramik.shrinkage_factor)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        seramik: {
+                          ...p.seramik,
+                          shrinkage_factor: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Reçine Yoğunluğu (g/cm³)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.seramik.resin_density_g_cm3)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        seramik: {
+                          ...p.seramik,
+                          resin_density_g_cm3: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
               <View style={styles.matField}>
-                <Text style={styles.label}>
-                  Büzülme Faktörü (0-1, örn: 0.18)
-                </Text>
+                <Text style={styles.label}>Fırın Maliyeti (₺/saat)</Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="decimal-pad"
                   placeholderTextColor={Colors.text3}
-                  value={String(techProfiles.seramik.shrinkage_factor)}
+                  value={String(techProfiles.seramik.furnace_cost_per_hour)}
                   onChangeText={(v) =>
                     setTechProfiles((p) => ({
                       ...p,
-                      seramik: { shrinkage_factor: parseFloat(v) || 0 },
+                      seramik: {
+                        ...p.seramik,
+                        furnace_cost_per_hour: parseFloat(v) || 0,
+                      },
                     }))
                   }
                 />
@@ -2180,17 +2313,62 @@ export default function AdminSettingsScreen() {
 
             <Text style={styles.groupLabel}>🏎️ KARBON FİBER</Text>
             <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Makara Uzunluğu (metre)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.karbon_fiber.spool_length_m)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        karbon_fiber: {
+                          ...p.karbon_fiber,
+                          spool_length_m: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Plastik Yoğunluğu (g/cm³)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(
+                      techProfiles.karbon_fiber.plastic_density_g_cm3,
+                    )}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        karbon_fiber: {
+                          ...p.karbon_fiber,
+                          plastic_density_g_cm3: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
               <View style={styles.matField}>
-                <Text style={styles.label}>Makara Uzunluğu (metre)</Text>
+                <Text style={styles.label}>
+                  Fiber Hacim Oranı (0-1, örn: 0.30)
+                </Text>
                 <TextInput
                   style={styles.input}
                   keyboardType="decimal-pad"
                   placeholderTextColor={Colors.text3}
-                  value={String(techProfiles.karbon_fiber.spool_length_m)}
+                  value={String(techProfiles.karbon_fiber.fiber_volume_ratio)}
                   onChangeText={(v) =>
                     setTechProfiles((p) => ({
                       ...p,
-                      karbon_fiber: { spool_length_m: parseFloat(v) || 0 },
+                      karbon_fiber: {
+                        ...p.karbon_fiber,
+                        fiber_volume_ratio: parseFloat(v) || 0,
+                      },
                     }))
                   }
                 />
