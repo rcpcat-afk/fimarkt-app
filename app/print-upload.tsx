@@ -52,6 +52,7 @@ type Material = {
   gramPrice: number;
   hourlyRate: number;
   fixedCost: number;
+  density?: number;
   active: boolean;
 };
 
@@ -207,6 +208,7 @@ export default function PrintUploadScreen() {
         techName: selectedTechData?.name,
         material: selectedMaterial,
         materialName: selectedMaterialData?.name,
+        density: selectedMaterialData?.density ?? 0,
         color: selectedColor,
         infill: selectedInfill,
         quantity,

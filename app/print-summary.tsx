@@ -171,6 +171,7 @@ export default function PrintSummaryScreen() {
     backendForm.append("technology_id", tech);
     backendForm.append("infill", String(infill));
     backendForm.append("materialId", material);
+    backendForm.append("density_g_cm3", String(params.density ?? 0));
     backendForm.append("quantity", String(quantity));
 
     fetch(
