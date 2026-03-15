@@ -1268,9 +1268,15 @@ export default function AdminSettingsScreen() {
       thermal_support_ratio: 0.05,
       power_w: 3000.0,
     },
+    polyjet: {
+      model_density_g_cm3: 1.18,
+      support_density_g_cm3: 1.18,
+      z_sweep_factor: 1.5,
+    },
     seramik: {
       shrinkage_factor: 0.18,
       resin_density_g_cm3: 1.7,
+      furnace_time_hours: 48.0,
       furnace_cost_per_hour: 2.5,
     },
     karbon_fiber: {
@@ -3258,6 +3264,66 @@ export default function AdminSettingsScreen() {
             </View>
 
             {/* ÖZEL */}
+            <Text style={styles.groupLabel}>🎨 POLYJET</Text>
+            <View style={styles.section}>
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Model Yoğunluğu (g/cm³)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.polyjet.model_density_g_cm3)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        polyjet: {
+                          ...p.polyjet,
+                          model_density_g_cm3: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Destek Yoğunluğu (g/cm³)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.polyjet.support_density_g_cm3)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        polyjet: {
+                          ...p.polyjet,
+                          support_density_g_cm3: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+              </View>
+              <View style={styles.matField}>
+                <Text style={styles.label}>Z Süpürme Katsayısı</Text>
+                <TextInput
+                  style={styles.input}
+                  keyboardType="decimal-pad"
+                  placeholderTextColor={Colors.text3}
+                  value={String(techProfiles.polyjet.z_sweep_factor)}
+                  onChangeText={(v) =>
+                    setTechProfiles((p) => ({
+                      ...p,
+                      polyjet: {
+                        ...p.polyjet,
+                        z_sweep_factor: parseFloat(v) || 0,
+                      },
+                    }))
+                  }
+                />
+              </View>
+            </View>
+
             <Text style={styles.groupLabel}>🏺 SERAMİK</Text>
             <View style={styles.section}>
               <View style={styles.matFieldRow}>
@@ -3298,23 +3364,43 @@ export default function AdminSettingsScreen() {
                   />
                 </View>
               </View>
-              <View style={styles.matField}>
-                <Text style={styles.label}>Fırın Maliyeti (₺/saat)</Text>
-                <TextInput
-                  style={styles.input}
-                  keyboardType="decimal-pad"
-                  placeholderTextColor={Colors.text3}
-                  value={String(techProfiles.seramik.furnace_cost_per_hour)}
-                  onChangeText={(v) =>
-                    setTechProfiles((p) => ({
-                      ...p,
-                      seramik: {
-                        ...p.seramik,
-                        furnace_cost_per_hour: parseFloat(v) || 0,
-                      },
-                    }))
-                  }
-                />
+              <View style={styles.matFieldRow}>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Fırın Süresi (saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.seramik.furnace_time_hours)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        seramik: {
+                          ...p.seramik,
+                          furnace_time_hours: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
+                <View style={styles.matField}>
+                  <Text style={styles.label}>Fırın Maliyeti (₺/saat)</Text>
+                  <TextInput
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholderTextColor={Colors.text3}
+                    value={String(techProfiles.seramik.furnace_cost_per_hour)}
+                    onChangeText={(v) =>
+                      setTechProfiles((p) => ({
+                        ...p,
+                        seramik: {
+                          ...p.seramik,
+                          furnace_cost_per_hour: parseFloat(v) || 0,
+                        },
+                      }))
+                    }
+                  />
+                </View>
               </View>
             </View>
 
