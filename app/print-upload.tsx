@@ -29,7 +29,7 @@ const INFILL_OPTIONS = [
 type Material = {
   id: string;
   name: string;
-  colors: string[];
+  colors: { name: string; active: boolean }[];
   gramPrice: number;
   hourlyRate: number;
   fixedCost: number;
@@ -488,66 +488,69 @@ export default function PrintUploadScreen() {
                                   Renk
                                 </Text>
                                 <View style={styles.colorRow}>
-                                  {selMat.colors.map((colorName) => (
-                                    <TouchableOpacity
-                                      key={colorName}
-                                      style={[
-                                        styles.colorItem,
-                                        selectedColor === colorName && {
-                                          borderColor: tech.color,
-                                          borderWidth: 2,
-                                        },
-                                      ]}
-                                      onPress={() =>
-                                        setSelectedColor(colorName)
-                                      }
-                                      activeOpacity={0.8}
-                                    >
-                                      <View
+                                  {selMat.colors
+                                    .filter((c) => c.active)
+                                    .map((colorObj) => (
+                                      <TouchableOpacity
+                                        key={colorObj.name}
                                         style={[
-                                          styles.colorDot,
-                                          {
-                                            backgroundColor:
-                                              COLOR_HEX[colorName] ?? "#94a3b8",
-                                            borderColor:
-                                              colorName === "Beyaz" ||
-                                              colorName === "Şeffaf"
-                                                ? "#cbd5e1"
-                                                : "transparent",
-                                            borderWidth:
-                                              colorName === "Beyaz" ||
-                                              colorName === "Şeffaf"
-                                                ? 1
-                                                : 0,
+                                          styles.colorItem,
+                                          selectedColor === colorObj.name && {
+                                            borderColor: tech.color,
+                                            borderWidth: 2,
                                           },
                                         ]}
-                                      />
-                                      <Text
-                                        style={[
-                                          styles.colorName,
-                                          selectedColor === colorName && {
-                                            color: tech.color,
-                                            fontWeight: "700",
-                                          },
-                                        ]}
-                                        numberOfLines={2}
+                                        onPress={() =>
+                                          setSelectedColor(colorObj.name)
+                                        }
+                                        activeOpacity={0.8}
                                       >
-                                        {colorName}
-                                      </Text>
-                                      {selectedColor === colorName && (
                                         <View
                                           style={[
-                                            styles.colorCheckBadge,
-                                            { backgroundColor: tech.color },
+                                            styles.colorDot,
+                                            {
+                                              backgroundColor:
+                                                COLOR_HEX[colorObj.name] ??
+                                                "#94a3b8",
+                                              borderColor:
+                                                colorObj.name === "Beyaz" ||
+                                                colorObj.name === "Şeffaf"
+                                                  ? "#cbd5e1"
+                                                  : "transparent",
+                                              borderWidth:
+                                                colorObj.name === "Beyaz" ||
+                                                colorObj.name === "Şeffaf"
+                                                  ? 1
+                                                  : 0,
+                                            },
                                           ]}
+                                        />
+                                        <Text
+                                          style={[
+                                            styles.colorName,
+                                            selectedColor === colorObj.name && {
+                                              color: tech.color,
+                                              fontWeight: "700",
+                                            },
+                                          ]}
+                                          numberOfLines={2}
                                         >
-                                          <Text style={styles.colorCheckText}>
-                                            ✓
-                                          </Text>
-                                        </View>
-                                      )}
-                                    </TouchableOpacity>
-                                  ))}
+                                          {colorObj.name}
+                                        </Text>
+                                        {selectedColor === colorObj.name && (
+                                          <View
+                                            style={[
+                                              styles.colorCheckBadge,
+                                              { backgroundColor: tech.color },
+                                            ]}
+                                          >
+                                            <Text style={styles.colorCheckText}>
+                                              ✓
+                                            </Text>
+                                          </View>
+                                        )}
+                                      </TouchableOpacity>
+                                    ))}
                                 </View>
                               </>
                             )}

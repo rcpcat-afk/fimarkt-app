@@ -16,17 +16,31 @@ const TECH_LABELS: Record<
   string,
   { title: string; icon: string; color: string }
 > = {
-  "fdm-standart": { title: "Standart FDM", icon: "🏭", color: "#ff6b2b" },
-  "fdm-endustriyel": { title: "Endüstriyel FDM", icon: "⚙️", color: "#f97316" },
-  "sla-standart": { title: "Standart Reçine", icon: "💎", color: "#6366f1" },
-  "sla-endustriyel": {
-    title: "Endüstriyel Reçine",
-    icon: "🔬",
-    color: "#8b5cf6",
+  "fdm-standart": { title: "FDM Standart", icon: "🏭", color: "#ff6b2b" },
+  "fdm-endustriyel": { title: "FDM Endüstriyel", icon: "⚙️", color: "#f97316" },
+  "fdm-yuksek": {
+    title: "FDM Yüksek Performans",
+    icon: "🔥",
+    color: "#dc2626",
   },
-  mjf: { title: "Multi Jet Fusion", icon: "🚀", color: "#0ea5e9" },
-  sls: { title: "Seçici Lazer Sinterleme", icon: "⚡", color: "#06b6d4" },
-  metal: { title: "Metal Baskı (DMLS)", icon: "🔩", color: "#94a3b8" },
+  sla: { title: "SLA Reçine", icon: "💎", color: "#6366f1" },
+  dlp: { title: "DLP Reçine", icon: "🔵", color: "#3b82f6" },
+  msla: { title: "MSLA (LCD) Reçine", icon: "📱", color: "#8b5cf6" },
+  sls: { title: "SLS (Toz)", icon: "⚡", color: "#06b6d4" },
+  mjf: { title: "MJF (Multi Jet Fusion)", icon: "🚀", color: "#0ea5e9" },
+  dmls: { title: "Metal (DMLS/SLM)", icon: "🔩", color: "#94a3b8" },
+  "binder-jetting": {
+    title: "Binder Jetting (Metal)",
+    icon: "🏗️",
+    color: "#64748b",
+  },
+  polyjet: { title: "Polyjet/Multijet", icon: "🎨", color: "#ec4899" },
+  seramik: { title: "Seramik/Beton", icon: "🏺", color: "#a16207" },
+  "karbon-fiber": {
+    title: "Continuous Karbon Fiber",
+    icon: "🏎️",
+    color: "#1e293b",
+  },
 };
 
 const MATERIAL_LABELS: Record<
@@ -53,11 +67,17 @@ const MATERIAL_LABELS: Record<
 const DELIVERY_DAYS: Record<string, string> = {
   "fdm-standart": "2-4 iş günü",
   "fdm-endustriyel": "3-5 iş günü",
-  "sla-standart": "3-5 iş günü",
-  "sla-endustriyel": "4-6 iş günü",
-  mjf: "5-7 iş günü",
+  "fdm-yuksek": "4-7 iş günü",
+  sla: "3-5 iş günü",
+  dlp: "3-5 iş günü",
+  msla: "3-5 iş günü",
   sls: "5-7 iş günü",
-  metal: "10-15 iş günü",
+  mjf: "5-7 iş günü",
+  dmls: "10-15 iş günü",
+  "binder-jetting": "10-15 iş günü",
+  polyjet: "5-8 iş günü",
+  seramik: "7-10 iş günü",
+  "karbon-fiber": "5-8 iş günü",
 };
 
 const StepIndicator = ({

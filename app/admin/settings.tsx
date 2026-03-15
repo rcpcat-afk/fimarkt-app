@@ -90,7 +90,7 @@ const SECTIONS = [
 type Material = {
   id: string;
   name: string;
-  colors: string[];
+  colors: { name: string; active: boolean }[];
   gramPrice: number;
   hourlyRate: number;
   fixedCost: number;
@@ -119,19 +119,42 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         id: "pla",
         name: "PLA",
         colors: [
-          "Beyaz",
-          "Siyah",
-          "Gri",
-          "Kırmızı",
-          "Mavi",
-          "Sarı",
-          "Yeşil",
-          "Turuncu",
-          "Mor",
-          "Pembe",
-          "Şeffaf",
-          "Ahşap Görünüm",
-          "Karbon Görünüm",
+          { name: "Beyaz", active: true },
+          { name: "Siyah", active: true },
+          { name: "Gri", active: true },
+          { name: "Kırmızı", active: true },
+          { name: "Mavi", active: true },
+          { name: "Sarı", active: true },
+          { name: "Yeşil", active: true },
+          { name: "Turuncu", active: true },
+          { name: "Mor", active: true },
+          { name: "Pembe", active: true },
+          { name: "Şeffaf", active: true },
+          { name: "Altın", active: true },
+          { name: "Gümüş", active: true },
+          { name: "Parlak Kırmızı", active: false },
+          { name: "Parlak Mavi", active: false },
+          { name: "Açık Mavi", active: false },
+          { name: "Lacivert", active: false },
+          { name: "Koyu Yeşil", active: false },
+          { name: "Açık Yeşil", active: false },
+          { name: "Kahverengi", active: false },
+          { name: "Bej", active: false },
+          { name: "Krem", active: false },
+          { name: "Silk Altın", active: false },
+          { name: "Silk Gümüş", active: false },
+          { name: "Silk Bakır", active: false },
+          { name: "Silk Bronz", active: false },
+          { name: "Mat Siyah", active: false },
+          { name: "Mat Beyaz", active: false },
+          { name: "Mat Gri", active: false },
+          { name: "Floresan Sarı", active: false },
+          { name: "Floresan Turuncu", active: false },
+          { name: "Karbon Görünüm", active: false },
+          { name: "Ahşap Görünüm", active: false },
+          { name: "Mermer Görünüm", active: false },
+          { name: "Karanlıkta Parlayan", active: false },
+          { name: "Gökkuşağı", active: false },
         ],
         gramPrice: 0.35,
         hourlyRate: 40,
@@ -143,17 +166,23 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         id: "pla-plus",
         name: "PLA+",
         colors: [
-          "Beyaz",
-          "Siyah",
-          "Gri",
-          "Kırmızı",
-          "Mavi",
-          "Sarı",
-          "Yeşil",
-          "Turuncu",
-          "Mor",
-          "Pembe",
-          "Şeffaf",
+          { name: "Beyaz", active: true },
+          { name: "Siyah", active: true },
+          { name: "Gri", active: true },
+          { name: "Kırmızı", active: true },
+          { name: "Mavi", active: true },
+          { name: "Sarı", active: true },
+          { name: "Yeşil", active: true },
+          { name: "Turuncu", active: true },
+          { name: "Mor", active: true },
+          { name: "Pembe", active: true },
+          { name: "Şeffaf", active: false },
+          { name: "Altın", active: false },
+          { name: "Gümüş", active: false },
+          { name: "Açık Mavi", active: false },
+          { name: "Lacivert", active: false },
+          { name: "Kahverengi", active: false },
+          { name: "Bej", active: false },
         ],
         gramPrice: 0.4,
         hourlyRate: 40,
@@ -165,14 +194,19 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
         id: "abs",
         name: "ABS",
         colors: [
-          "Beyaz",
-          "Siyah",
-          "Gri",
-          "Kırmızı",
-          "Mavi",
-          "Sarı",
-          "Yeşil",
-          "Turuncu",
+          { name: "Beyaz", active: true },
+          { name: "Siyah", active: true },
+          { name: "Gri", active: true },
+          { name: "Kırmızı", active: true },
+          { name: "Mavi", active: true },
+          { name: "Sarı", active: true },
+          { name: "Yeşil", active: true },
+          { name: "Turuncu", active: true },
+          { name: "Mor", active: false },
+          { name: "Pembe", active: false },
+          { name: "Şeffaf", active: false },
+          { name: "Altın", active: false },
+          { name: "Gümüş", active: false },
         ],
         gramPrice: 0.32,
         hourlyRate: 40,
@@ -183,7 +217,20 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "petg",
         name: "PETG",
-        colors: ["Beyaz", "Siyah", "Gri", "Şeffaf", "Mavi", "Kırmızı", "Yeşil"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Siyah", active: true },
+          { name: "Gri", active: true },
+          { name: "Şeffaf", active: true },
+          { name: "Mavi", active: true },
+          { name: "Kırmızı", active: true },
+          { name: "Yeşil", active: true },
+          { name: "Turuncu", active: false },
+          { name: "Mor", active: false },
+          { name: "Sarı", active: false },
+          { name: "Açık Mavi", active: false },
+          { name: "Lacivert", active: false },
+        ],
         gramPrice: 0.4,
         hourlyRate: 40,
         fixedCost: 20,
@@ -193,7 +240,19 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "tpu",
         name: "TPU",
-        colors: ["Beyaz", "Siyah", "Şeffaf", "Kırmızı", "Mavi"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Siyah", active: true },
+          { name: "Şeffaf", active: true },
+          { name: "Kırmızı", active: true },
+          { name: "Mavi", active: true },
+          { name: "Sarı", active: false },
+          { name: "Yeşil", active: false },
+          { name: "Turuncu", active: false },
+          { name: "Mor", active: false },
+          { name: "Pembe", active: false },
+          { name: "Gri", active: false },
+        ],
         gramPrice: 0.55,
         hourlyRate: 45,
         fixedCost: 25,
@@ -203,7 +262,17 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "asa",
         name: "ASA",
-        colors: ["Beyaz", "Siyah", "Gri", "Kırmızı"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Siyah", active: true },
+          { name: "Gri", active: true },
+          { name: "Kırmızı", active: false },
+          { name: "Mavi", active: false },
+          { name: "Sarı", active: false },
+          { name: "Yeşil", active: false },
+          { name: "Turuncu", active: false },
+          { name: "Mor", active: false },
+        ],
         gramPrice: 0.45,
         hourlyRate: 40,
         fixedCost: 20,
@@ -213,7 +282,14 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "hips",
         name: "HIPS",
-        colors: ["Beyaz", "Siyah"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Siyah", active: true },
+          { name: "Gri", active: false },
+          { name: "Kırmızı", active: false },
+          { name: "Mavi", active: false },
+          { name: "Sarı", active: false },
+        ],
         gramPrice: 0.35,
         hourlyRate: 40,
         fixedCost: 20,
@@ -223,7 +299,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "pva",
         name: "PVA",
-        colors: ["Doğal"],
+        colors: [{ name: "Doğal", active: true }],
         gramPrice: 0.8,
         hourlyRate: 40,
         fixedCost: 20,
@@ -242,7 +318,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "nylon-pa6",
         name: "Nylon PA6",
-        colors: ["Siyah", "Doğal"],
+        colors: [
+          { name: "Siyah", active: true },
+          { name: "Doğal", active: true },
+        ],
         gramPrice: 0.7,
         hourlyRate: 55,
         fixedCost: 30,
@@ -252,7 +331,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "nylon-pa12",
         name: "Nylon PA12",
-        colors: ["Siyah", "Doğal"],
+        colors: [
+          { name: "Siyah", active: true },
+          { name: "Doğal", active: true },
+        ],
         gramPrice: 0.75,
         hourlyRate: 55,
         fixedCost: 30,
@@ -262,7 +344,11 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "pc",
         name: "PC (Polikarbonat)",
-        colors: ["Şeffaf", "Siyah", "Beyaz"],
+        colors: [
+          { name: "Şeffaf", active: true },
+          { name: "Siyah", active: true },
+          { name: "Beyaz", active: true },
+        ],
         gramPrice: 0.65,
         hourlyRate: 55,
         fixedCost: 30,
@@ -272,7 +358,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "cf-pla",
         name: "Carbon Fiber PLA",
-        colors: ["Siyah"],
+        colors: [{ name: "Siyah", active: true }],
         gramPrice: 0.9,
         hourlyRate: 55,
         fixedCost: 35,
@@ -282,7 +368,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "cf-petg",
         name: "Carbon Fiber PETG",
-        colors: ["Siyah"],
+        colors: [{ name: "Siyah", active: true }],
         gramPrice: 0.95,
         hourlyRate: 55,
         fixedCost: 35,
@@ -292,7 +378,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "cf-nylon",
         name: "Carbon Fiber Nylon",
-        colors: ["Siyah"],
+        colors: [{ name: "Siyah", active: true }],
         gramPrice: 1.1,
         hourlyRate: 60,
         fixedCost: 35,
@@ -302,7 +388,11 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-fill",
         name: "Metal Fill",
-        colors: ["Demir", "Pirinç", "Bakır"],
+        colors: [
+          { name: "Demir", active: true },
+          { name: "Pirinç", active: true },
+          { name: "Bakır", active: true },
+        ],
         gramPrice: 1.2,
         hourlyRate: 55,
         fixedCost: 40,
@@ -312,7 +402,11 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "wood-fill",
         name: "Wood Fill",
-        colors: ["Ahşap"],
+        colors: [
+          { name: "Açık Ahşap", active: true },
+          { name: "Koyu Ahşap", active: true },
+          { name: "Bambu", active: false },
+        ],
         gramPrice: 0.6,
         hourlyRate: 40,
         fixedCost: 25,
@@ -331,7 +425,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "peek",
         name: "PEEK",
-        colors: ["Doğal", "Siyah"],
+        colors: [
+          { name: "Doğal", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 8.0,
         hourlyRate: 200,
         fixedCost: 150,
@@ -341,7 +438,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "pei",
         name: "PEI (ULTEM)",
-        colors: ["Doğal"],
+        colors: [{ name: "Doğal", active: true }],
         gramPrice: 7.0,
         hourlyRate: 180,
         fixedCost: 150,
@@ -351,7 +448,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "ultem-9085",
         name: "ULTEM 9085",
-        colors: ["Doğal"],
+        colors: [{ name: "Doğal", active: true }],
         gramPrice: 9.0,
         hourlyRate: 200,
         fixedCost: 150,
@@ -361,7 +458,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "cf-peek",
         name: "Carbon Fiber PEEK",
-        colors: ["Siyah"],
+        colors: [{ name: "Siyah", active: true }],
         gramPrice: 12.0,
         hourlyRate: 220,
         fixedCost: 180,
@@ -380,7 +477,19 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "resin-standart",
         name: "Standart Reçine",
-        colors: ["Beyaz", "Gri", "Siyah", "Şeffaf", "Mavi", "Kırmızı"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+          { name: "Şeffaf", active: true },
+          { name: "Mavi", active: true },
+          { name: "Kırmızı", active: true },
+          { name: "Sarı", active: false },
+          { name: "Yeşil", active: false },
+          { name: "Turuncu", active: false },
+          { name: "Mor", active: false },
+          { name: "Pembe", active: false },
+        ],
         gramPrice: 0.9,
         hourlyRate: 60,
         fixedCost: 30,
@@ -390,7 +499,11 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "resin-abs",
         name: "ABS-like Reçine",
-        colors: ["Beyaz", "Gri", "Siyah"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 1.0,
         hourlyRate: 60,
         fixedCost: 30,
@@ -400,7 +513,12 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "resin-seffaf",
         name: "Şeffaf Reçine",
-        colors: ["Şeffaf", "Sarı Şeffaf", "Mavi Şeffaf"],
+        colors: [
+          { name: "Şeffaf", active: true },
+          { name: "Sarı Şeffaf", active: false },
+          { name: "Mavi Şeffaf", active: false },
+          { name: "Yeşil Şeffaf", active: false },
+        ],
         gramPrice: 1.1,
         hourlyRate: 65,
         fixedCost: 35,
@@ -410,7 +528,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "resin-esnek",
         name: "Esnek Reçine",
-        colors: ["Şeffaf", "Siyah"],
+        colors: [
+          { name: "Şeffaf", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 1.2,
         hourlyRate: 65,
         fixedCost: 35,
@@ -420,7 +541,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "resin-castable",
         name: "Castable Reçine",
-        colors: ["Sarı"],
+        colors: [
+          { name: "Sarı", active: true },
+          { name: "Turuncu", active: false },
+        ],
         gramPrice: 2.5,
         hourlyRate: 80,
         fixedCost: 50,
@@ -430,7 +554,11 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "resin-dental",
         name: "Dental Reçine",
-        colors: ["Beyaz", "Pembe", "Şeffaf"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Pembe", active: true },
+          { name: "Şeffaf", active: true },
+        ],
         gramPrice: 3.0,
         hourlyRate: 90,
         fixedCost: 60,
@@ -440,7 +568,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "resin-engineering",
         name: "Engineering Reçine",
-        colors: ["Gri", "Siyah"],
+        colors: [
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 2.0,
         hourlyRate: 75,
         fixedCost: 45,
@@ -459,7 +590,12 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "dlp-standart",
         name: "Standart Reçine",
-        colors: ["Beyaz", "Gri", "Siyah", "Şeffaf"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+          { name: "Şeffaf", active: true },
+        ],
         gramPrice: 0.85,
         hourlyRate: 55,
         fixedCost: 30,
@@ -469,7 +605,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "dlp-abs",
         name: "ABS-like",
-        colors: ["Beyaz", "Gri"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+        ],
         gramPrice: 0.95,
         hourlyRate: 55,
         fixedCost: 30,
@@ -479,7 +618,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "dlp-esnek",
         name: "Esnek",
-        colors: ["Şeffaf", "Siyah"],
+        colors: [
+          { name: "Şeffaf", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 1.15,
         hourlyRate: 60,
         fixedCost: 35,
@@ -498,7 +640,19 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "msla-standart",
         name: "Standart Reçine",
-        colors: ["Beyaz", "Gri", "Siyah", "Şeffaf", "Kırmızı", "Mavi", "Yeşil"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+          { name: "Şeffaf", active: true },
+          { name: "Kırmızı", active: true },
+          { name: "Mavi", active: true },
+          { name: "Yeşil", active: false },
+          { name: "Sarı", active: false },
+          { name: "Turuncu", active: false },
+          { name: "Mor", active: false },
+          { name: "Pembe", active: false },
+        ],
         gramPrice: 0.8,
         hourlyRate: 55,
         fixedCost: 25,
@@ -508,7 +662,11 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "msla-abs",
         name: "ABS-like",
-        colors: ["Beyaz", "Gri", "Siyah"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 0.9,
         hourlyRate: 55,
         fixedCost: 25,
@@ -518,7 +676,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "msla-esnek",
         name: "Esnek",
-        colors: ["Şeffaf", "Siyah"],
+        colors: [
+          { name: "Şeffaf", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 1.1,
         hourlyRate: 60,
         fixedCost: 30,
@@ -528,7 +689,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "msla-8k",
         name: "8K Yüksek Detay",
-        colors: ["Gri", "Beyaz"],
+        colors: [
+          { name: "Gri", active: true },
+          { name: "Beyaz", active: true },
+        ],
         gramPrice: 1.3,
         hourlyRate: 70,
         fixedCost: 40,
@@ -547,7 +711,12 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "sls-pa12",
         name: "PA12",
-        colors: ["Beyaz", "Gri", "Siyah"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+          { name: "Doğal", active: false },
+        ],
         gramPrice: 1.8,
         hourlyRate: 120,
         fixedCost: 80,
@@ -557,7 +726,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "sls-pa11",
         name: "PA11",
-        colors: ["Doğal", "Siyah"],
+        colors: [
+          { name: "Doğal", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 2.0,
         hourlyRate: 120,
         fixedCost: 80,
@@ -567,7 +739,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "sls-tpu",
         name: "TPU Toz",
-        colors: ["Gri", "Siyah"],
+        colors: [
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 2.2,
         hourlyRate: 130,
         fixedCost: 90,
@@ -577,7 +752,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "sls-pp",
         name: "PP",
-        colors: ["Doğal", "Beyaz"],
+        colors: [
+          { name: "Doğal", active: true },
+          { name: "Beyaz", active: true },
+        ],
         gramPrice: 1.9,
         hourlyRate: 120,
         fixedCost: 80,
@@ -587,7 +765,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "sls-pa12gb",
         name: "PA12 GB (Cam Dolgulu)",
-        colors: ["Gri"],
+        colors: [{ name: "Gri", active: true }],
         gramPrice: 2.1,
         hourlyRate: 125,
         fixedCost: 85,
@@ -606,7 +784,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "mjf-pa12",
         name: "PA12",
-        colors: ["Gri", "Siyah"],
+        colors: [
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 2.5,
         hourlyRate: 150,
         fixedCost: 100,
@@ -616,7 +797,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "mjf-pa12gb",
         name: "PA12 GB",
-        colors: ["Gri"],
+        colors: [{ name: "Gri", active: true }],
         gramPrice: 2.8,
         hourlyRate: 155,
         fixedCost: 105,
@@ -626,7 +807,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "mjf-tpu",
         name: "TPU",
-        colors: ["Gri", "Siyah"],
+        colors: [
+          { name: "Gri", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 3.0,
         hourlyRate: 160,
         fixedCost: 110,
@@ -636,7 +820,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "mjf-pa11",
         name: "PA11",
-        colors: ["Doğal"],
+        colors: [{ name: "Doğal", active: true }],
         gramPrice: 2.6,
         hourlyRate: 150,
         fixedCost: 100,
@@ -655,7 +839,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-316l",
         name: "316L Paslanmaz Çelik",
-        colors: ["Metalik Gümüş"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 12.0,
         hourlyRate: 400,
         fixedCost: 200,
@@ -665,7 +849,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-174ph",
         name: "17-4 PH Çelik",
-        colors: ["Metalik Gümüş"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 13.0,
         hourlyRate: 420,
         fixedCost: 200,
@@ -675,7 +859,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-titanium",
         name: "Titanyum Ti6Al4V",
-        colors: ["Metalik Gri"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 25.0,
         hourlyRate: 500,
         fixedCost: 300,
@@ -685,7 +869,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-aluminyum",
         name: "Alüminyum AlSi10Mg",
-        colors: ["Metalik Gümüş"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 8.0,
         hourlyRate: 350,
         fixedCost: 180,
@@ -695,7 +879,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-kobalt",
         name: "Kobalt Krom",
-        colors: ["Metalik Gri"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 30.0,
         hourlyRate: 550,
         fixedCost: 350,
@@ -705,7 +889,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-inconel",
         name: "İnkonel 625",
-        colors: ["Metalik Gümüş"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 35.0,
         hourlyRate: 600,
         fixedCost: 400,
@@ -715,7 +899,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "metal-maraging",
         name: "Maraging Çelik",
-        colors: ["Metalik"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 20.0,
         hourlyRate: 480,
         fixedCost: 280,
@@ -734,7 +918,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "bj-316l",
         name: "316L Çelik",
-        colors: ["Metalik"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 10.0,
         hourlyRate: 380,
         fixedCost: 180,
@@ -744,7 +928,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "bj-bakir",
         name: "Bakır",
-        colors: ["Bakır"],
+        colors: [{ name: "Bakır", active: true }],
         gramPrice: 15.0,
         hourlyRate: 400,
         fixedCost: 200,
@@ -754,7 +938,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "bj-demir",
         name: "Demir",
-        colors: ["Metalik Gri"],
+        colors: [{ name: "Metalik Ham", active: true }],
         gramPrice: 8.0,
         hourlyRate: 350,
         fixedCost: 170,
@@ -773,7 +957,12 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "pj-rijit",
         name: "Rijit Malzeme",
-        colors: ["Beyaz", "Gri", "Şeffaf"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Gri", active: true },
+          { name: "Şeffaf", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 5.0,
         hourlyRate: 250,
         fixedCost: 150,
@@ -783,7 +972,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "pj-esnek",
         name: "Esnek Malzeme",
-        colors: ["Şeffaf", "Siyah"],
+        colors: [
+          { name: "Şeffaf", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 6.0,
         hourlyRate: 270,
         fixedCost: 160,
@@ -793,7 +985,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "pj-cok",
         name: "Çok Malzemeli",
-        colors: ["Karışık"],
+        colors: [{ name: "Karışık", active: true }],
         gramPrice: 8.0,
         hourlyRate: 300,
         fixedCost: 200,
@@ -812,7 +1004,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "seramik-beyaz",
         name: "Seramik",
-        colors: ["Beyaz", "Doğal"],
+        colors: [
+          { name: "Beyaz", active: true },
+          { name: "Doğal", active: true },
+        ],
         gramPrice: 4.0,
         hourlyRate: 180,
         fixedCost: 100,
@@ -822,7 +1017,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "beton",
         name: "Beton",
-        colors: ["Gri"],
+        colors: [{ name: "Gri", active: true }],
         gramPrice: 2.0,
         hourlyRate: 150,
         fixedCost: 80,
@@ -841,7 +1036,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "cf-nylon-cont",
         name: "Karbon Fiber + Nylon",
-        colors: ["Siyah"],
+        colors: [{ name: "Siyah", active: true }],
         gramPrice: 5.0,
         hourlyRate: 200,
         fixedCost: 120,
@@ -851,7 +1046,7 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "cf-pla-cont",
         name: "Karbon Fiber + PLA",
-        colors: ["Siyah"],
+        colors: [{ name: "Siyah", active: true }],
         gramPrice: 4.5,
         hourlyRate: 190,
         fixedCost: 110,
@@ -861,7 +1056,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "kevlar-nylon",
         name: "Kevlar + Nylon",
-        colors: ["Sarı", "Siyah"],
+        colors: [
+          { name: "Sarı", active: true },
+          { name: "Siyah", active: true },
+        ],
         gramPrice: 6.0,
         hourlyRate: 220,
         fixedCost: 140,
@@ -871,7 +1069,10 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
       {
         id: "cam-fiber",
         name: "Cam Fiber + Nylon",
-        colors: ["Şeffaf", "Beyaz"],
+        colors: [
+          { name: "Şeffaf", active: true },
+          { name: "Beyaz", active: true },
+        ],
         gramPrice: 4.0,
         hourlyRate: 190,
         fixedCost: 110,
@@ -884,7 +1085,11 @@ const DEFAULT_TECHNOLOGIES: Technology[] = [
 const ALL_ACTIVE_TECHNOLOGIES = DEFAULT_TECHNOLOGIES.map((t) => ({
   ...t,
   active: true,
-  materials: t.materials.map((m) => ({ ...m, active: true })),
+  materials: t.materials.map((m) => ({
+    ...m,
+    active: true,
+    colors: m.colors.map((c) => ({ ...c, active: true })),
+  })),
 }));
 export default function AdminSettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -1196,7 +1401,13 @@ export default function AdminSettingsScreen() {
                         {expandedMat === `${tech.id}-${mat.id}` && (
                           <View style={styles.matFields}>
                             <Text style={styles.matColorsLabel}>
-                              Renkler: {mat.colors.join(", ")}
+                              Renkler:{" "}
+                              {mat.colors
+                                .filter((c) => c.active)
+                                .map((c) => c.name)
+                                .join(", ")}{" "}
+                              ({mat.colors.filter((c) => c.active).length} aktif
+                              / {mat.colors.length} toplam)
                             </Text>
                             <View style={styles.matFieldRow}>
                               <View style={styles.matField}>

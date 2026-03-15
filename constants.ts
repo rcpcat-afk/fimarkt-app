@@ -15,6 +15,7 @@ export const Colors = {
 };
 
 export const COLOR_HEX: Record<string, string> = {
+  // Temel renkler
   Beyaz: "#f1f5f9",
   Siyah: "#1e293b",
   Gri: "#64748b",
@@ -27,17 +28,50 @@ export const COLOR_HEX: Record<string, string> = {
   Pembe: "#ec4899",
   Şeffaf: "#e0f2fe",
   Doğal: "#fef3c7",
-  "Ahşap Görünüm": "#92400e",
+  // Genişletilmiş renkler
+  Altın: "#f59e0b",
+  Gümüş: "#cbd5e1",
+  "Parlak Kırmızı": "#dc2626",
+  "Parlak Mavi": "#2563eb",
+  "Açık Mavi": "#7dd3fc",
+  Lacivert: "#1e3a5f",
+  "Koyu Yeşil": "#15803d",
+  "Açık Yeşil": "#86efac",
+  Kahverengi: "#92400e",
+  Bej: "#d4b896",
+  Krem: "#fef9c3",
+  Gökkuşağı: "#a855f7",
+  "Silk Altın": "#f59e0b",
+  "Silk Gümüş": "#cbd5e1",
+  "Silk Bakır": "#b45309",
+  "Silk Bronz": "#92400e",
+  "Mat Siyah": "#0f172a",
+  "Mat Beyaz": "#f8fafc",
+  "Mat Gri": "#94a3b8",
+  "Floresan Sarı": "#facc15",
+  "Floresan Turuncu": "#fb923c",
   "Karbon Görünüm": "#1e293b",
+  "Ahşap Görünüm": "#92400e",
+  "Mermer Görünüm": "#e2e8f0",
+  "Karanlıkta Parlayan": "#a3e635",
+  // Özel malzeme renkleri
   Demir: "#475569",
   Pirinç: "#ca8a04",
   Bakır: "#b45309",
   Ahşap: "#92400e",
+  "Açık Ahşap": "#d4b896",
+  "Koyu Ahşap": "#713f12",
+  Bambu: "#84cc16",
+  // Şeffaf varyantlar
   "Sarı Şeffaf": "#fef08a",
   "Mavi Şeffaf": "#bae6fd",
+  "Yeşil Şeffaf": "#bbf7d0",
+  // Metal
+  "Metalik Ham": "#94a3b8",
   "Metalik Gümüş": "#cbd5e1",
   "Metalik Gri": "#94a3b8",
   Metalik: "#94a3b8",
-  "Bakır rengi": "#b45309",
+  // Diğer
   Karışık: "#8b5cf6",
+  "Bakır rengi": "#b45309",
 };
