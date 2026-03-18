@@ -10,11 +10,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Colors } from "../../constants";
+import { Colors } from "../../constants"; // Merkezi renk kasası
 
-const { width, height } = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-// 📋 FİMARKT 3 ANA SÜTUN VİZYONU
 const SLIDES = [
   {
     id: "1",
@@ -45,7 +44,6 @@ export default function OnboardingScreen() {
   const scrollX = useRef(new Animated.Value(0)).current;
   const slidesRef = useRef<FlatList>(null);
 
-  // Sayfa değişim takibi
   const viewableItemsChanged = useRef(({ viewableItems }: any) => {
     if (viewableItems.length > 0) {
       setCurrentIndex(viewableItems[0].index);
@@ -54,12 +52,11 @@ export default function OnboardingScreen() {
 
   const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
-  // Navigasyon Mantığı
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
       slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
-      router.push("/register"); // Son sayfada kayıt olmaya yönlendir
+      router.push("/register");
     }
   };
 
@@ -86,11 +83,9 @@ export default function OnboardingScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Arka Plan Sanat Eserleri */}
       <View style={styles.orb} />
       <View style={[styles.orb, styles.orbBottom]} />
 
-      {/* Üst Logo Bölümü */}
       <View style={styles.header}>
         <View style={styles.logoRow}>
           <View style={styles.logoCube}>
@@ -102,7 +97,6 @@ export default function OnboardingScreen() {
         </View>
       </View>
 
-      {/* Kaydırılabilir İçerik */}
       <FlatList
         data={SLIDES}
         renderItem={renderItem}
@@ -119,9 +113,7 @@ export default function OnboardingScreen() {
         ref={slidesRef}
       />
 
-      {/* Alt Kontrol Paneli */}
       <View style={styles.footer}>
-        {/* Sayfa Belirteçleri */}
         <View style={styles.paginator}>
           {SLIDES.map((_, i) => {
             const inputRange = [(i - 1) * width, i * width, (i + 1) * width];
@@ -144,23 +136,14 @@ export default function OnboardingScreen() {
           })}
         </View>
 
-        {/* Buton Grubu */}
         <View style={styles.buttonGroup}>
-          <TouchableOpacity 
-            style={styles.primaryBtn} 
-            onPress={handleNext}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity style={styles.primaryBtn} onPress={handleNext} activeOpacity={0.8}>
             <Text style={styles.primaryBtnText}>
               {currentIndex === SLIDES.length - 1 ? "Hadi Başlayalım" : "Devam Et"}
             </Text>
           </TouchableOpacity>
 
-          {/* 🚀 İŞTE O SİHİRLİ DOKUNUŞ: Her sayfada sabit duran giriş butonu */}
-          <TouchableOpacity 
-            style={styles.skipBtn} 
-            onPress={() => router.push("/login")}
-          >
+          <TouchableOpacity style={styles.skipBtn} onPress={() => router.push("/login")}>
             <Text style={styles.skipBtnText}>Zaten hesabım var</Text>
           </TouchableOpacity>
         </View>
@@ -170,7 +153,7 @@ export default function OnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#08080C" },
+  container: { flex: 1, backgroundColor: Colors.bg },
   orb: {
     position: "absolute", top: -100, right: -100, width: 300, height: 300,
     borderRadius: 150, backgroundColor: Colors.accent + "15",
@@ -182,13 +165,13 @@ const styles = StyleSheet.create({
   cubeTop: { position: "absolute", top: 0, width: 20, height: 10, backgroundColor: Colors.accent, transform: [{ skewX: "-20deg" }], borderRadius: 2 },
   cubeLeft: { position: "absolute", top: 8, width: 12, height: 14, backgroundColor: Colors.accent + "CC", borderRadius: 2 },
   cubeRight: { position: "absolute", top: 8, left: 12, width: 12, height: 14, backgroundColor: Colors.accent + "66", borderRadius: 2 },
-  logoText: { color: "#fff", fontSize: 24, fontWeight: "900", letterSpacing: -1 },
+  logoText: { color: Colors.text, fontSize: 24, fontWeight: "900", letterSpacing: -1 },
   
   slide: { width, alignItems: "center", justifyContent: "center", paddingHorizontal: 40 },
   iconContainer: { marginBottom: 40, alignItems: "center", justifyContent: "center" },
   iconCircle: {
-    width: 120, height: 120, borderRadius: 60, backgroundColor: "rgba(255,255,255,0.03)",
-    alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.05)"
+    width: 120, height: 120, borderRadius: 60, backgroundColor: Colors.surface,
+    alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.border
   },
   iconRing: {
     position: "absolute", width: 150, height: 150, borderRadius: 75,
@@ -202,8 +185,8 @@ const styles = StyleSheet.create({
     borderRadius: 20, marginBottom: 20, borderWidth: 1, borderColor: Colors.accent + "30"
   },
   badgeText: { color: Colors.accent, fontSize: 12, fontWeight: "700", letterSpacing: 1 },
-  title: { color: "#fff", fontSize: 30, fontWeight: "800", textAlign: "center", lineHeight: 38, marginBottom: 16 },
-  description: { color: "#94A3B8", fontSize: 14, textAlign: "center", lineHeight: 22 },
+  title: { color: Colors.text, fontSize: 30, fontWeight: "800", textAlign: "center", lineHeight: 38, marginBottom: 16 },
+  description: { color: Colors.text2, fontSize: 14, textAlign: "center", lineHeight: 22 },
 
   footer: { paddingBottom: 60, paddingHorizontal: 30 },
   paginator: { flexDirection: "row", height: 64, justifyContent: "center", alignItems: "center", gap: 8 },
@@ -213,9 +196,8 @@ const styles = StyleSheet.create({
   primaryBtn: {
     backgroundColor: Colors.accent, paddingVertical: 18, borderRadius: 18,
     alignItems: "center", justifyContent: "center",
-    shadowColor: Colors.accent, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12
   },
-  primaryBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  primaryBtnText: { color: Colors.text, fontSize: 16, fontWeight: "700" },
   skipBtn: { alignItems: "center", paddingVertical: 10 },
-  skipBtnText: { color: "#64748B", fontSize: 14, fontWeight: "500" },
+  skipBtnText: { color: Colors.text3, fontSize: 14, fontWeight: "500" },
 });
