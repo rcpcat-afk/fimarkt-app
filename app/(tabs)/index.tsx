@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { Colors } from "../../constants";
-import { getMyCustomer } from "../../src/services/sanatkat";
+import { getMyCustomer } from "../../src/services/api";
 
 const { width } = Dimensions.get("window");
 
@@ -22,7 +22,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const loadInitials = async () => {
       try {
-        const token = await AsyncStorage.getItem("sanatkat_token");
+        const token = await AsyncStorage.getItem("fimarkt_token");
         if (!token) return;
         const customer = await getMyCustomer(token);
         if (customer) {

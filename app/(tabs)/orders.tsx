@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { Colors } from "../../constants";
-import { getMyOrders, WCOrder } from "../../src/services/sanatkat";
+import { getMyOrders, WCOrder } from "../../src/services/api";
 import { useAuth } from "../../src/store/AuthContext";
 
 const STATUS_CONFIG: Record<
@@ -98,7 +98,7 @@ export default function OrdersScreen() {
 
   const loadOrders = async () => {
     setLoading(true);
-    const token = await AsyncStorage.getItem("sanatkat_token");
+    const token = await AsyncStorage.getItem("fimarkt_token");
 
     if (token) {
       const data = await getMyOrders(token);

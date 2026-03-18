@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../constants";
-import { createOrder, getMyCustomer } from "../src/services/sanatkat";
+import { createOrder, getMyCustomer } from "../../src/services/api";
 import { useCart } from "../src/store/CartContext";
 
 export default function CheckoutScreen() {
@@ -46,7 +46,7 @@ export default function CheckoutScreen() {
 
   const loadSavedAddress = async () => {
     try {
-      const token = await AsyncStorage.getItem("sanatkat_token");
+      const token = await AsyncStorage.getItem("fimarkt_token");
       if (!token) {
         setLoading(false);
         return;
@@ -106,7 +106,7 @@ export default function CheckoutScreen() {
           onPress: async () => {
             setOrdering(true);
             try {
-              const token = await AsyncStorage.getItem("sanatkat_token");
+              const token = await AsyncStorage.getItem("fimarkt_token");
               if (!token) {
                 Alert.alert("Hata", "Lütfen önce giriş yapın.");
                 return;

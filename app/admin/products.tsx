@@ -21,7 +21,7 @@ export default function AdminProductsScreen() {
   const { user } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeStore, setActiveStore] = useState("sanatkat");
+  const [activeStore, setActiveStore] = useState("fimarkt");
 
   useEffect(() => {
     fetchProducts();

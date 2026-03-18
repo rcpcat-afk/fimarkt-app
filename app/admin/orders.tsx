@@ -32,7 +32,7 @@ export default function AdminOrdersScreen() {
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeStore, setActiveStore] = useState("sanatkat");
+  const [activeStore, setActiveStore] = useState("fimarkt");
 
   useEffect(() => {
     fetchOrders();

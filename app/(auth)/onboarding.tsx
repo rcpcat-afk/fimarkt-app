@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import {
   Animated,
@@ -8,11 +9,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Colors } from "../../components/AuthComponents";
+import { Colors } from "../../constants";
 
 const { width, height } = Dimensions.get("window");
 
-export default function OnboardingScreen({ navigation }: any) {
+export default function OnboardingScreen() {
+  const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
   const logoAnim = useRef(new Animated.Value(0)).current;
@@ -20,28 +22,12 @@ export default function OnboardingScreen({ navigation }: any) {
 
   useEffect(() => {
     Animated.sequence([
-      Animated.timing(logoAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
+      Animated.timing(logoAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
       Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 600,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 600,
-          useNativeDriver: true,
-        }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
       ]),
-      Animated.timing(btnAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }),
+      Animated.timing(btnAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -49,12 +35,8 @@ export default function OnboardingScreen({ navigation }: any) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Arka plan dekoratif elemanlar */}
       <View style={styles.orb1} />
       <View style={styles.orb2} />
-      <View style={styles.grid} />
-
-      {/* Geometrik dekoratif şekiller */}
       <View style={styles.decorTopRight}>
         <View style={styles.hexagon} />
         <View style={[styles.hexagon, styles.hexSmall]} />
@@ -64,7 +46,6 @@ export default function OnboardingScreen({ navigation }: any) {
         <View style={[styles.ring, styles.ring2]} />
       </View>
 
-      {/* Logo */}
       <Animated.View style={[styles.logoArea, { opacity: logoAnim }]}>
         <View style={styles.logoRow}>
           <View style={styles.logoCube}>
@@ -77,15 +58,8 @@ export default function OnboardingScreen({ navigation }: any) {
         <View style={styles.logoUnderline} />
       </Animated.View>
 
-      {/* Orta içerik */}
       <Animated.View
-        style={[
-          styles.middle,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
+        style={[styles.middle, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
       >
         <View style={styles.badge}>
           <Text style={styles.badgeText}>🇹🇷 Türkiye'nin Üretim Platformu</Text>
@@ -98,8 +72,6 @@ export default function OnboardingScreen({ navigation }: any) {
           3D baskı, sanat eserleri ve özel üretim.{"\n"}
           Tek platformda, saniyeler içinde.
         </Text>
-
-        {/* Özellik ikonları */}
         <View style={styles.features}>
           {[
             { icon: "⬡", label: "3D Baskı" },
@@ -114,11 +86,10 @@ export default function OnboardingScreen({ navigation }: any) {
         </View>
       </Animated.View>
 
-      {/* Butonlar */}
       <Animated.View style={[styles.btns, { opacity: btnAnim }]}>
         <TouchableOpacity
           style={styles.btnPrimary}
-          onPress={() => navigation.navigate("Register")}
+          onPress={() => router.push("/register")}
           activeOpacity={0.85}
         >
           <Text style={styles.btnPrimaryText}>Hesap Oluştur</Text>
@@ -127,13 +98,13 @@ export default function OnboardingScreen({ navigation }: any) {
 
         <TouchableOpacity
           style={styles.btnOutline}
-          onPress={() => navigation.navigate("Login")}
+          onPress={() => router.push("/login")}
           activeOpacity={0.85}
         >
           <Text style={styles.btnOutlineText}>Giriş Yap</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.guestBtn}>
+        <TouchableOpacity style={styles.guestBtn} onPress={() => router.replace("/(tabs)")}>
           <Text style={styles.guestText}>Misafir olarak devam et</Text>
         </TouchableOpacity>
       </Animated.View>
@@ -150,189 +121,68 @@ const styles = StyleSheet.create({
     paddingBottom: 44,
     overflow: "hidden",
   },
-
-  // Arka plan efektleri
   orb1: {
-    position: "absolute",
-    top: -80,
-    right: -60,
-    width: 240,
-    height: 240,
-    borderRadius: 120,
-    backgroundColor: "rgba(255,107,43,0.08)",
+    position: "absolute", top: -80, right: -60, width: 240, height: 240,
+    borderRadius: 120, backgroundColor: "rgba(255,107,43,0.08)",
   },
   orb2: {
-    position: "absolute",
-    bottom: 100,
-    left: -80,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: "rgba(255,107,43,0.05)",
+    position: "absolute", bottom: 100, left: -80, width: 200, height: 200,
+    borderRadius: 100, backgroundColor: "rgba(255,107,43,0.05)",
   },
-  grid: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.03,
-    backgroundColor: "transparent",
-    borderWidth: 0,
-  },
-
-  // Dekoratif
-  decorTopRight: {
-    position: "absolute",
-    top: 60,
-    right: 20,
-    gap: 8,
-  },
-  decorBottomLeft: {
-    position: "absolute",
-    bottom: 160,
-    left: 20,
-  },
+  decorTopRight: { position: "absolute", top: 60, right: 20, gap: 8 },
+  decorBottomLeft: { position: "absolute", bottom: 160, left: 20 },
   hexagon: {
-    width: 20,
-    height: 20,
-    backgroundColor: "rgba(255,107,43,0.2)",
-    borderRadius: 4,
-    transform: [{ rotate: "45deg" }],
+    width: 20, height: 20, backgroundColor: "rgba(255,107,43,0.2)",
+    borderRadius: 4, transform: [{ rotate: "45deg" }],
   },
-  hexSmall: {
-    width: 12,
-    height: 12,
-    marginLeft: 16,
-    backgroundColor: "rgba(255,107,43,0.12)",
-  },
-  ring: {
-    position: "absolute",
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "rgba(255,107,43,0.15)",
-  },
+  hexSmall: { width: 12, height: 12, marginLeft: 16, backgroundColor: "rgba(255,107,43,0.12)" },
+  ring: { position: "absolute", borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,107,43,0.15)" },
   ring1: { width: 60, height: 60, top: 0, left: 0 },
   ring2: { width: 40, height: 40, top: 10, left: 10 },
-
-  // Logo
   logoArea: { marginBottom: 48 },
   logoRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   logoCube: { width: 32, height: 32, position: "relative" },
   cubeTop: {
-    position: "absolute",
-    top: 0,
-    left: 4,
-    width: 24,
-    height: 12,
-    backgroundColor: Colors.accent,
-    borderRadius: 3,
-    transform: [{ skewX: "-20deg" }],
+    position: "absolute", top: 0, left: 4, width: 24, height: 12,
+    backgroundColor: Colors.accent, borderRadius: 3, transform: [{ skewX: "-20deg" }],
   },
   cubeLeft: {
-    position: "absolute",
-    top: 10,
-    left: 0,
-    width: 14,
-    height: 16,
-    backgroundColor: "rgba(255,107,43,0.6)",
-    borderRadius: 2,
+    position: "absolute", top: 10, left: 0, width: 14, height: 16,
+    backgroundColor: "rgba(255,107,43,0.6)", borderRadius: 2,
   },
   cubeRight: {
-    position: "absolute",
-    top: 10,
-    left: 14,
-    width: 14,
-    height: 16,
-    backgroundColor: "rgba(255,107,43,0.35)",
-    borderRadius: 2,
+    position: "absolute", top: 10, left: 14, width: 14, height: 16,
+    backgroundColor: "rgba(255,107,43,0.35)", borderRadius: 2,
   },
-  logo: {
-    fontSize: 38,
-    fontWeight: "900",
-    letterSpacing: -2,
-    color: Colors.text,
-  },
-  logoUnderline: {
-    marginTop: 6,
-    width: 40,
-    height: 3,
-    backgroundColor: Colors.accent,
-    borderRadius: 2,
-    marginLeft: 44,
-  },
-
-  // Orta
+  logo: { fontSize: 38, fontWeight: "900", letterSpacing: -2, color: Colors.text },
+  logoUnderline: { marginTop: 6, width: 40, height: 3, backgroundColor: Colors.accent, borderRadius: 2, marginLeft: 44 },
   middle: { flex: 1, justifyContent: "center" },
   badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(255,107,43,0.1)",
-    borderWidth: 1,
-    borderColor: "rgba(255,107,43,0.2)",
-    borderRadius: 99,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    marginBottom: 20,
+    alignSelf: "flex-start", backgroundColor: "rgba(255,107,43,0.1)",
+    borderWidth: 1, borderColor: "rgba(255,107,43,0.2)", borderRadius: 99,
+    paddingHorizontal: 12, paddingVertical: 5, marginBottom: 20,
   },
   badgeText: { fontSize: 11, color: Colors.accent, fontWeight: "600" },
-  headline: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: Colors.text,
-    letterSpacing: -1,
-    lineHeight: 42,
-    marginBottom: 14,
-  },
+  headline: { fontSize: 32, fontWeight: "800", color: Colors.text, letterSpacing: -1, lineHeight: 42, marginBottom: 14 },
   headlineAccent: { color: Colors.accent },
-  desc: {
-    fontSize: 14,
-    color: Colors.text2,
-    lineHeight: 22,
-    marginBottom: 32,
-  },
-  features: {
-    flexDirection: "row",
-    gap: 12,
-  },
+  desc: { fontSize: 14, color: Colors.text2, lineHeight: 22, marginBottom: 32 },
+  features: { flexDirection: "row", gap: 12 },
   featureItem: {
-    flex: 1,
-    backgroundColor: "rgba(255,255,255,0.04)",
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 12,
-    alignItems: "center",
-    gap: 6,
+    flex: 1, backgroundColor: "rgba(255,255,255,0.04)", borderWidth: 1,
+    borderColor: Colors.border, borderRadius: 14, padding: 12, alignItems: "center", gap: 6,
   },
   featureIcon: { fontSize: 20, color: Colors.accent },
-  featureLabel: {
-    fontSize: 10,
-    color: Colors.text2,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-
-  // Butonlar
+  featureLabel: { fontSize: 10, color: Colors.text2, fontWeight: "600", textAlign: "center" },
   btns: { gap: 10 },
   btnPrimary: {
-    backgroundColor: Colors.accent,
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
+    backgroundColor: Colors.accent, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 24,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
   },
   btnPrimaryText: { fontSize: 15, fontWeight: "700", color: "#fff" },
   btnArrow: { fontSize: 16, color: "#fff" },
   btnOutline: {
-    borderRadius: 16,
-    paddingVertical: 15,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
+    borderRadius: 16, paddingVertical: 15, borderWidth: 1, borderColor: Colors.border,
+    alignItems: "center", justifyContent: "center",
   },
   btnOutlineText: { fontSize: 15, fontWeight: "600", color: Colors.text },
   guestBtn: { alignItems: "center", paddingVertical: 8 },

@@ -43,7 +43,7 @@ export const getProducts = async (
   perPage = 10,
   categoryId?: number,
   search?: string,
-  store = "sanatkat",
+  store = "fimarkt",
 ): Promise<Product[]> => {
   try {
     let url = `${BACKEND_URL}/api/products?store=${store}&page=${page}&per_page=${perPage}`;
@@ -58,9 +58,7 @@ export const getProducts = async (
   }
 };
 
-export const getCategories = async (
-  store = "sanatkat",
-): Promise<Category[]> => {
+export const getCategories = async (store = "fimarkt"): Promise<Category[]> => {
   try {
     const response = await fetch(
       `${BACKEND_URL}/api/products/categories?store=${store}`,
@@ -75,7 +73,7 @@ export const getCategories = async (
 
 export const getProduct = async (
   id: number,
-  store = "sanatkat",
+  store = "fimarkt",
 ): Promise<Product | null> => {
   try {
     const response = await fetch(
@@ -91,7 +89,7 @@ export const getProduct = async (
 
 export const getMyOrders = async (
   token: string,
-  store = "sanatkat",
+  store = "fimarkt",
 ): Promise<WCOrder[]> => {
   try {
     const response = await fetch(`${BACKEND_URL}/api/orders?store=${store}`, {
@@ -119,7 +117,7 @@ export const createOrder = async (
     postcode: string;
     country: string;
   },
-  store = "sanatkat",
+  store = "fimarkt",
 ): Promise<WCOrder | null> => {
   try {
     const response = await fetch(`${BACKEND_URL}/api/orders?store=${store}`, {
@@ -152,13 +150,11 @@ export const createOrder = async (
   }
 };
 
-export const getMyProfile = async (token: string, store = "sanatkat") => {
+export const getMyProfile = async (token: string, store = "fimarkt") => {
   try {
     const response = await fetch(
       `${BACKEND_URL}/api/customers/me?store=${store}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      { headers: { Authorization: `Bearer ${token}` } },
     );
     if (!response.ok) throw new Error("Profil yüklenemedi");
     return await response.json();
@@ -168,13 +164,11 @@ export const getMyProfile = async (token: string, store = "sanatkat") => {
   }
 };
 
-export const getMyCustomer = async (token: string, store = "sanatkat") => {
+export const getMyCustomer = async (token: string, store = "fimarkt") => {
   try {
     const response = await fetch(
       `${BACKEND_URL}/api/customers/me?store=${store}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
+      { headers: { Authorization: `Bearer ${token}` } },
     );
     if (!response.ok) throw new Error("Müşteri bilgisi yüklenemedi");
     return await response.json();
@@ -187,7 +181,7 @@ export const getMyCustomer = async (token: string, store = "sanatkat") => {
 export const updateMyCustomer = async (
   token: string,
   data: any,
-  store = "sanatkat",
+  store = "fimarkt",
 ) => {
   try {
     const response = await fetch(

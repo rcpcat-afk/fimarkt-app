@@ -18,7 +18,7 @@ import {
   getCategories,
   getProducts,
   Product,
-} from "../../src/services/sanatkat";
+} from "../../src/services/api";
 import { useCart } from "../../src/store/CartContext";
 
 export default function ShopScreen() {

@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -11,18 +12,17 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Colors } from "../../../constants";
-import { useAuth } from "../../store/AuthContext";
+import { Colors } from "../../constants";
+import { useAuth } from "../../src/store/AuthContext";
 
-export default function LoginScreen({ navigation }: any) {
+export default function LoginScreen() {
+  const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {},
-  );
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   const validate = () => {
     const e: typeof errors = {};
@@ -39,7 +39,7 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
     try {
       await login(email, password);
-      navigation.replace("/(tabs)");
+      router.replace("/(tabs)");
     } catch {
       Alert.alert("Giriş Başarısız", "E-posta veya şifre hatalı.");
     } finally {
@@ -58,12 +58,8 @@ export default function LoginScreen({ navigation }: any) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backBtn}
-            onPress={() => navigation.goBack()}
-          >
+          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
             <Text style={styles.backArrow}>‹</Text>
           </TouchableOpacity>
 
@@ -80,36 +76,29 @@ export default function LoginScreen({ navigation }: any) {
           <Text style={styles.sub}>Hesabına giriş yap, üretmeye devam et.</Text>
         </View>
 
-        {/* Sosyal giriş */}
         <View style={styles.socialRow}>
           <TouchableOpacity
             style={styles.socialBtn}
-            onPress={() =>
-              Alert.alert("Yakında", "Google ile giriş yakında aktif olacak.")
-            }
+            onPress={() => Alert.alert("Yakında", "Google ile giriş yakında aktif olacak.")}
           >
             <Text style={styles.socialIcon}>G</Text>
             <Text style={styles.socialText}>Google</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.socialBtn}
-            onPress={() =>
-              Alert.alert("Yakında", "Apple ile giriş yakında aktif olacak.")
-            }
+            onPress={() => Alert.alert("Yakında", "Apple ile giriş yakında aktif olacak.")}
           >
             <Text style={styles.socialIcon}>🍎</Text>
             <Text style={styles.socialText}>Apple</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Ayraç */}
         <View style={styles.dividerRow}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>veya e-posta ile</Text>
           <View style={styles.dividerLine} />
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputWrap}>
             <Text style={styles.label}>E-POSTA</Text>
@@ -123,19 +112,12 @@ export default function LoginScreen({ navigation }: any) {
               autoCapitalize="none"
               autoCorrect={false}
             />
-            {errors.email && (
-              <Text style={styles.errorText}>{errors.email}</Text>
-            )}
+            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
           </View>
 
           <View style={styles.inputWrap}>
             <Text style={styles.label}>ŞİFRE</Text>
-            <View
-              style={[
-                styles.passwordWrap,
-                errors.password && styles.inputError,
-              ]}
-            >
+            <View style={[styles.passwordWrap, errors.password && styles.inputError]}>
               <TextInput
                 style={styles.passwordInput}
                 placeholder="Şifrenizi girin"
@@ -145,27 +127,18 @@ export default function LoginScreen({ navigation }: any) {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
-              <TouchableOpacity
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeBtn}
-              >
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
                 <Text style={styles.eyeText}>{showPassword ? "🙈" : "👁"}</Text>
               </TouchableOpacity>
             </View>
-            {errors.password && (
-              <Text style={styles.errorText}>{errors.password}</Text>
-            )}
+            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
           </View>
 
-          <TouchableOpacity
-            style={styles.forgotBtn}
-            onPress={() => navigation.navigate("ForgotPassword")}
-          >
+          <TouchableOpacity style={styles.forgotBtn} onPress={() => router.push("/forgot-password")}>
             <Text style={styles.forgotText}>Şifremi unuttum</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Giriş butonu */}
         <View style={styles.submitArea}>
           <TouchableOpacity
             style={[styles.submitBtn, loading && { opacity: 0.7 }]}
@@ -179,10 +152,9 @@ export default function LoginScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Kayıt ol */}
         <View style={styles.footerRow}>
           <Text style={styles.footerText}>Hesabın yok mu? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <TouchableOpacity onPress={() => router.push("/register")}>
             <Text style={styles.footerLink}>Kayıt Ol</Text>
           </TouchableOpacity>
         </View>
@@ -211,18 +183,8 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     marginBottom: 24,
   },
-  backArrow: {
-    fontSize: 28,
-    color: Colors.text,
-    lineHeight: 32,
-    marginTop: -2,
-  },
-  logoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    marginBottom: 20,
-  },
+  backArrow: { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
+  logoRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 20 },
   logoCube: { width: 32, height: 32, position: "relative" },
   cubeTop: {
     position: "absolute",
@@ -252,12 +214,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255,107,43,0.35)",
     borderRadius: 2,
   },
-  logoText: {
-    fontSize: 28,
-    fontWeight: "900",
-    color: Colors.text,
-    letterSpacing: -1,
-  },
+  logoText: { fontSize: 28, fontWeight: "900", color: Colors.text, letterSpacing: -1 },
   title: {
     fontSize: 26,
     fontWeight: "800",
@@ -267,12 +224,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   sub: { fontSize: 13, color: Colors.text2, textAlign: "center" },
-  socialRow: {
-    flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: 24,
-    marginBottom: 20,
-  },
+  socialRow: { flexDirection: "row", gap: 10, paddingHorizontal: 24, marginBottom: 20 },
   socialBtn: {
     flex: 1,
     flexDirection: "row",

@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../constants";
-import { getMyCustomer, updateMyCustomer } from "../src/services/sanatkat";
+import { getMyCustomer, updateMyCustomer } from "../../src/services/api";
 
 export default function AddressesScreen() {
   const router = useRouter();
@@ -61,7 +61,7 @@ export default function AddressesScreen() {
   const loadAddresses = async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem("sanatkat_token");
+      const token = await AsyncStorage.getItem("fimarkt_token");
       if (!token) return;
       const customer = await getMyCustomer(token);
       if (customer) {
@@ -88,7 +88,7 @@ export default function AddressesScreen() {
     }
     setSaving(true);
     try {
-      const token = await AsyncStorage.getItem("sanatkat_token");
+      const token = await AsyncStorage.getItem("fimarkt_token");
       if (!token) return;
       const updateData =
         editingType === "billing"

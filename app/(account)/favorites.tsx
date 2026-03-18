@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../constants";
-import { getProduct, Product } from "../src/services/sanatkat";
+import { getProduct, Product } from "../../src/services/api";
 import { useFavorites } from "../src/store/FavoritesContext";
 
 export default function FavoritesScreen() {

@@ -1,53 +1,84 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * Fimarkt Kurumsal Renk Paleti — Premium Dark Mode
+ *
+ * Bu dosya hem doğrudan (Colors.bg, Colors.accent) hem de
+ * useColorScheme() hook'u üzerinden tüketilir.
+ * Fimarkt yalnızca dark mode'da çalışır.
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// ─── Fimarkt Paleti ─────────────────────────────────────────────────────────
+export const FimarktColors = {
+  // Arka planlar
+  bg:       '#111118',
+  surface:  '#1a1a28',
+  surface2: '#20203a',
 
+  // Çizgiler / Kenarlıklar
+  border:   '#2a2a42',
+
+  // Metinler
+  text:     '#e8e8f5',
+  text2:    '#8888b0',
+  text3:    '#5a5a7a',
+
+  // Vurgu (Fimarkt Turuncusu)
+  accent:       '#ff6b2b',
+  accentHover:  '#e85a1f',
+
+  // Durum renkleri
+  green:   '#22c55e',
+  red:     '#ef4444',
+  yellow:  '#f59e0b',
+} as const;
+
+// ─── Expo useColorScheme() uyumlu yapı ──────────────────────────────────────
+// Fimarkt yalnızca dark mode'da çalışır; light tanımı da dark paletini kullanır
+// (Açık temaya geçiş planlandığında bu alan güncellenir)
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text:             FimarktColors.text,
+    background:       FimarktColors.bg,
+    tint:             FimarktColors.accent,
+    icon:             FimarktColors.text2,
+    tabIconDefault:   FimarktColors.text3,
+    tabIconSelected:  FimarktColors.accent,
+    surface:          FimarktColors.surface,
+    surface2:         FimarktColors.surface2,
+    border:           FimarktColors.border,
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text:             FimarktColors.text,
+    background:       FimarktColors.bg,
+    tint:             FimarktColors.accent,
+    icon:             FimarktColors.text2,
+    tabIconDefault:   FimarktColors.text3,
+    tabIconSelected:  FimarktColors.accent,
+    surface:          FimarktColors.surface,
+    surface2:         FimarktColors.surface2,
+    border:           FimarktColors.border,
   },
-};
+} as const;
 
+// ─── Tipografi ───────────────────────────────────────────────────────────────
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
+    sans:    'system-ui',
+    serif:   'ui-serif',
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+    mono:    'ui-monospace',
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
+    sans:    'normal',
+    serif:   'serif',
     rounded: 'normal',
-    mono: 'monospace',
+    mono:    'monospace',
   },
   web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    sans:    "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    serif:   "Georgia, 'Times New Roman', serif",
+    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', sans-serif",
+    mono:    "SFMono-Regular, Menlo, Monaco, Consolas, 'Courier New', monospace",
   },
 });

@@ -79,44 +79,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!response.ok) throw new Error("Giriş başarısız");
       const data = await response.json();
 
-      const [sanatkatRes, fidropRes] = await Promise.allSettled([
-        fetch("https://sanatkat.com/wp-json/jwt-auth/v1/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: email, password }),
-        }),
-        fetch("https://fidrop.com.tr/wp-json/jwt-auth/v1/token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: email, password }),
-        }),
-      ]);
-
-      if (sanatkatRes.status === "fulfilled" && sanatkatRes.value.ok) {
-        const sanatkatData = await sanatkatRes.value.json();
-        await AsyncStorage.setItem("sanatkat_token", sanatkatData.token);
-      }
-      if (fidropRes.status === "fulfilled" && fidropRes.value.ok) {
-        const fidropData = await fidropRes.value.json();
-        await AsyncStorage.setItem("fidrop_token", fidropData.token);
-      }
-
-      // Rol kontrolü için wp/v2/users/me çağrısı
+      // Rol kontrolü
       let isAdmin = false;
       try {
         const meRes = await fetch(
           "https://fimarkt.com.tr/wp-json/wp/v2/users/me",
-          {
-            headers: { Authorization: `Bearer ${data.token}` },
-          },
+          { headers: { Authorization: `Bearer ${data.token}` } },
         );
-
         const meData = await meRes.json();
-
         isAdmin =
           meData.is_super_admin === true ||
-          (Array.isArray(meData.roles) &&
-            meData.roles.includes("administrator"));
+          (Array.isArray(meData.roles) && meData.roles.includes("administrator"));
       } catch (e) {}
 
       const userData: User = {
@@ -187,8 +160,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
-    await AsyncStorage.removeItem("fimarkt_token");
-    await AsyncStorage.removeItem("fimarkt_user");
+    await AsyncStorage.multiRemove([
+      "fimarkt_token",
+      "fimarkt_user",
+      "sanatkat_token",
+      "fidrop_token",
+    ]);
     setUser(null);
   };
 

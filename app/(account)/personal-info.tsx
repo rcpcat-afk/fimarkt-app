@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../constants";
-import { getMyCustomer, updateMyCustomer } from "../src/services/sanatkat";
+import { getMyCustomer, updateMyCustomer } from "../../src/services/api";
 
 export default function PersonalInfoScreen() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function PersonalInfoScreen() {
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const token = await AsyncStorage.getItem("sanatkat_token");
+      const token = await AsyncStorage.getItem("fimarkt_token");
       if (!token) return;
       const customer = await getMyCustomer(token);
       if (customer) {
@@ -57,7 +57,7 @@ export default function PersonalInfoScreen() {
     }
     setSaving(true);
     try {
-      const token = await AsyncStorage.getItem("sanatkat_token");
+      const token = await AsyncStorage.getItem("fimarkt_token");
       if (!token) return;
       const result = await updateMyCustomer(token, {
         first_name: firstName,

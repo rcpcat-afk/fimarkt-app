@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import { Product } from "../services/sanatkat";
+import { Product } from "../services/api";
 
 interface CartItem {
   product: Product;

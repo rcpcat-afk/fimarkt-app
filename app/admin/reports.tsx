@@ -19,7 +19,7 @@ export default function AdminReportsScreen() {
   const { user } = useAuth();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeStore, setActiveStore] = useState("sanatkat");
+  const [activeStore, setActiveStore] = useState("fimarkt");
 
   const STORES = ["sanatkat", "fimarkt", "fidrop"];
 

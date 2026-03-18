@@ -19,7 +19,7 @@ import {
   getMyCustomer,
   getMyOrders,
   WCOrder,
-} from "../../src/services/sanatkat";
+} from "../../src/services/api";
 import { useAuth } from "../../src/store/AuthContext";
 
 interface SettingRowProps {
@@ -91,7 +91,7 @@ export default function ProfileScreen() {
 
   const loadData = async () => {
     try {
-      const token = await AsyncStorage.getItem("sanatkat_token");
+      const token = await AsyncStorage.getItem("fimarkt_token");
       if (!token) return;
       const [data, customer] = await Promise.all([
         getMyOrders(token),
