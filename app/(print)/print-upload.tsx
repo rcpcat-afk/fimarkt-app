@@ -13,8 +13,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import STLViewer from "../components/STLViewer";
-import { BACKEND_URL, COLOR_HEX, Colors } from "../constants";
+import STLViewer from "../../components/STLViewer";
+import { BACKEND_URL, COLOR_HEX, Colors } from "../../constants";
 
 const ACCEPTED_FORMATS = [".stl", ".obj", ".stp", ".step", ".igs", ".iges"];
 const INFILL_OPTIONS = [

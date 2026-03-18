@@ -16,10 +16,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
+import { Colors } from "../../constants";
 import { getProduct, getProducts, Product } from "../../src/services/api";
-import { useCart } from "../src/store/CartContext";
-import { useFavorites } from "../src/store/FavoritesContext";
+import { useCart } from "../../src/store/CartContext";
+import { useFavorites } from "../../src/store/FavoritesContext";
 
 const { width } = Dimensions.get("window");
 

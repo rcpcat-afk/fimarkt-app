@@ -10,8 +10,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
-import { useAuth } from "../src/store/AuthContext";
+import { Colors } from "../../constants";
+import { useAuth } from "../../src/store/AuthContext";
 const TECH_LABELS: Record<
   string,
   { title: string; icon: string; color: string }

@@ -10,7 +10,7 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
+import { Colors } from "../../constants";
 
 const WHATSAPP_NUMBER = "905XXXXXXXXX"; // Buraya fimarkt numarasını yaz
 const EMAIL = "info@fimarkt.com.tr";

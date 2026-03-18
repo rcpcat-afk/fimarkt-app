@@ -11,8 +11,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
-import { useCart } from "../src/store/CartContext";
+import { Colors } from "../../constants";
+import { useCart } from "../../src/store/CartContext";
 
 export default function CartScreen() {
   const router = useRouter();

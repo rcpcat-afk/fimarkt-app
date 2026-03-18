@@ -11,9 +11,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
+import { Colors } from "../../constants";
 import { getProduct, Product } from "../../src/services/api";
-import { useFavorites } from "../src/store/FavoritesContext";
+import { useFavorites } from "../../src/store/FavoritesContext";
 
 export default function FavoritesScreen() {
   const router = useRouter();

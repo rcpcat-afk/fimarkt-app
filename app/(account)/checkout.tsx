@@ -15,9 +15,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
+import { Colors } from "../../constants";
 import { createOrder, getMyCustomer } from "../../src/services/api";
-import { useCart } from "../src/store/CartContext";
+import { useCart } from "../../src/store/CartContext";
 
 export default function CheckoutScreen() {
   const router = useRouter();

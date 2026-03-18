@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
+import { Colors } from "../../constants";
 import { getMyCustomer, updateMyCustomer } from "../../src/services/api";
 
 export default function AddressesScreen() {
