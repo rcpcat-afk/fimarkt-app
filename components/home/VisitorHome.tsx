@@ -3,7 +3,6 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   Dimensions, StatusBar,
 } from "react-native";
-import { useColorScheme } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
@@ -49,7 +48,7 @@ export default function VisitorHome() {
 
   return (
     <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
-      <StatusBar barStyle={scheme === "light" ? "dark-content" : "light-content"} />
+      <StatusBar barStyle="light-content" />
 
       {/* ── 1. HERO ─────────────────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.duration(500)} style={s.heroSection}>
