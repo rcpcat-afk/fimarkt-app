@@ -303,36 +303,37 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Uygulama</Text>
+          <Text style={styles.sectionTitle}>Yardım & Hukuki</Text>
           <View style={styles.settingCard}>
             <SettingRow
-              icon="⭐"
-              label="Uygulamayı Puanla"
-              onPress={() =>
-                Alert.alert(
-                  "⭐ Teşekkürler!",
-                  "Uygulama mağazasına yönlendiriliyorsunuz...",
-                  [{ text: "Tamam" }],
-                )
-              }
+              icon="🏭"
+              label="Hakkımızda"
+              onPress={() => router.push("/(info)/hakkimizda" as any)}
             />
             <SettingRow
-              icon="💬"
-              label="Destek"
-              onPress={() =>
-                Alert.alert(
-                  "💬 Destek",
-                  "destek@fimarkt.com.tr adresine e-posta gönderin.",
-                  [{ text: "Tamam" }],
-                )
-              }
+              icon="❓"
+              label="SSS"
+              onPress={() => router.push("/(info)/sss" as any)}
+            />
+            <SettingRow
+              icon="📧"
+              label="İletişim"
+              onPress={() => router.push("/(info)/iletisim" as any)}
             />
             <SettingRow
               icon="📄"
               label="Gizlilik Politikası"
-              onPress={() =>
-                Linking.openURL("https://fimarkt.com.tr/gizlilik-politikasi/")
-              }
+              onPress={() => router.push("/(info)/gizlilik" as any)}
+            />
+            <SettingRow
+              icon="📋"
+              label="Kullanım Koşulları"
+              onPress={() => router.push("/(info)/kullanim-kosullari" as any)}
+            />
+            <SettingRow
+              icon="🔐"
+              label="KVKK"
+              onPress={() => router.push("/(info)/kvkk" as any)}
             />
             <SettingRow icon="ℹ️" label="Versiyon" value="1.0.0" />
           </View>

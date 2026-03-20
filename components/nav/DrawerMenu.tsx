@@ -30,6 +30,15 @@ const QUICK_LINKS = [
   { icon: "⚙️", label: "Ayarlar",        href: "/(account)/settings" },
 ];
 
+const CORPORATE_LINKS = [
+  { icon: "🏭", label: "Hakkımızda",          href: "/(info)/hakkimizda" },
+  { icon: "❓", label: "SSS",                  href: "/(info)/sss"        },
+  { icon: "📧", label: "İletişim",             href: "/(info)/iletisim"   },
+  { icon: "📄", label: "Gizlilik Politikası",  href: "/(info)/gizlilik"   },
+  { icon: "📋", label: "Kullanım Koşulları",   href: "/(info)/kullanim-kosullari" },
+  { icon: "🔐", label: "KVKK",                 href: "/(info)/kvkk"       },
+];
+
 export default function DrawerMenu({ visible, onClose }: Props) {
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
@@ -191,12 +200,30 @@ export default function DrawerMenu({ visible, onClose }: Props) {
             </View>
 
             {/* ── 3. Hızlı Erişim ─────────────────────────────────────── */}
-            <View style={[s.section, { paddingBottom: 24 }]}>
+            <View style={[s.section, { borderBottomColor: C.border }]}>
               <Text style={[s.sectionTitle, { color: C.subtleForeground }]}>HIZLI ERİŞİM</Text>
 
               {QUICK_LINKS.map((item) => (
                 <TouchableOpacity
                   key={item.href + item.label}
+                  style={[s.quickRow, { borderBottomColor: C.border + "60" }]}
+                  onPress={() => navigate(item.href)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={s.quickIcon}>{item.icon}</Text>
+                  <Text style={[s.quickLabel, { color: C.foreground }]}>{item.label}</Text>
+                  <Text style={[s.quickArrow, { color: C.subtleForeground }]}>›</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* ── 4. Kurumsal ──────────────────────────────────────────── */}
+            <View style={[s.section, { paddingBottom: 24 }]}>
+              <Text style={[s.sectionTitle, { color: C.subtleForeground }]}>KURUMSAL</Text>
+
+              {CORPORATE_LINKS.map((item) => (
+                <TouchableOpacity
+                  key={item.href}
                   style={[s.quickRow, { borderBottomColor: C.border + "60" }]}
                   onPress={() => navigate(item.href)}
                   activeOpacity={0.8}
