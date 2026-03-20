@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/theme";
 import { useCart } from "../../src/store/CartContext";
 import { TOP_CATEGORIES } from "../../constants/categories";
-import MegaMenu from "../../app/megamenu";
+import DrawerMenu from "../nav/DrawerMenu";
 import SearchBar from "../search/SearchBar";
 
 const C = Colors.dark;
@@ -191,7 +191,7 @@ export default function GlobalHeader() {
       </View>
 
       {/* Modals */}
-      <MegaMenu visible={megaVisible}  onClose={() => setMegaVisible(false)} />
+      <DrawerMenu visible={megaVisible} onClose={() => setMegaVisible(false)} />
       {notifVisible && <NotifModal    onClose={() => setNotifVisible(false)} />}
       {suppVisible  && <SupportModal  onClose={() => setSuppVisible(false)} />}
     </View>
