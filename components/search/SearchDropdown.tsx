@@ -61,8 +61,12 @@ export default function SearchDropdown({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        {/* Backdrop */}
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        {/* Backdrop — header'ın altından başlıyor (çizgi artefaktını önler) */}
+        <TouchableOpacity
+          style={[styles.backdrop, { top: insets.top + 116 }]}
+          activeOpacity={1}
+          onPress={onClose}
+        />
 
         {/* Dropdown Panel */}
         <View style={[styles.panel, { marginTop: insets.top + 116, backgroundColor: C.background }]}>
@@ -250,7 +254,7 @@ export default function SearchDropdown({
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   overlay:       { flex: 1 },
-  backdrop:      { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.5)" },
+  backdrop:      { position: "absolute", left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)" },
   panel: {
     marginHorizontal: 8,
     borderRadius: 20,
