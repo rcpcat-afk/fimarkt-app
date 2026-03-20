@@ -1,65 +1,118 @@
 /**
- * Fimarkt Kurumsal Renk Paleti — Premium Dark Mode
+ * Fimarkt Design Token Sistemi — Expo (React Native)
  *
- * Bu dosya hem doğrudan (Colors.bg, Colors.accent) hem de
- * useColorScheme() hook'u üzerinden tüketilir.
- * Fimarkt yalnızca dark mode'da çalışır.
+ * Kural: StyleSheet içinde asla HEX kodu kullanma.
+ * Kullanım: theme.colors.background, theme.colors.accent vb.
+ *
+ * Tema seçimi: useColorScheme() hook'u ile Colors[scheme] kullan.
+ * Fimarkt şu an yalnızca Dark Mode'da çalışır; Light altyapı hazır.
  */
 
 import { Platform } from 'react-native';
 
-// ─── Fimarkt Paleti ─────────────────────────────────────────────────────────
+// ─── Fimarkt Marka Paleti (Ham Değerler) ─────────────────────────────────────
+// Bu objeyi doğrudan component'lerde kullanma — tema tokenlarını kullan.
 export const FimarktColors = {
-  // Arka planlar
+  // Arka Planlar
   bg:       '#111118',
   surface:  '#1a1a28',
   surface2: '#20203a',
 
-  // Çizgiler / Kenarlıklar
-  border:   '#2a2a42',
+  // Kenarlık
+  border: '#2a2a42',
 
   // Metinler
-  text:     '#e8e8f5',
-  text2:    '#8888b0',
-  text3:    '#5a5a7a',
+  text:  '#e8e8f5',
+  text2: '#8888b0',
+  text3: '#5a5a7a',
 
-  // Vurgu (Fimarkt Turuncusu)
-  accent:       '#ff6b2b',
-  accentHover:  '#e85a1f',
+  // Vurgu (Sabit Marka Rengi — tema değişse de değişmez)
+  accent:      '#ff6b2b',
+  accentHover: '#e85a1f',
 
-  // Durum renkleri
-  green:   '#22c55e',
-  red:     '#ef4444',
-  yellow:  '#f59e0b',
+  // Durum
+  success: '#22c55e',
+  error:   '#ef4444',
+  warning: '#f59e0b',
 } as const;
 
-// ─── Expo useColorScheme() uyumlu yapı ──────────────────────────────────────
-// Fimarkt yalnızca dark mode'da çalışır; light tanımı da dark paletini kullanır
-// (Açık temaya geçiş planlandığında bu alan güncellenir)
+// ─── Light Moda Özel Değerler ────────────────────────────────────────────────
+const LightValues = {
+  background:       '#FFFFFF',
+  surface:          '#F3F4F6',
+  surface2:         '#E5E7EB',
+  border:           '#D1D5DB',
+  foreground:       '#111827',
+  mutedForeground:  '#4B5563',
+  subtleForeground: '#9CA3AF',
+} as const;
+
+// ─── Tema Objeleri ───────────────────────────────────────────────────────────
 export const Colors = {
-  light: {
-    text:             FimarktColors.text,
-    background:       FimarktColors.bg,
-    tint:             FimarktColors.accent,
-    icon:             FimarktColors.text2,
-    tabIconDefault:   FimarktColors.text3,
-    tabIconSelected:  FimarktColors.accent,
-    surface:          FimarktColors.surface,
-    surface2:         FimarktColors.surface2,
-    border:           FimarktColors.border,
-  },
   dark: {
-    text:             FimarktColors.text,
-    background:       FimarktColors.bg,
-    tint:             FimarktColors.accent,
-    icon:             FimarktColors.text2,
-    tabIconDefault:   FimarktColors.text3,
-    tabIconSelected:  FimarktColors.accent,
-    surface:          FimarktColors.surface,
-    surface2:         FimarktColors.surface2,
-    border:           FimarktColors.border,
+    // Arka Planlar
+    background:  FimarktColors.bg,
+    surface:     FimarktColors.surface,
+    surface2:    FimarktColors.surface2,
+
+    // Kenarlık
+    border: FimarktColors.border,
+
+    // Metinler
+    foreground:       FimarktColors.text,
+    mutedForeground:  FimarktColors.text2,
+    subtleForeground: FimarktColors.text3,
+
+    // Vurgu
+    accent:      FimarktColors.accent,
+    accentHover: FimarktColors.accentHover,
+
+    // Durum
+    success: FimarktColors.success,
+    error:   FimarktColors.error,
+    warning: FimarktColors.warning,
+
+    // Expo Tab Navigator Aliasları
+    tint:           FimarktColors.accent,
+    icon:           FimarktColors.text2,
+    tabIconDefault: FimarktColors.text3,
+    tabIconSelected: FimarktColors.accent,
+  },
+
+  light: {
+    // Arka Planlar
+    background:  LightValues.background,
+    surface:     LightValues.surface,
+    surface2:    LightValues.surface2,
+
+    // Kenarlık
+    border: LightValues.border,
+
+    // Metinler
+    foreground:       LightValues.foreground,
+    mutedForeground:  LightValues.mutedForeground,
+    subtleForeground: LightValues.subtleForeground,
+
+    // Vurgu (Sabit Marka Rengi)
+    accent:      FimarktColors.accent,
+    accentHover: FimarktColors.accentHover,
+
+    // Durum
+    success: FimarktColors.success,
+    error:   FimarktColors.error,
+    warning: FimarktColors.warning,
+
+    // Expo Tab Navigator Aliasları
+    tint:            FimarktColors.accent,
+    icon:            LightValues.mutedForeground,
+    tabIconDefault:  LightValues.subtleForeground,
+    tabIconSelected: FimarktColors.accent,
   },
 } as const;
+
+// Tip çıkarımı için yardımcı
+export type ColorScheme = keyof typeof Colors;
+export type ThemeColors = typeof Colors.dark;
 
 // ─── Tipografi ───────────────────────────────────────────────────────────────
 export const Fonts = Platform.select({
