@@ -159,9 +159,6 @@ export default function GlobalHeader() {
           <View style={[styles.hamLine,              { backgroundColor: C.mutedForeground }]} />
         </TouchableOpacity>
 
-        {/* Separator */}
-        <View style={[styles.vSep, { backgroundColor: C.border }]} />
-
         {/* Kategori chipleri */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
           {TOP_CATEGORIES.map((pillar, pi) => (
@@ -223,8 +220,7 @@ const styles = StyleSheet.create({
   row3:        { flexDirection: "row", alignItems: "center", paddingBottom: 10 },
   hamburger:   { paddingHorizontal: 12, paddingVertical: 4, alignItems: "flex-start", justifyContent: "center", gap: 4 },
   hamLine:     { width: 18, height: 2, borderRadius: 2 },
-  vSep:        { width: 1, height: 18, marginRight: 6 },
-  chipRow:     { flexDirection: "row", alignItems: "center", gap: 6, paddingRight: 12 },
+chipRow:     { flexDirection: "row", alignItems: "center", gap: 6, paddingRight: 12 },
   pillarSep:   { width: 1, height: 16, marginHorizontal: 2 },
   chip:        { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 99, borderWidth: 1 },
   chipText:    { fontSize: 12, fontWeight: "500" },
