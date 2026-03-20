@@ -113,7 +113,10 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   // Find the currently focused route name
   const focusedRoute = state.routes[state.index]?.name ?? "";
 
-  const BAR_HEIGHT = 60 + insets.bottom;
+  // Minimum 10px bottom padding — protects against old Android devices
+  // where insets.bottom === 0 but icons still need breathing room
+  const safeBottom = Math.max(insets.bottom, 10);
+  const BAR_HEIGHT = 60 + safeBottom;
 
   return (
     <>
@@ -134,7 +137,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
         <View style={[s.topBorder, { backgroundColor: C.border }]} />
 
         {/* Tab items */}
-        <View style={[s.tabRow, { paddingBottom: insets.bottom }]}>
+        <View style={[s.tabRow, { paddingBottom: safeBottom }]}>
           {VISIBLE_ORDER.map((routeName) => {
             const config    = TAB_CONFIG[routeName];
             const isFocused = focusedRoute === routeName;

@@ -7,8 +7,8 @@ import CustomTabBar from "../../components/nav/CustomTabBar";
 export default function TabLayout() {
   const { user }   = useAuth();
   const insets     = useSafeAreaInsets();
-  // Tab bar is position:absolute → screens need explicit bottom padding
-  const tabBarH    = 60 + insets.bottom;
+  // Matches CustomTabBar's safeBottom = Math.max(insets.bottom, 10)
+  const tabBarH    = 60 + Math.max(insets.bottom, 10);
 
   return (
     <Tabs
