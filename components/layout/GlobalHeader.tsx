@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -14,6 +13,7 @@ import { Colors } from "../../constants/theme";
 import { useCart } from "../../src/store/CartContext";
 import { TOP_CATEGORIES } from "../../constants/categories";
 import MegaMenu from "../../app/megamenu";
+import SearchBar from "../search/SearchBar";
 
 const C = Colors.dark;
 
@@ -105,7 +105,6 @@ export default function GlobalHeader() {
   const insets        = useSafeAreaInsets();
   const { totalItems } = useCart();
 
-  const [search,       setSearch]       = useState("");
   const [activeChip,   setActiveChip]   = useState<string | null>(null);
   const [megaVisible,  setMegaVisible]  = useState(false);
   const [notifVisible, setNotifVisible] = useState(false);
@@ -149,27 +148,7 @@ export default function GlobalHeader() {
       </View>
 
       {/* ── 2. Kat: Arama ─────────────────────────────────────────────────── */}
-      <View style={styles.row2}>
-        <View style={[styles.searchBox, { backgroundColor: C.surface2, borderColor: C.border }]}>
-          <Text style={[styles.searchIcon, { color: C.subtleForeground }]}>🔍</Text>
-          <TextInput
-            style={[styles.searchInput, { color: C.foreground }]}
-            placeholder="Ürün, hizmet veya 3D tasarım ara..."
-            placeholderTextColor={C.subtleForeground}
-            value={search}
-            onChangeText={setSearch}
-            returnKeyType="search"
-            onSubmitEditing={() => {
-              if (search.trim()) router.push({ pathname: "/ara" as any, params: { q: search.trim() } });
-            }}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch("")}>
-              <Text style={[styles.searchClear, { color: C.subtleForeground }]}>✕</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+      <SearchBar />
 
       {/* ── 3. Kat: ≡ + Kategori Şeridi ──────────────────────────────────── */}
       <View style={styles.row3}>
@@ -239,13 +218,6 @@ const styles = StyleSheet.create({
   iconEmoji:   { fontSize: 16 },
   badge:       { position: "absolute", top: -5, right: -5, borderRadius: 99, minWidth: 16, height: 16, alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
   badgeText:   { fontSize: 9, color: "#fff", fontWeight: "800" },
-
-  // Row 2
-  row2:        { paddingHorizontal: 12, paddingBottom: 8 },
-  searchBox:   { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 14, paddingHorizontal: 12, height: 42, gap: 8 },
-  searchIcon:  { fontSize: 14 },
-  searchInput: { flex: 1, fontSize: 13 },
-  searchClear: { fontSize: 12, paddingHorizontal: 2 },
 
   // Row 3
   row3:        { flexDirection: "row", alignItems: "center", paddingBottom: 10 },
