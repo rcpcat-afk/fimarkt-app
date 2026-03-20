@@ -170,7 +170,7 @@ export const getMyCustomer = async (token: string, store = "fimarkt") => {
       `${BACKEND_URL}/api/customers/me?store=${store}`,
       { headers: { Authorization: `Bearer ${token}` } },
     );
-    if (!response.ok) throw new Error("Müşteri bilgisi yüklenemedi");
+    if (!response.ok) return null;
     return await response.json();
   } catch (error) {
     console.error("getMyCustomer hatası:", error);
