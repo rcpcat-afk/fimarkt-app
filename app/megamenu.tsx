@@ -11,7 +11,8 @@ import {
     View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../constants";
+import { Colors as ThemeColors } from "../constants/theme";
+const Colors = ThemeColors.dark;
 
 const { width, height } = Dimensions.get("window");
 
@@ -332,7 +333,7 @@ const styles = StyleSheet.create({
   menuContainer: {
     width: width * 0.88,
     height,
-    backgroundColor: Colors.bg,
+    backgroundColor: Colors.background,
     borderLeftWidth: 1,
     borderLeftColor: Colors.border,
   },
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
   logoText: {
     fontSize: 18,
     fontWeight: "800",
-    color: Colors.text,
+    color: Colors.foreground,
     letterSpacing: -0.5,
   },
   closeBtn: {
@@ -391,7 +392,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  closeBtnText: { fontSize: 14, color: Colors.text2 },
+  closeBtnText: { fontSize: 14, color: Colors.mutedForeground },
   content: { flex: 1, flexDirection: "row" },
 
   // Sol panel
@@ -409,11 +410,11 @@ const styles = StyleSheet.create({
     gap: 6,
     position: "relative",
   },
-  leftItemActive: { backgroundColor: Colors.bg },
+  leftItemActive: { backgroundColor: Colors.background },
   leftIcon: { fontSize: 22 },
   leftLabel: {
     fontSize: 10,
-    color: Colors.text3,
+    color: Colors.subtleForeground,
     textAlign: "center",
     fontWeight: "600",
   },
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
   rightTitle: {
     fontSize: 13,
     fontWeight: "800",
-    color: Colors.text3,
+    color: Colors.subtleForeground,
     letterSpacing: 1,
     textTransform: "uppercase",
     marginBottom: 14,
@@ -461,9 +462,9 @@ const styles = StyleSheet.create({
   rightLabel: {
     fontSize: 13,
     fontWeight: "700",
-    color: Colors.text,
+    color: Colors.foreground,
     marginBottom: 2,
   },
-  rightDesc: { fontSize: 11, color: Colors.text2 },
+  rightDesc: { fontSize: 11, color: Colors.mutedForeground },
   rightArrow: { fontSize: 20, fontWeight: "700" },
 });
