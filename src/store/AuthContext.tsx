@@ -83,47 +83,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const login = async (email: string, password: string) => {
-    const response = await fetch("https://fimarkt.com.tr/wp-json/jwt-auth/v1/token", {
+    // Backend proxy üzerinden gir — WP JWT + WC meta tek istekte çözülür
+    const res  = await fetch(`${BACKEND_URL}/api/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username: email, password }),
     });
-    if (!response.ok) throw new Error("Giriş başarısız");
-    const data = await response.json();
-
-    let isAdmin = false;
-    let role: UserRole = "musteri";
-    try {
-      const meRes  = await fetch("https://fimarkt.com.tr/wp-json/wp/v2/users/me", {
-        headers: { Authorization: `Bearer ${data.token}` },
-      });
-      const meData = await meRes.json();
-      isAdmin = meData.is_super_admin === true ||
-        (Array.isArray(meData.roles) && meData.roles.includes("administrator"));
-
-      const wcRes = await fetch(
-        `https://fimarkt.com.tr/wp-json/wc/v3/customers/${meData.id}`,
-        { headers: { Authorization: `Bearer ${data.token}` } }
-      );
-      if (wcRes.ok) {
-        const wcData = await wcRes.json();
-        const roleMeta = (wcData.meta_data || []).find(
-          (m: { key: string }) => m.key === "fimarkt_role"
-        );
-        if (roleMeta?.value) role = roleMeta.value as UserRole;
-      }
-    } catch { /* meta alınamazsa varsayılan değerler geçerli */ }
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.message || "Giriş başarısız");
 
     const userData: User = {
-      id: (() => {
-        try { return parseInt(JSON.parse(atob(data.token.split(".")[1])).data?.user?.id || "0"); }
-        catch { return 0; }
-      })(),
-      name:    data.user_display_name,
-      email:   data.user_email,
+      id:      data.user.id      ?? 0,
+      name:    data.user.name    ?? "",
+      email:   data.user.email   ?? email,
       token:   data.token,
-      isAdmin,
-      role,
+      isAdmin: data.user.isAdmin ?? false,
+      role:    (data.user.role   ?? "musteri") as UserRole,
     };
 
     await AsyncStorage.setItem("fimarkt_token", data.token);
