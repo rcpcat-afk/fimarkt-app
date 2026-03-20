@@ -32,6 +32,12 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+.env.*
+
+# Firebase credentials — asla commit'leme
+GoogleService-Info.plist
+google-services.json
 
 # typescript
 *.tsbuildinfo
