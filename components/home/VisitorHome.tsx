@@ -6,6 +6,8 @@ import {
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
+import HeroSlider   from "@/components/home/HeroSlider";
+import BentoBanners from "@/components/home/BentoBanners";
 
 const { width } = Dimensions.get("window");
 
@@ -50,44 +52,13 @@ export default function VisitorHome() {
     <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
       <StatusBar barStyle="light-content" />
 
-      {/* ── 1. HERO ─────────────────────────────────────────────────── */}
-      <Animated.View entering={FadeInDown.duration(500)} style={s.heroSection}>
-        {/* Dekoratif glow */}
-        <View style={s.heroGlow1} />
-        <View style={s.heroGlow2} />
+      {/* ── 1. HERO SLİDER ──────────────────────────────────────────── */}
+      <HeroSlider />
 
-        <View style={s.heroBadgeWrap}>
-          <Text style={s.heroBadgeText}>🏭 Türkiye'nin 3D Ekosistemi</Text>
-        </View>
-        <Text style={s.heroTitle}>
-          Fikrinden <Text style={s.heroAccent}>Ürüne</Text>,{"\n"}Saniyeler İçinde.
-        </Text>
-        <Text style={s.heroSub}>
-          3D baskı siparişi ver, benzersiz sanat eserleri keşfet, mühendislik hizmetleri al — hepsi tek platformda.
-        </Text>
+      {/* ── 2. BENTO BANNERS ────────────────────────────────────────── */}
+      <BentoBanners />
 
-        {/* CTA butonları */}
-        <View style={s.heroCtas}>
-          <TouchableOpacity style={s.ctaPrimary} onPress={() => router.push("/(tabs)/print")}>
-            <Text style={s.ctaPrimaryText}>🚀 Hemen Teklif Al</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.ctaSecondary} onPress={() => router.push("/(tabs)/shop")}>
-            <Text style={s.ctaSecondaryText}>Keşfet →</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* İstatistikler */}
-        <View style={s.statsRow}>
-          {[["500+","Baskı"], ["200+","Eser"], ["50+","Müh."], ["4.8★","Puan"]].map(([num, label]) => (
-            <View key={label} style={s.statItem}>
-              <Text style={s.statNum}>{num}</Text>
-              <Text style={s.statLabel}>{label}</Text>
-            </View>
-          ))}
-        </View>
-      </Animated.View>
-
-      {/* ── 2. BENTO GRİD ───────────────────────────────────────────── */}
+      {/* ── 3. BENTO GRİD ───────────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.delay(100).duration(500)} style={s.section}>
         <Text style={s.sectionTitle}>Tüm İhtiyaçların Burada</Text>
         <Text style={s.sectionSub}>Üretimden sanata, alışverişten danışmanlığa</Text>
@@ -107,7 +78,7 @@ export default function VisitorHome() {
         </View>
       </Animated.View>
 
-      {/* ── 3. NASIL ÇALIŞIR ────────────────────────────────────────── */}
+      {/* ── 4. NASIL ÇALIŞIR ────────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.delay(150).duration(500)} style={[s.section, s.howSection]}>
         <Text style={s.sectionTitle}>Nasıl Çalışır?</Text>
         <Text style={s.sectionSub}>3 adımda hayalinden ürüne</Text>
@@ -127,7 +98,7 @@ export default function VisitorHome() {
         </View>
       </Animated.View>
 
-      {/* ── 4. VİTRİN — MAĞAZA ─────────────────────────────────────── */}
+      {/* ── 5. VİTRİN — MAĞAZA ─────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.delay(200).duration(500)} style={s.section}>
         <View style={s.sectionRow}>
           <Text style={s.sectionTitle}>🛍️ Mağaza'dan Seçmeler</Text>
@@ -149,7 +120,7 @@ export default function VisitorHome() {
         </ScrollView>
       </Animated.View>
 
-      {/* ── 5. VİTRİN — SANATKAT ───────────────────────────────────── */}
+      {/* ── 6. VİTRİN — SANATKAT ───────────────────────────────────── */}
       <Animated.View entering={FadeInDown.delay(250).duration(500)} style={s.section}>
         <View style={s.sectionRow}>
           <Text style={s.sectionTitle}>🏛️ Sanatkat'tan Eserler</Text>
@@ -171,7 +142,7 @@ export default function VisitorHome() {
         </ScrollView>
       </Animated.View>
 
-      {/* ── 6. FİNAL CTA ────────────────────────────────────────────── */}
+      {/* ── 7. FİNAL CTA ────────────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.delay(300).duration(500)} style={s.ctaBanner}>
         <Text style={s.ctaBannerEmoji}>🏭</Text>
         <Text style={s.ctaBannerTitle}>Fimarkt'a Katıl</Text>
@@ -190,25 +161,6 @@ export default function VisitorHome() {
 function makeStyles(C: typeof Colors.dark) {
   return StyleSheet.create({
     container:     { flex: 1, backgroundColor: C.background },
-
-    // Hero
-    heroSection:   { paddingHorizontal: 20, paddingTop: 40, paddingBottom: 32, alignItems: "center", position: "relative" },
-    heroGlow1:     { position: "absolute", top: 60,  left: width * 0.1,  width: 280, height: 280, borderRadius: 140, backgroundColor: C.accent,          opacity: 0.04 },
-    heroGlow2:     { position: "absolute", top: 100, right: width * 0.1, width: 200, height: 200, borderRadius: 100, backgroundColor: "#7c3aed",          opacity: 0.04 },
-    heroBadgeWrap: { backgroundColor: `${C.accent}18`, borderWidth: 1, borderColor: `${C.accent}40`, borderRadius: 99, paddingHorizontal: 12, paddingVertical: 5, marginBottom: 16 },
-    heroBadgeText: { fontSize: 11, fontWeight: "700", color: C.accent },
-    heroTitle:     { fontSize: 28, fontWeight: "900", color: C.foreground, letterSpacing: -0.8, lineHeight: 36, textAlign: "center", marginBottom: 12 },
-    heroAccent:    { color: C.accent },
-    heroSub:       { fontSize: 13, color: C.mutedForeground, lineHeight: 20, textAlign: "center", marginBottom: 24, maxWidth: 300 },
-    heroCtas:      { flexDirection: "row", gap: 10, marginBottom: 28 },
-    ctaPrimary:    { backgroundColor: C.accent, paddingHorizontal: 22, paddingVertical: 13, borderRadius: 16 },
-    ctaPrimaryText:{ fontSize: 13, fontWeight: "700", color: "#fff" },
-    ctaSecondary:  { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, paddingHorizontal: 22, paddingVertical: 13, borderRadius: 16 },
-    ctaSecondaryText: { fontSize: 13, fontWeight: "600", color: C.foreground },
-    statsRow:      { flexDirection: "row", gap: 20 },
-    statItem:      { alignItems: "center" },
-    statNum:       { fontSize: 18, fontWeight: "800", color: C.foreground },
-    statLabel:     { fontSize: 10, color: C.mutedForeground, marginTop: 1 },
 
     // Sections
     section:       { paddingHorizontal: 16, marginTop: 8 },

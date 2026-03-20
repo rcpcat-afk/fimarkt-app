@@ -5,6 +5,7 @@ import {
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
+import BentoBanners from "@/components/home/BentoBanners";
 
 const { width } = Dimensions.get("window");
 
@@ -66,6 +67,9 @@ export default function UserHome({ userName, userRole }: Props) {
           <Text style={s.avatarText}>{initials}</Text>
         </TouchableOpacity>
       </Animated.View>
+
+      {/* ── 1b. KİŞİSELLEŞTİRİLMİŞ KAMPANYALAR ──────────────────── */}
+      <BentoBanners userRole={userRole} />
 
       {/* ── 2. AKTİF SİPARİŞ ─────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.delay(80).duration(400)} style={s.orderCard}>
