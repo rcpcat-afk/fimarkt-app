@@ -8,8 +8,8 @@ import UserHome    from "@/components/home/UserHome";
 import { type WebUser } from "@/lib/types";
 
 export default function HomeScreen() {
-  const scheme = useColorScheme();
-  const C      = Colors[scheme ?? "dark"];
+  // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
+  const C = Colors["dark"];
   const [user,    setUser]    = useState<WebUser | null>(null);
   const [loading, setLoading] = useState(true);
 

@@ -41,8 +41,9 @@ const HOW_STEPS = [
 ];
 
 export default function VisitorHome() {
-  const scheme = useColorScheme();
-  const C      = Colors[scheme ?? "dark"];
+  // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
+  // App tema toggle'ı eklenince useColorScheme() devreye alınacak.
+  const C = Colors["dark"];
   const router = useRouter();
   const s      = makeStyles(C);
 

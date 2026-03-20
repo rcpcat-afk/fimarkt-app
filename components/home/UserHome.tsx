@@ -32,8 +32,8 @@ const QUICK_ACTIONS = [
 interface Props { userName: string; userRole?: string }
 
 export default function UserHome({ userName, userRole }: Props) {
-  const scheme    = useColorScheme();
-  const C         = Colors[scheme ?? "dark"];
+  // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
+  const C = Colors["dark"];
   const router    = useRouter();
   const s         = makeStyles(C);
   const [greeting, setGreeting] = useState("Hoş geldin");
