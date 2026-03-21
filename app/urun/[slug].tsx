@@ -480,7 +480,10 @@ export default function UrunDetaySayfasi() {
                   </View>
                 ))}
               </View>
-              <Pressable style={styles.sellerLinkBtn}>
+              <Pressable
+                style={styles.sellerLinkBtn}
+                onPress={() => router.push(`/satici/${product.seller.slug}` as never)}
+              >
                 <Text style={[styles.sellerLinkText, { color: C.accent }]}>
                   Mağazayı Gör →
                 </Text>

@@ -470,3 +470,7 @@ export function getProductsByPillarCategory(
     (p) => p.pillar === pillarSlug && slugs.includes(p.category),
   );
 }
+
+export function getProductsBySeller(sellerSlug: string): Product[] {
+  return ALL_PRODUCTS.filter((p) => p.seller.slug === sellerSlug);
+}
