@@ -23,7 +23,7 @@ export default function EserDetaySayfasi() {
 
   const artwork = getArtwork(slug ?? "");
 
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
   const [activeImg, setActiveImg] = useState(0);
   const [liked,     setLiked]     = useState(false);
   const [added,     setAdded]     = useState(false);
@@ -45,17 +45,15 @@ export default function EserDetaySayfasi() {
     if (!artwork || added) return;
     // Ücretsiz dijital: direkt indir, sepete ekleme
     if (!artwork.isFree) {
-      addToCart({
-        id:            parseInt(artwork.id.replace(/\D/g, ""), 10) + 10000,
-        name:          artwork.title,
-        price:         String(artwork.price),
-        regular_price: String(artwork.price),
-        sale_price:    "",
-        images:        [{ id: 0, src: artworkImageUrl(artwork.imageSeed, artwork.aspectRatio), alt: artwork.title }],
-        categories:    [],
-        short_description: "",
-        description:   artwork.description,
-        stock_status:  (!artwork.isDigital && artwork.stock !== undefined && artwork.stock === 0) ? "outofstock" : "instock",
+      addItem({
+        id:        parseInt(artwork.id.replace(/\D/g, ""), 10) + 10000,
+        name:      artwork.title,
+        price:     artwork.price,
+        image:     artworkImageUrl(artwork.imageSeed, artwork.aspectRatio),
+        slug:      artwork.slug,
+        storeName: artwork.artistName,
+        type:      artwork.isDigital ? "design" : "product",
+        isDigital: artwork.isDigital,
       });
     }
     setAdded(true);

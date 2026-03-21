@@ -1,104 +1,201 @@
-// ─── App CartContext ───────────────────────────────────────────────────────────
-// AsyncStorage persist: uygulama kapansa bile sepet korunur.
-// Bölüm 3'te addToCart(product) çağrısı cart.tsx ile uyumlu tutuldu.
+// ─── App CartContext v2 ─────────────────────────────────────────────────────────
+// Generic CartItem — WooCommerce bağımlılığı kaldırıldı.
+// Seller grouping, kargo hesabı, "Daha Sonra Al" desteği eklendi.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
+  createContext, useCallback, useContext, useEffect, useMemo, useState,
 } from "react";
-import { type Product } from "../services/api";
 
-const CART_KEY = "fimarkt_cart";
+const CART_KEY  = "fimarkt_cart";
+const SAVED_KEY = "fimarkt_saved";
 
-// ── Tipler ────────────────────────────────────────────────────────────────────
+export const FREE_SHIPPING_THRESHOLD  = 500;    // TL
+export const SHIPPING_COST_PER_SELLER = 29.99;  // TL
+
+// ── Tipler ─────────────────────────────────────────────────────────────────────
+export type CartItemType = "product" | "print" | "design";
+
 export interface CartItem {
-  product:  Product;
-  quantity: number;
+  id:          number;
+  name:        string;
+  price:       number;       // her zaman sayısal TL
+  qty:         number;
+  image?:      string;
+  slug?:       string;
+  storeId?:    number;
+  storeName?:  string;
+  type?:       CartItemType;
+  isDigital?:  boolean;
+  meta?:       Record<string, unknown>;
+}
+
+export interface SellerGroup {
+  storeName:            string;
+  storeId?:             number;
+  items:                CartItem[];
+  subtotal:             number;
+  physicalSubtotal:     number;
+  shippingCost:         number;
+  hasFreeShip:          boolean;
+  remainingForFreeShip: number;
 }
 
 interface CartContextType {
   items:          CartItem[];
-  addToCart:      (product: Product) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  savedItems:     CartItem[];
+  addItem:        (item: Omit<CartItem, "qty"> & { qty?: number }) => void;
+  removeItem:     (id: number) => void;
+  updateQty:      (id: number, qty: number) => void;
+  saveForLater:   (id: number) => void;
+  moveToCart:     (id: number) => void;
   clearCart:      () => void;
-  totalItems:     number;
+  totalQty:       number;
+  totalItems:     number;   // alias — GlobalHeader uyumluluğu için
   totalPrice:     number;
+  shippingTotal:  number;
+  grandTotal:     number;
+  sellerGroups:   SellerGroup[];
 }
 
-// ── Context ───────────────────────────────────────────────────────────────────
+// ── Mock başlangıç sepeti (demo) ───────────────────────────────────────────────
+const MOCK_INITIAL_ITEMS: CartItem[] = [
+  {
+    id: 1001, name: "PLA Filament 1kg — Beyaz", price: 249, qty: 1,
+    image: "https://picsum.photos/seed/filament-pla/300/300",
+    storeId: 101, storeName: "FilamentHub", type: "product", isDigital: false,
+  },
+  {
+    id: 1002, name: "3D Baskı Yatağı Kaplaması", price: 89, qty: 2,
+    image: "https://picsum.photos/seed/yatakkapla/300/300",
+    storeId: 101, storeName: "FilamentHub", type: "product", isDigital: false,
+  },
+  {
+    id: 1003, name: "Hotend Nozzle Seti 0.4mm", price: 149, qty: 1,
+    image: "https://picsum.photos/seed/nozzle/300/300",
+    storeId: 102, storeName: "TechStore TR", type: "product", isDigital: false,
+  },
+  {
+    id: 10001, name: "Mekanik Kalp — STL Dosyası", price: 149, qty: 1,
+    image: "https://picsum.photos/seed/mekanik-kalp/300/300",
+    slug: "mekanik-kalp", storeName: "Mert Karakoç",
+    type: "design", isDigital: true,
+  },
+];
+
+// ── Selector yardımcı ──────────────────────────────────────────────────────────
+function buildSellerGroups(items: CartItem[]): SellerGroup[] {
+  const map = new Map<string, SellerGroup>();
+
+  for (const item of items) {
+    const key  = String(item.storeId ?? item.storeName ?? "fimarkt");
+    const name = item.storeName ?? (item.storeId ? `Mağaza #${item.storeId}` : "Fimarkt");
+    if (!map.has(key)) {
+      map.set(key, {
+        storeName: name, storeId: item.storeId, items: [],
+        subtotal: 0, physicalSubtotal: 0,
+        shippingCost: 0, hasFreeShip: true, remainingForFreeShip: 0,
+      });
+    }
+    map.get(key)!.items.push(item);
+  }
+
+  for (const group of map.values()) {
+    group.subtotal         = group.items.reduce((s, i) => s + i.price * i.qty, 0);
+    group.physicalSubtotal = group.items.filter((i) => !i.isDigital).reduce((s, i) => s + i.price * i.qty, 0);
+
+    const hasPhysical = group.items.some((i) => !i.isDigital);
+    if (!hasPhysical || group.physicalSubtotal >= FREE_SHIPPING_THRESHOLD) {
+      group.shippingCost = 0; group.hasFreeShip = true; group.remainingForFreeShip = 0;
+    } else {
+      group.shippingCost         = SHIPPING_COST_PER_SELLER;
+      group.hasFreeShip          = false;
+      group.remainingForFreeShip = FREE_SHIPPING_THRESHOLD - group.physicalSubtotal;
+    }
+  }
+  return Array.from(map.values());
+}
+
+// ── Context ────────────────────────────────────────────────────────────────────
 const CartContext = createContext<CartContextType | null>(null);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  const [items,   setItems]   = useState<CartItem[]>([]);
+  const [items,    setItems]    = useState<CartItem[]>([]);
+  const [saved,    setSaved]    = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
-  // AsyncStorage'dan ilk yüklemede hydrate et
   useEffect(() => {
-    AsyncStorage.getItem(CART_KEY)
-      .then((raw) => {
-        if (raw) setItems(JSON.parse(raw) as CartItem[]);
+    Promise.all([
+      AsyncStorage.getItem(CART_KEY),
+      AsyncStorage.getItem(SAVED_KEY),
+    ])
+      .then(([cartRaw, savedRaw]) => {
+        const parsed = cartRaw ? (JSON.parse(cartRaw) as CartItem[]) : [];
+        setItems(parsed.length > 0 ? parsed : MOCK_INITIAL_ITEMS);
+        if (savedRaw) setSaved(JSON.parse(savedRaw) as CartItem[]);
       })
-      .catch(() => { /* bozuk veri — yoksay */ })
+      .catch(() => setItems(MOCK_INITIAL_ITEMS))
       .finally(() => setHydrated(true));
   }, []);
 
-  // Her değişiklikte AsyncStorage'a yaz (hydrate tamamlandıktan sonra)
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(CART_KEY, JSON.stringify(items)).catch(() => {});
-  }, [items, hydrated]);
+    AsyncStorage.setItem(CART_KEY,  JSON.stringify(items)).catch(() => {});
+    AsyncStorage.setItem(SAVED_KEY, JSON.stringify(saved)).catch(() => {});
+  }, [items, saved, hydrated]);
 
-  const addToCart = useCallback((product: Product) => {
+  const addItem = useCallback((item: Omit<CartItem, "qty"> & { qty?: number }) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
-      if (existing) {
-        return prev.map((i) =>
-          i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i,
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
+      const ex = prev.find((i) => i.id === item.id);
+      if (ex) return prev.map((i) => i.id === item.id ? { ...i, qty: i.qty + (item.qty ?? 1) } : i);
+      return [...prev, { ...item, qty: item.qty ?? 1 }];
     });
   }, []);
 
-  const removeFromCart = useCallback((productId: number) => {
-    setItems((prev) => prev.filter((i) => i.product.id !== productId));
+  const removeItem = useCallback((id: number) => {
+    setItems((prev) => prev.filter((i) => i.id !== id));
   }, []);
 
-  const updateQuantity = useCallback(
-    (productId: number, quantity: number) => {
-      if (quantity <= 0) { removeFromCart(productId); return; }
-      setItems((prev) =>
-        prev.map((i) => (i.product.id === productId ? { ...i, quantity } : i)),
-      );
-    },
-    [removeFromCart],
-  );
+  const updateQty = useCallback((id: number, qty: number) => {
+    if (qty <= 0) { removeItem(id); return; }
+    setItems((prev) => prev.map((i) => i.id === id ? { ...i, qty } : i));
+  }, [removeItem]);
+
+  const saveForLater = useCallback((id: number) => {
+    setItems((prev) => {
+      const item = prev.find((i) => i.id === id);
+      if (item) setSaved((s) => [...s.filter((i) => i.id !== id), { ...item, qty: 1 }]);
+      return prev.filter((i) => i.id !== id);
+    });
+  }, []);
+
+  const moveToCart = useCallback((id: number) => {
+    setSaved((prev) => {
+      const item = prev.find((i) => i.id === id);
+      if (item) {
+        setItems((c) => {
+          const ex = c.find((i) => i.id === id);
+          if (ex) return c.map((i) => i.id === id ? { ...i, qty: i.qty + 1 } : i);
+          return [...c, { ...item, qty: 1 }];
+        });
+      }
+      return prev.filter((i) => i.id !== id);
+    });
+  }, []);
 
   const clearCart = useCallback(() => setItems([]), []);
 
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalPrice = items.reduce(
-    (sum, i) =>
-      sum + Number(i.product.sale_price || i.product.regular_price) * i.quantity,
-    0,
-  );
+  const sellerGroups  = useMemo(() => buildSellerGroups(items), [items]);
+  const totalQty      = items.reduce((s, i) => s + i.qty, 0);
+  const totalPrice    = items.reduce((s, i) => s + i.price * i.qty, 0);
+  const shippingTotal = sellerGroups.reduce((s, g) => s + g.shippingCost, 0);
+  const grandTotal    = totalPrice + shippingTotal;
 
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        totalPrice,
-      }}
-    >
+    <CartContext.Provider value={{
+      items, savedItems: saved,
+      addItem, removeItem, updateQty, saveForLater, moveToCart, clearCart,
+      totalQty, totalItems: totalQty, totalPrice, shippingTotal, grandTotal, sellerGroups,
+    }}>
       {children}
     </CartContext.Provider>
   );

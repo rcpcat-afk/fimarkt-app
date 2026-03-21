@@ -59,7 +59,7 @@ export default function UrunDetaySayfasi() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { addToCart } = useCart();
+  const { addItem } = useCart();
 
   const product: PdpProduct | null = useMemo(
     () => getPdpProduct(slug ?? ""),
@@ -125,17 +125,14 @@ export default function UrunDetaySayfasi() {
 
   const handleAddToCart = () => {
     if (!product || added) return;
-    addToCart({
-      id: parseInt(product.id.replace(/\D/g, "")) || 1,
-      name: product.title,
-      price: String(activePrice),
-      regular_price: String(product.basePrice),
-      sale_price: product.originalPrice ? String(product.basePrice) : "",
-      images: [{ id: 0, src: product.images[0], alt: product.title }],
-      categories: [],
-      short_description: "",
-      description: product.description,
-      stock_status: product.inStock ? "instock" : "outofstock",
+    addItem({
+      id:        parseInt(product.id.replace(/\D/g, ""), 10) || 1,
+      name:      product.title,
+      price:     activePrice,
+      image:     product.images[0],
+      slug:      product.slug,
+      type:      "product",
+      isDigital: false,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);

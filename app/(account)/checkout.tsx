@@ -135,8 +135,8 @@ export default function CheckoutScreen() {
                     country: "TR",
                   };
               const orderItems = items.map((item) => ({
-                product_id: item.product.id,
-                quantity: item.quantity,
+                product_id: item.id,
+                quantity:   item.qty,
               }));
               const order = await createOrder(token, orderItems, billing);
               if (order) {

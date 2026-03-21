@@ -27,7 +27,7 @@ export default function ProductDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { addToCart, items } = useCart();
+  const { addItem, items } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [favState, setFavState] = useState(false);
   const [product, setProduct] = useState<Product | null>(null);
@@ -45,7 +45,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (product) {
-      setAdded(!!items.find((i) => i.product.id === product.id));
+      setAdded(!!items.find((i) => i.id === product.id));
       setFavState(isFavorite(product.id));
       loadRelated();
     }
@@ -67,7 +67,14 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     if (!product) return;
-    addToCart(product);
+    addItem({
+      id:        product.id,
+      name:      product.name,
+      price:     Number(product.sale_price || product.regular_price),
+      image:     product.images[0]?.src,
+      type:      "product",
+      isDigital: false,
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
