@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Colors, FontSizes, LineHeights } from "@/constants/theme";
 import { getArtwork, getAllArtworks, artworkImageUrl } from "@/lib/mock-data/artworks";
+import { useCart } from "@/src/store/CartContext";
 
 const C = Colors.dark;
 
@@ -22,6 +23,7 @@ export default function EserDetaySayfasi() {
 
   const artwork = getArtwork(slug ?? "");
 
+  const { addToCart } = useCart();
   const [activeImg, setActiveImg] = useState(0);
   const [liked,     setLiked]     = useState(false);
   const [added,     setAdded]     = useState(false);
@@ -40,7 +42,19 @@ export default function EserDetaySayfasi() {
   }));
 
   const handleDownload = () => {
-    if (added) return;
+    if (!artwork || added) return;
+    addToCart({
+      id:            parseInt(artwork.id.replace(/\D/g, ""), 10) + 10000,
+      name:          artwork.title,
+      price:         String(artwork.price),
+      regular_price: String(artwork.price),
+      sale_price:    "",
+      images:        [{ id: 0, src: artworkImageUrl(artwork.imageSeed, artwork.aspectRatio), alt: artwork.title }],
+      categories:    [],
+      short_description: "",
+      description:   artwork.description,
+      stock_status:  (!artwork.isDigital && artwork.stock !== undefined && artwork.stock === 0) ? "outofstock" : "instock",
+    });
     setAdded(true);
     setTimeout(() => setAdded(false), 2500);
   };
