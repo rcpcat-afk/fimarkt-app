@@ -39,7 +39,7 @@ function RootNavigator() {
       }}
     >
       <Stack.Screen name="index" />
-      <Stack.Screen name="odeme" options={{ headerShown: false, animation: "slide_from_bottom" }} />
+      <Stack.Screen name="odeme" options={{ headerShown: false }} />
     </Stack>
   );
 }
