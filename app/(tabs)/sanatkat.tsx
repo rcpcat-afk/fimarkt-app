@@ -54,7 +54,9 @@ function ArtworkCard({ artwork, onPress }: { artwork: ReturnType<typeof getAllAr
           </View>
         )}
         <View style={s.formatPill}>
-          <Text style={s.formatText}>{artwork.fileFormat.toUpperCase()}</Text>
+          <Text style={s.formatText}>
+            {artwork.isDigital ? (artwork.fileFormat?.toUpperCase() ?? "DİJİTAL") : "FİZİKSEL"}
+          </Text>
         </View>
       </View>
       <View style={s.cardInfo}>

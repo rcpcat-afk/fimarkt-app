@@ -125,9 +125,17 @@ export default function EserDetaySayfasi() {
         <View style={s.body}>
           {/* ── Header ─────────────────────────────────────────────────── */}
           <View style={s.titleRow}>
-            <View style={s.formatBadge}>
-              <Text style={s.formatBadgeText}>{FORMAT_LABEL[artwork.fileFormat] ?? artwork.fileFormat}</Text>
-            </View>
+            {artwork.isDigital ? (
+              <View style={s.formatBadge}>
+                <Text style={s.formatBadgeText}>
+                  {artwork.fileFormat ? (FORMAT_LABEL[artwork.fileFormat] ?? artwork.fileFormat) : "DİJİTAL"}
+                </Text>
+              </View>
+            ) : (
+              <View style={[s.formatBadge, { backgroundColor: "#f59e0b20", borderColor: "#f59e0b40" }]}>
+                <Text style={[s.formatBadgeText, { color: "#f59e0b" }]}>FİZİKSEL</Text>
+              </View>
+            )}
             {artwork.isFree && (
               <View style={s.freeBadge}>
                 <Text style={s.freeBadgeText}>Ücretsiz</Text>
@@ -160,7 +168,8 @@ export default function EserDetaySayfasi() {
           {/* Description */}
           <Text style={s.description}>{artwork.description}</Text>
 
-          {/* ── Print Settings ──────────────────────────────────────────── */}
+          {/* ── Print Settings — sadece dijital ────────────────────────── */}
+          {artwork.isDigital && artwork.printSettings && (
           <View style={s.card}>
             <Text style={s.cardTitle}>🖨️ Baskı Ayarları</Text>
             <View style={s.gridSpec}>
@@ -175,7 +184,7 @@ export default function EserDetaySayfasi() {
                   <Text style={s.specLabel}>{row.label}</Text>
                   <Text style={[
                     s.specValue,
-                    row.label === "Support" && !artwork.printSettings.supports && { color: "#10b981" },
+                    row.label === "Support" && !artwork.printSettings!.supports && { color: "#10b981" },
                   ]}>
                     {row.value}
                   </Text>
@@ -183,22 +192,38 @@ export default function EserDetaySayfasi() {
               ))}
             </View>
           </View>
+          )}
 
           {/* ── Teknik Detaylar ─────────────────────────────────────────── */}
           <View style={s.card}>
             <Text style={s.cardTitle}>Teknik Detaylar</Text>
-            {[
-              { label: "Dosya Formatı",  value: FORMAT_LABEL[artwork.fileFormat] },
-              { label: "Polygon Sayısı", value: `${artwork.polygonCount}K` },
-              { label: "Lisans",         value: artwork.license === "kisisel" ? "Kişisel Kullanım" : "Ticari" },
-              { label: "İndirme",        value: artwork.downloadsCount.toLocaleString("tr-TR") },
-              { label: "Baskı Sayısı",   value: artwork.makesCount.toLocaleString("tr-TR") },
-            ].map((row) => (
-              <View key={row.label} style={s.infoRow}>
-                <Text style={s.infoLabel}>{row.label}</Text>
-                <Text style={s.infoValue}>{row.value}</Text>
-              </View>
-            ))}
+            {artwork.isDigital ? (
+              [
+                artwork.fileFormat  && { label: "Dosya Formatı",  value: FORMAT_LABEL[artwork.fileFormat] ?? artwork.fileFormat },
+                artwork.polygonCount !== undefined && { label: "Polygon Sayısı", value: `${artwork.polygonCount}K` },
+                artwork.license     && { label: "Lisans",         value: artwork.license === "kisisel" ? "Kişisel Kullanım" : "Ticari" },
+                artwork.downloadsCount !== undefined && { label: "İndirme",      value: artwork.downloadsCount.toLocaleString("tr-TR") },
+                { label: "Baskı Sayısı", value: artwork.makesCount.toLocaleString("tr-TR") },
+              ].filter(Boolean).map((row) => (
+                <View key={(row as { label: string }).label} style={s.infoRow}>
+                  <Text style={s.infoLabel}>{(row as { label: string }).label}</Text>
+                  <Text style={s.infoValue}>{(row as { value: string }).value}</Text>
+                </View>
+              ))
+            ) : (
+              [
+                artwork.physicalMaterial && { label: "Malzeme",   value: artwork.physicalMaterial },
+                artwork.dimensions       && { label: "Boyutlar",   value: artwork.dimensions },
+                artwork.weight           && { label: "Ağırlık",    value: artwork.weight },
+                artwork.stock !== undefined && { label: "Stok",    value: `${artwork.stock} adet` },
+                { label: "Satış Sayısı",   value: artwork.makesCount.toLocaleString("tr-TR") },
+              ].filter(Boolean).map((row) => (
+                <View key={(row as { label: string }).label} style={s.infoRow}>
+                  <Text style={s.infoLabel}>{(row as { label: string }).label}</Text>
+                  <Text style={s.infoValue}>{(row as { value: string }).value}</Text>
+                </View>
+              ))
+            )}
           </View>
 
           {/* ── Ben de Bastım ────────────────────────────────────────────── */}
