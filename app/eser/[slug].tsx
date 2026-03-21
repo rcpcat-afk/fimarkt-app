@@ -43,18 +43,21 @@ export default function EserDetaySayfasi() {
 
   const handleDownload = () => {
     if (!artwork || added) return;
-    addToCart({
-      id:            parseInt(artwork.id.replace(/\D/g, ""), 10) + 10000,
-      name:          artwork.title,
-      price:         String(artwork.price),
-      regular_price: String(artwork.price),
-      sale_price:    "",
-      images:        [{ id: 0, src: artworkImageUrl(artwork.imageSeed, artwork.aspectRatio), alt: artwork.title }],
-      categories:    [],
-      short_description: "",
-      description:   artwork.description,
-      stock_status:  (!artwork.isDigital && artwork.stock !== undefined && artwork.stock === 0) ? "outofstock" : "instock",
-    });
+    // Ücretsiz dijital: direkt indir, sepete ekleme
+    if (!artwork.isFree) {
+      addToCart({
+        id:            parseInt(artwork.id.replace(/\D/g, ""), 10) + 10000,
+        name:          artwork.title,
+        price:         String(artwork.price),
+        regular_price: String(artwork.price),
+        sale_price:    "",
+        images:        [{ id: 0, src: artworkImageUrl(artwork.imageSeed, artwork.aspectRatio), alt: artwork.title }],
+        categories:    [],
+        short_description: "",
+        description:   artwork.description,
+        stock_status:  (!artwork.isDigital && artwork.stock !== undefined && artwork.stock === 0) ? "outofstock" : "instock",
+      });
+    }
     setAdded(true);
     setTimeout(() => setAdded(false), 2500);
   };
