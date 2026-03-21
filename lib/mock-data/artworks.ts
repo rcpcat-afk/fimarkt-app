@@ -1,7 +1,7 @@
 // ─── Fimarkt Sanatkat Mock Data ───────────────────────────────────────────────
 
 export type ArtworkCategory = "heykel" | "mimari" | "karakter" | "organik" | "makine" | "sanat";
-export type ArtworkBadge    = "yeni" | "one-cikan" | "cok-indirilen" | "ucretsiz";
+export type ArtworkBadge    = "yeni" | "one-cikan" | "cok-indirilen" | "ucretsiz" | "stokta-az";
 export type ArtworkAspect   = "portrait" | "landscape" | "square";
 
 export interface ArtworkMake {
@@ -22,29 +22,41 @@ export interface Artwork {
   imageSeed:       string;
   additionalSeeds: string[];
   aspectRatio:     ArtworkAspect;
+
+  // ── Ürün tipi ────────────────────────────────────────────────────────────────
   isDigital:       boolean;
   price:           number;
   originalPrice?:  number;
-  isFree:          boolean;
-  fileFormat:      "stl" | "obj" | "fbx" | "blend";
-  polygonCount:    number;   // thousand
-  printSettings:   {
+  isFree:          boolean;        // sadece dijital ürünlerde geçerli
+
+  // ── Sadece dijital ürünlerde ─────────────────────────────────────────────────
+  fileFormat?:     "stl" | "obj" | "fbx" | "blend";
+  polygonCount?:   number;         // thousand
+  printSettings?:  {
     layerHeight: string;
     infill:      string;
     supports:    boolean;
     material:    string;
     printTime:   string;
   };
+  downloadsCount?: number;
+  license?:        "kisisel" | "ticari";
+
+  // ── Sadece fiziksel ürünlerde ────────────────────────────────────────────────
+  physicalMaterial?: string;       // ör. "PLA+", "Reçine", "Bronz kaplı"
+  dimensions?:       string;       // ör. "12 × 8 × 6 cm"
+  weight?:           string;       // ör. "~180g"
+  stock?:            number;       // mevcut stok adedi
+
+  // ── Ortak ───────────────────────────────────────────────────────────────────
   category:       ArtworkCategory;
   likesCount:     number;
-  downloadsCount: number;
-  makesCount:     number;
+  makesCount:     number;          // dijital: kaç kişi bastı; fiziksel: satış adedi
   makes:          ArtworkMake[];
   tags:           string[];
   badge?:         ArtworkBadge;
   rating:         number;
   reviewCount:    number;
-  license:        "kisisel" | "ticari";
 }
 
 // ── Artwork image URL helper ───────────────────────────────────────────────────
@@ -437,6 +449,62 @@ const ARTWORKS: Artwork[] = [
     rating: 4.7,
     reviewCount: 89,
     license: "kisisel",
+  },
+
+  // ── Fiziksel Ürünler ──────────────────────────────────────────────────────────
+  {
+    id: "aw-011",
+    slug: "köklu-agac-heykeli",
+    title: "Köklü Ağaç Heykeli",
+    description:
+      "Bronz kaplama PLA+ ile üretilmiş, elle cilalanmış dekoratif ağaç heykeli. Mert Karakoç'un özgün tasarımı, sınırlı üretim. Karton kutu + sertifika ile teslim edilir.",
+    artistSlug: "mert-karakoc",
+    artistName: "Mert Karakoç",
+    imageSeed: "agac_heykel",
+    additionalSeeds: ["agac_heykel_2", "agac_heykel_3"],
+    aspectRatio: "portrait",
+    isDigital: false,
+    price: 490,
+    originalPrice: 650,
+    isFree: false,
+    physicalMaterial: "Bronz kaplama PLA+",
+    dimensions: "18 × 12 × 8 cm",
+    weight: "~320g",
+    stock: 4,
+    category: "heykel",
+    likesCount: 1240,
+    makesCount: 23,
+    makes: [],
+    tags: ["ağaç", "heykel", "bronz", "dekorasyon", "sınırlı üretim"],
+    badge: "stokta-az",
+    rating: 4.9,
+    reviewCount: 28,
+  },
+  {
+    id: "aw-012",
+    slug: "dalgali-kase-fiziksel",
+    title: "Dalgalı Kase — Fiziksel",
+    description:
+      "Aslı Demir'in Dalgalı Kabuk tasarımının PETG ile üretilmiş, elle zımparalanmış ve parlatılmış fiziksel versiyonu. Yemek masasında kullanıma uygundur. Gıda güvenli kaplama uygulanmıştır.",
+    artistSlug: "asli-demir",
+    artistName: "Aslı Demir",
+    imageSeed: "dalgali_kase_fiziksel",
+    additionalSeeds: ["dalgali_kase_2"],
+    aspectRatio: "landscape",
+    isDigital: false,
+    price: 280,
+    isFree: false,
+    physicalMaterial: "PETG + gıda güvenli kaplama",
+    dimensions: "22 × 16 × 6 cm",
+    weight: "~190g",
+    stock: 9,
+    category: "organik",
+    likesCount: 870,
+    makesCount: 41,
+    makes: [],
+    tags: ["kase", "organik", "sofra", "dekorasyon", "fiziksel"],
+    rating: 4.8,
+    reviewCount: 44,
   },
 ];
 
