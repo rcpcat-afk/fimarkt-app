@@ -6,6 +6,7 @@ import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
 import BentoBanners from "@/components/home/BentoBanners";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 
 const { width } = Dimensions.get("window");
 
@@ -34,7 +35,8 @@ interface Props { userName: string; userRole?: string }
 export default function UserHome({ userName, userRole }: Props) {
   // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
   const C = Colors["dark"];
-  const router    = useRouter();
+  const router       = useRouter();
+  const tabBarHeight = useTabBarHeight();
   const s         = makeStyles(C);
   const [greeting, setGreeting] = useState("Hoş geldin");
 
@@ -50,7 +52,7 @@ export default function UserHome({ userName, userRole }: Props) {
   const progress  = (MOCK_ORDER.stepIndex / (ORDER_STEPS.length - 1)) * 100;
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={s.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabBarHeight }}>
 
       {/* ── 1. WELCOME BOARD ──────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.duration(400)} style={s.welcomeRow}>

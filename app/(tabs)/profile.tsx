@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants";
+import { useTabBarHeight } from "../../hooks/useTabBarHeight";
 import {
   getMyCustomer,
   getMyOrders,
@@ -75,6 +76,7 @@ const SettingRow = ({
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useTabBarHeight();
   const { user, logout } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [orderUpdates, setOrderUpdates] = useState(true);
@@ -152,7 +154,7 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabBarHeight }}>
         <View style={styles.header}>
           <Text style={styles.title}>Profil</Text>
         </View>

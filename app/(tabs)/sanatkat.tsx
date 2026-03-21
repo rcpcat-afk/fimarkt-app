@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Colors, FontSizes } from "@/constants/theme";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 import { getAllArtworks, type ArtworkCategory } from "@/lib/mock-data/artworks";
 import { getAllArtists } from "@/lib/mock-data/artists";
 
@@ -76,6 +77,7 @@ function ArtworkCard({ artwork, onPress }: { artwork: ReturnType<typeof getAllAr
 // ── Ana Sayfa ──────────────────────────────────────────────────────────────────
 export default function SanatkatEkrani() {
   const router = useRouter();
+  const tabBarHeight = useTabBarHeight();
 
   const [search,   setSearch]   = useState("");
   const [category, setCategory] = useState<FilterCategory>("tumumu");
@@ -104,7 +106,7 @@ export default function SanatkatEkrani() {
     <View style={[s.root, { backgroundColor: C.background }]}>
       <StatusBar barStyle="light-content" />
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: tabBarHeight }]}>
         {/* ── Hero ───────────────────────────────────────────────────────── */}
         <View style={s.hero}>
           <Text style={s.heroSub}>Dijital Atölye</Text>

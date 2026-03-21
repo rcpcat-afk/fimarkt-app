@@ -14,6 +14,7 @@ import {
 import { Colors } from "../../constants";
 import { getMyOrders, WCOrder } from "../../src/services/api";
 import { useAuth } from "../../src/store/AuthContext";
+import { useTabBarHeight } from "../../hooks/useTabBarHeight";
 
 const STATUS_CONFIG: Record<
   string,
@@ -87,6 +88,7 @@ const TAB_FILTERS = [
 export default function OrdersScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const tabBarHeight = useTabBarHeight();
   const [orders, setOrders] = useState<WCOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -191,7 +193,7 @@ export default function OrdersScreen() {
       ) : (
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={[styles.list, { paddingBottom: tabBarHeight }]}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

@@ -9,6 +9,7 @@ import Animated, {
   FadeInUp,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTabBarHeight } from "../../hooks/useTabBarHeight";
 import {
   ScrollView,
   StyleSheet,
@@ -47,6 +48,7 @@ const TRUSTS = [
 export default function FidropScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useTabBarHeight();
 
   return (
     <View style={[s.root, { backgroundColor: C.background }]}>
@@ -54,7 +56,7 @@ export default function FidropScreen() {
       {/* ── Scroll içeriği ────────────────────────────────────────────── */}
       <ScrollView
         style={s.scroll}
-        contentContainerStyle={s.scrollContent}
+        contentContainerStyle={[s.scrollContent, { paddingBottom: tabBarHeight }]}
         showsVerticalScrollIndicator={false}
       >
 

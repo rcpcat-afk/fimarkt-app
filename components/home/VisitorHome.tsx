@@ -8,6 +8,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { Colors } from "@/constants/theme";
 import HeroSlider   from "@/components/home/HeroSlider";
 import BentoBanners from "@/components/home/BentoBanners";
+import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 
 const { width } = Dimensions.get("window");
 
@@ -45,11 +46,12 @@ export default function VisitorHome() {
   // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
   // App tema toggle'ı eklenince useColorScheme() devreye alınacak.
   const C = Colors["dark"];
-  const router = useRouter();
+  const router       = useRouter();
+  const tabBarHeight = useTabBarHeight();
   const s      = makeStyles(C);
 
   return (
-    <ScrollView style={s.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={s.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabBarHeight }}>
       <StatusBar barStyle="light-content" />
 
       {/* ── 1. HERO SLİDER ──────────────────────────────────────────── */}
