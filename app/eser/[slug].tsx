@@ -338,10 +338,10 @@ export default function EserDetaySayfasi() {
           >
             <Text style={s.stickyBtnText}>
               {added
-                ? "✓ İndiriliyor..."
-                : artwork.isFree
-                ? "↓ Ücretsiz İndir"
-                : `Satın Al — ${artwork.price}₺`}
+                ? artwork.isDigital ? "✓ İndiriliyor..." : "✓ Sepete Eklendi!"
+                : artwork.isDigital
+                  ? artwork.isFree ? "↓ Ücretsiz İndir" : `↓ Satın Al — ${artwork.price}₺`
+                  : `🛒 Sepete Ekle — ${artwork.price}₺`}
             </Text>
           </Pressable>
         </View>
