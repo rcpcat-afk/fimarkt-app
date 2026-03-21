@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
-import { Colors } from "../constants";
+import { Colors } from "../constants/theme";
+
+const C = Colors.dark;
 interface STLViewerProps {
   uri: string;
   color?: string;
@@ -162,9 +164,11 @@ export default function STLViewer({
     let autoRotate = true;
     const MAX_TRIANGLES = 50000;
 
+    let loadingBox = null;
+
     function init() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x1a1a2e);
+      scene.background = new THREE.Color(0x111118);
       camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
       camera.position.set(0, camY, camDist);
       camera.lookAt(0, 0, 0);
@@ -179,8 +183,15 @@ export default function STLViewer({
       const dir2 = new THREE.DirectionalLight(0x8888ff, 0.3);
       dir2.position.set(-5, -2, -5); scene.add(dir2);
 
-      const grid = new THREE.GridHelper(6, 12, 0x334455, 0x223344);
+      const grid = new THREE.GridHelper(6, 12, 0x2a2a42, 0x1a1a28);
       grid.position.y = -1.2; scene.add(grid);
+
+      // Wireframe küp — model gelene kadar döner (web'deki LoadingMesh ile aynı mantık)
+      loadingBox = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 1.2, 1.2),
+        new THREE.MeshBasicMaterial({ color: 0x2a2a42, wireframe: true })
+      );
+      scene.add(loadingBox);
 
       const xMat = new THREE.LineBasicMaterial({ color: 0xff4444 });
       scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-3,-1.2,0), new THREE.Vector3(3,-1.2,0)]), xMat));
@@ -301,6 +312,7 @@ export default function STLViewer({
     }
 
     function buildMesh(positions, normals) {
+      if (loadingBox) { scene.remove(loadingBox); loadingBox.geometry.dispose(); loadingBox = null; }
       if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); }
       
       const geometry = new THREE.BufferGeometry();
@@ -357,7 +369,14 @@ export default function STLViewer({
 
     function animate() {
       requestAnimationFrame(animate);
-      if (mesh) { if (autoRotate) rotY += 0.008; mesh.rotation.y = rotY; }
+      if (mesh) {
+        if (autoRotate) rotY += 0.008;
+        mesh.rotation.y = rotY;
+      }
+      if (loadingBox) {
+        loadingBox.rotation.y += 0.015;
+        loadingBox.rotation.x += 0.008;
+      }
       camera.lookAt(0, 0, 0);
       renderer.render(scene, camera);
     }
@@ -397,8 +416,8 @@ if (cachedVertices && cachedNormals) {
     <View style={[styles.container, { height }]}>
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator color={Colors.accent} size="large" />
-          <Text style={styles.loadingText}>Model hazırlanıyor...</Text>
+          <ActivityIndicator color={C.accent} size="large" />
+          <Text style={styles.loadingText}>Model yükleniyor...</Text>
         </View>
       )}
       {htmlReady && (
@@ -428,7 +447,7 @@ const styles = StyleSheet.create({
     width: "100%",
     borderRadius: 16,
     overflow: "hidden",
-    backgroundColor: "#1a1a2e",
+    backgroundColor: C.background,
   },
   webview: {
     flex: 1,
@@ -443,16 +462,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     zIndex: 10,
-    backgroundColor: "#1a1a2e",
+    backgroundColor: C.background,
+    gap: 12,
   },
   loadingText: {
-    color: Colors.text2,
-    fontSize: 13,
+    color: C.mutedForeground,
+    fontSize: 12,
     textAlign: "center",
-    paddingTop: 12,
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
   errorText: {
-    color: Colors.text2,
+    color: C.mutedForeground,
     fontSize: 13,
     textAlign: "center",
   },
