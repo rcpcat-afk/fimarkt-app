@@ -22,8 +22,8 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
-import { Colors } from "../constants/theme";
-import { useCart } from "../src/store/CartContext";
+import { Colors } from "../../constants/theme";
+import { useCart } from "../../src/store/CartContext";
 
 const C = {
   ...Colors.dark,
