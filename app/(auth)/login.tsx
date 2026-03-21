@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -19,8 +19,9 @@ import { useAuth } from "../../src/store/AuthContext";
 const C = Colors.dark;
 
 export default function LoginScreen() {
-  const router = useRouter();
-  const { login } = useAuth();
+  const router                   = useRouter();
+  const { login }                = useAuth();
+  const { redirect }             = useLocalSearchParams<{ redirect?: string }>();
 
   const [email, setEmail]               = useState("");
   const [password, setPassword]         = useState("");
@@ -51,7 +52,8 @@ export default function LoginScreen() {
       await login(email, password);
       if (rememberMe) await AsyncStorage.setItem("fimarkt_remember_email", email);
       else            await AsyncStorage.removeItem("fimarkt_remember_email");
-      router.replace("/(tabs)");
+      // Route guard'dan gelen redirect varsa oraya, yoksa ana sayfa
+      router.replace((redirect as string) || "/(tabs)");
     } catch {
       Alert.alert("Giriş Başarısız", "E-posta veya şifre hatalı.");
     } finally {

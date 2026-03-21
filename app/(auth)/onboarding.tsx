@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -52,11 +53,13 @@ export default function OnboardingScreen() {
 
   const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
+  const markDone = () => AsyncStorage.setItem("fimarkt_onboarding_done", "true");
+
   const handleNext = () => {
     if (currentIndex < SLIDES.length - 1) {
       slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
-      router.push("/register");
+      markDone().then(() => router.push("/(auth)/register"));
     }
   };
 
@@ -143,7 +146,7 @@ export default function OnboardingScreen() {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.skipBtn} onPress={() => router.push("/login")}>
+          <TouchableOpacity style={styles.skipBtn} onPress={() => markDone().then(() => router.push("/(auth)/login"))}>
             <Text style={styles.skipBtnText}>Zaten hesabım var</Text>
           </TouchableOpacity>
         </View>
