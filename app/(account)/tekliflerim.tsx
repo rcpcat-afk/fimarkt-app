@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   newBtn:         { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: Colors.accent + "18", borderWidth: 1, borderColor: Colors.accent + "30" },
   newBtnText:     { fontSize: 12, fontWeight: "700", color: Colors.accent },
 
-  tabs:           { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
+  tabs:           { paddingHorizontal: 16, paddingBottom: 12, gap: 8, alignItems: "center" },
   tab:            { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, backgroundColor: Colors.surface2 },
   tabActive:      { backgroundColor: Colors.accent },
   tabText:        { fontSize: 12, fontWeight: "700", color: Colors.text2 },
