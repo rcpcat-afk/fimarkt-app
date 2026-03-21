@@ -216,7 +216,7 @@ export default function OrdersScreen() {
               {activeTab === "all" && (
                 <TouchableOpacity
                   style={styles.actionBtn}
-                  onPress={() => router.push("/(tabs)/shop")}
+                  onPress={() => router.push("/(tabs)")}
                 >
                   <Text style={styles.actionBtnText}>Mağazaya Git</Text>
                 </TouchableOpacity>
