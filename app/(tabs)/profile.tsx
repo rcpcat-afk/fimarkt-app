@@ -251,7 +251,12 @@ export default function ProfileScreen() {
 
         {/* ── Ar-Ge & Tasarım Teklifleri ────────────────────────────── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ar-Ge & Tasarım Teklifleri</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Ar-Ge & Tasarım Teklifleri</Text>
+            <TouchableOpacity onPress={() => router.push("/(account)/tekliflerim" as never)}>
+              <Text style={styles.sectionLink}>Tümü →</Text>
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity
             style={styles.teklifCard}
             onPress={() => router.push("/(account)/teklif/rfq-2024-001" as never)}
@@ -441,6 +446,8 @@ const styles = StyleSheet.create({
   quickIcon: { fontSize: 22, marginBottom: 6 },
   quickLabel: { fontSize: 10, color: Colors.text2, fontWeight: "500" },
   section: { marginHorizontal: 24, marginBottom: 16 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
+  sectionLink: { fontSize: 11, fontWeight: "700", color: Colors.accent },
   sectionTitle: {
     fontSize: 12,
     fontWeight: "700",
