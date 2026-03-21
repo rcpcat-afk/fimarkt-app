@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -19,7 +19,6 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
-  useAnimatedScrollHandler,
 } from "react-native-reanimated";
 
 import { Colors, FontSizes, LineHeights } from "@/constants/theme";
@@ -95,13 +94,11 @@ export default function UrunDetaySayfasi() {
     return price;
   }, [product, selectedVariants]);
 
-  // Reanimated scroll
+  // Scroll takibi (JS thread — worklet gerektirmez)
   const scrollY = useSharedValue(0);
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (e) => {
-      scrollY.value = e.contentOffset.y;
-    },
-  });
+  const onScroll = (e: { nativeEvent: { contentOffset: { y: number } } }) => {
+    scrollY.value = e.nativeEvent.contentOffset.y;
+  };
 
   const stickyStyle = useAnimatedStyle(() => ({
     transform: [
@@ -193,8 +190,8 @@ export default function UrunDetaySayfasi() {
       </View>
 
       {/* ── Scroll İçeriği ────────────────────────────────────────────── */}
-      <Animated.ScrollView
-        onScroll={scrollHandler}
+      <ScrollView
+        onScroll={onScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
@@ -466,7 +463,7 @@ export default function UrunDetaySayfasi() {
                 </Text>
               </View>
               <Text style={[styles.sellerMeta, { color: C.mutedForeground }]}>
-                Yanıt Oranı: %{product.seller.responseRate} | {product.seller.since}&apos;den beri
+                {`Yanıt Oranı: %${product.seller.responseRate} | ${product.seller.since}'den beri`}
               </Text>
               <View style={styles.badgeRow}>
                 {product.seller.badges.map((b) => (
@@ -590,7 +587,7 @@ export default function UrunDetaySayfasi() {
             )}
           />
         </View>
-      </Animated.ScrollView>
+      </ScrollView>
 
       {/* ── Sticky Bottom Bar ─────────────────────────────────────────── */}
       <Animated.View
