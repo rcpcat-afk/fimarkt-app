@@ -54,7 +54,7 @@ export default function AppProductCard({ product, layout = "grid" }: AppProductC
   const isList      = layout === "list";
 
   const handlePress = () => {
-    router.push(`/${product.pillar}/${product.category}/${product.slug}` as never);
+    router.push(`/urun/${product.slug}` as never);
   };
 
   if (isList) {
