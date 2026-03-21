@@ -414,10 +414,9 @@ if (cachedVertices && cachedNormals) {
 
   return (
     <View style={[styles.container, { height }]}>
-      {loading && (
+      {!htmlReady && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator color={C.accent} size="large" />
-          <Text style={styles.loadingText}>Model yükleniyor...</Text>
         </View>
       )}
       {htmlReady && (
