@@ -324,9 +324,148 @@ Geniş renk yelpazesi ile prototipler, hobi projeleri, dekoratif objeler ve fonk
   ],
 };
 
+// ── Diğer FDM Yazıcılar ───────────────────────────────────────────────────────
+
+function makeFdmPdp(
+  id: string, slug: string, title: string, brand: string,
+  basePrice: number, originalPrice: number | undefined,
+  badge: string | undefined,
+  specs: { label: string; value: string }[],
+  sellerName: string, sellerSlug: string, sellerRating: number,
+  imageSeeds: string[],
+): PdpProduct {
+  return {
+    id, slug, title, brand,
+    category: "fdm-yazicilar", pillar: "magaza",
+    images: imageSeeds.map((s) => `https://picsum.photos/seed/${s}/800/800`),
+    basePrice, originalPrice,
+    rating: 4.7, reviewCount: 120,
+    badge,
+    inStock: true,
+    variantGroups: [
+      {
+        id: "renk", label: "Renk", type: "color",
+        options: [
+          { id: "siyah", label: "Siyah", value: "siyah", colorHex: "#1a1a1a", imageIndex: 0, inStock: true },
+          { id: "beyaz", label: "Beyaz", value: "beyaz", colorHex: "#f5f5f5", imageIndex: 1, inStock: true },
+        ],
+      },
+    ],
+    description: `${title}, güvenilir FDM baskı teknolojisiyle ev ve ofis kullanıcıları için ideal bir 3D yazıcıdır. Kolay kurulum, stabil baskı kalitesi ve geniş filament uyumluluğu ile öne çıkar.`,
+    specs,
+    seller: {
+      id: `s-${sellerSlug}`, name: sellerName, slug: sellerSlug,
+      rating: sellerRating, reviewCount: 380,
+      responseRate: 95, since: "2020",
+      badges: ["Güvenilir Satıcı", "Hızlı Teslimat"],
+    },
+    reviews: [
+      {
+        id: "r-001", author: "Mert Yılmaz", initials: "MY",
+        rating: 5, date: "10 Mart 2026",
+        title: "Harika bir yazıcı",
+        body: "Beklentilerimin çok üzerinde bir performans sergiledi. Kesinlikle tavsiye ederim.",
+        verified: true,
+      },
+    ],
+    related: [
+      { id: "rel-1", slug: "bambu-lab-p1s", title: "Bambu Lab P1S", brand: "Bambu Lab", price: 34990, image: "https://picsum.photos/seed/p1s_a/400/400" },
+      { id: "rel-2", slug: "bambu-lab-pla-basic-siyah", title: "PLA Basic Siyah 1kg", brand: "Bambu Lab", price: 399, image: "https://picsum.photos/seed/plab1/400/400" },
+    ],
+  };
+}
+
+const bambuA1Mini = makeFdmPdp(
+  "pdp-003", "bambu-lab-a1-mini", "Bambu Lab A1 Mini Combo — AMS Lite Dahil",
+  "Bambu Lab", 18490, undefined, "yeni",
+  [
+    { label: "Baskı Hacmi", value: "180 × 180 × 180 mm" },
+    { label: "Maksimum Hız", value: "500 mm/s" },
+    { label: "Teknoloji", value: "FDM" },
+    { label: "Garanti", value: "1 Yıl" },
+  ],
+  "FiTeknik Mağazası", "fiteknik", 4.8, ["a1mini_a", "a1mini_b"],
+);
+
+const prusaMk4s = makeFdmPdp(
+  "pdp-004", "prusa-mk4s", "Prusa MK4S — Yüksek Hassasiyetli FDM",
+  "Prusa", 24990, 27990, undefined,
+  [
+    { label: "Baskı Hacmi", value: "250 × 210 × 220 mm" },
+    { label: "Maksimum Hız", value: "500 mm/s" },
+    { label: "Teknoloji", value: "FDM" },
+    { label: "Garanti", value: "2 Yıl" },
+  ],
+  "3D Dünya", "3d-dunya", 4.9, ["prusa_a", "prusa_b"],
+);
+
+const crealityK1Max = makeFdmPdp(
+  "pdp-005", "creality-k1-max", "Creality K1 Max — Büyük Hacimli Yüksek Hızlı",
+  "Creality", 11990, 13990, "indirim",
+  [
+    { label: "Baskı Hacmi", value: "300 × 300 × 300 mm" },
+    { label: "Maksimum Hız", value: "600 mm/s" },
+    { label: "Teknoloji", value: "FDM" },
+    { label: "Garanti", value: "1 Yıl" },
+  ],
+  "CrealityTR", "creality-tr", 4.6, ["k1max_a", "k1max_b"],
+);
+
+const crealityEnder3Se = makeFdmPdp(
+  "pdp-006", "creality-ender-3-v3-se", "Creality Ender-3 V3 SE — Giriş Seviyesi",
+  "Creality", 5990, 6990, "indirim",
+  [
+    { label: "Baskı Hacmi", value: "220 × 220 × 250 mm" },
+    { label: "Maksimum Hız", value: "250 mm/s" },
+    { label: "Teknoloji", value: "FDM" },
+    { label: "Garanti", value: "1 Yıl" },
+  ],
+  "CrealityTR", "creality-tr", 4.6, ["ender3se_a", "ender3se_b"],
+);
+
+const anycubicKobra2Pro = makeFdmPdp(
+  "pdp-007", "anycubic-kobra-2-pro", "Anycubic Kobra 2 Pro — Otomatik Seviyeleme",
+  "Anycubic", 6990, undefined, undefined,
+  [
+    { label: "Baskı Hacmi", value: "220 × 220 × 250 mm" },
+    { label: "Maksimum Hız", value: "500 mm/s" },
+    { label: "Teknoloji", value: "FDM" },
+    { label: "Garanti", value: "1 Yıl" },
+  ],
+  "AnyCubeShop", "anycubeshop", 4.5, ["kobra2pro_a", "kobra2pro_b"],
+);
+
+const anycubicKobraS1 = makeFdmPdp(
+  "pdp-008", "anycubic-kobra-s1", "Anycubic Kobra S1 Combo — AMS Dahil",
+  "Anycubic", 8490, 9490, "yeni",
+  [
+    { label: "Baskı Hacmi", value: "220 × 220 × 260 mm" },
+    { label: "Maksimum Hız", value: "500 mm/s" },
+    { label: "Teknoloji", value: "FDM" },
+    { label: "Garanti", value: "1 Yıl" },
+  ],
+  "AnyCubeShop", "anycubeshop", 4.5, ["kobras1_a", "kobras1_b"],
+);
+
+const crealityEnder3Plus = makeFdmPdp(
+  "pdp-009", "creality-ender-3-v3-plus", "Creality Ender-3 V3 Plus — Geniş Hacim",
+  "Creality", 7990, 8990, undefined,
+  [
+    { label: "Baskı Hacmi", value: "300 × 300 × 330 mm" },
+    { label: "Maksimum Hız", value: "600 mm/s" },
+    { label: "Teknoloji", value: "FDM" },
+    { label: "Garanti", value: "1 Yıl" },
+  ],
+  "CrealityTR", "creality-tr", 4.6, ["ender3plus_a", "ender3plus_b"],
+);
+
 // ── Tüm Ürünler ──────────────────────────────────────────────────────────────
 
-const PDP_PRODUCTS: PdpProduct[] = [bambuP1S, bambuPlaBasic];
+const PDP_PRODUCTS: PdpProduct[] = [
+  bambuP1S, bambuPlaBasic,
+  bambuA1Mini, prusaMk4s, crealityK1Max,
+  crealityEnder3Se, anycubicKobra2Pro, anycubicKobraS1, crealityEnder3Plus,
+];
 
 // ── Yardımcı Fonksiyon ────────────────────────────────────────────────────────
 

@@ -161,9 +161,13 @@ export default function CategoryScreen() {
   );
   const filterConfig = useMemo(() => getFilterConfig(categorySlug ?? ""), [categorySlug]);
   const defaultPrice = useMemo((): [number, number] => {
+    if (allProducts.length > 0) {
+      const prices = allProducts.map((p) => p.price);
+      return [0, Math.max(...prices)];
+    }
     const r = filterConfig.find((g) => g.type === "range");
-    return [r?.min ?? 0, r?.max ?? 10000];
-  }, [filterConfig]);
+    return [r?.min ?? 0, r?.max ?? 100000];
+  }, [filterConfig, allProducts]);
 
   // State
   const [loading,       setLoading]       = useState(true);
