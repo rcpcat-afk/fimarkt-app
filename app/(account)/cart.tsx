@@ -337,7 +337,7 @@ export default function CartScreen() {
               <Text style={s.stickyTotal}>{fmt(grandTotal)}₺</Text>
             </View>
             <Pressable
-              onPress={() => router.push("/checkout")}
+              onPress={() => router.push("/odeme")}
               style={s.checkoutBtn}
             >
               <Text style={s.checkoutBtnText}>Siparişi Onayla →</Text>
