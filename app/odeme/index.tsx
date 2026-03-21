@@ -674,6 +674,8 @@ export default function OdemeScreen() {
   const [addressData, setAddressData] = useState<AddressData | null>(null);
   const [shippingId,  setShippingId]  = useState("standard");
   const [loading,     setLoading]     = useState(false);
+  // Sipariş tamamlanırken clearCart() boş sepet guard'ını tetiklemesin
+  const isCompletingRef = useRef(false);
 
   const addressStep  = isAllDigital ? -1 : 0;
   const shippingStep = isAllDigital ? -1 : 1;
@@ -690,6 +692,7 @@ export default function OdemeScreen() {
       // Mock — gerçek Iyzico API sonraya bırakıldı
       await new Promise((r) => setTimeout(r, 1800));
       const no = `FMRKT-${Math.floor(10000 + Math.random() * 90000)}`;
+      isCompletingRef.current = true; // boş sepet guard'ını devre dışı bırak
       clearCart();
       // router.replace → geri tuşu ödeme formuna DÖNEMESİN
       router.replace({
@@ -711,8 +714,8 @@ export default function OdemeScreen() {
     }
   }
 
-  // Boş sepet guard
-  if (items.length === 0) {
+  // Boş sepet guard (tamamlama sırasında tetiklenmesin)
+  if (items.length === 0 && !isCompletingRef.current) {
     Alert.alert("Sepet Boş", "Ödeme yapmak için sepetinize ürün ekleyin.", [
       { text: "Tamam", onPress: () => router.back() },
     ]);
