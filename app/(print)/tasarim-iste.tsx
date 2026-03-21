@@ -1,5 +1,5 @@
 // ─── Tasarım İste / RFQ Wizard (App) ──────────────────────────────────────────
-// 3 adımlı proje formu — react-hook-form + zod + expo-image-picker + expo-document-picker
+// 3 adımlı proje formu — react-hook-form + zod + expo-document-picker
 // KeyboardAvoidingView + ScrollView ile akıcı mobil deneyim
 
 import React, { useState } from "react";
@@ -12,7 +12,6 @@ import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
@@ -78,17 +77,17 @@ export default function TasarimIsteScreen() {
 
   // ── Dosya seçiciler ─────────────────────────────────────────────────────────
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      quality: 0.85,
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["image/*"],
+      multiple: true,
+      copyToCacheDirectory: true,
     });
     if (!result.canceled) {
       const newFiles: UploadedFile[] = result.assets.map(a => ({
         uri: a.uri,
-        name: a.fileName ?? `foto-${Date.now()}.jpg`,
+        name: a.name,
         type: "image",
-        mimeType: a.mimeType,
+        mimeType: a.mimeType ?? undefined,
       }));
       setFiles(prev => [...prev, ...newFiles].slice(0, 8));
     }
