@@ -249,6 +249,31 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* ── Ar-Ge & Tasarım Teklifleri ────────────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Ar-Ge & Tasarım Teklifleri</Text>
+          <TouchableOpacity
+            style={styles.teklifCard}
+            onPress={() => router.push("/(account)/teklif/rfq-2024-001" as never)}
+            activeOpacity={0.8}
+          >
+            <View style={styles.teklifLeft}>
+              <View style={styles.teklifIconWrap}>
+                <Text style={{ fontSize: 18 }}>📋</Text>
+              </View>
+              <View style={styles.teklifInfo}>
+                <Text style={styles.teklifTitle} numberOfLines={1}>
+                  Kırık Dişli Mili — Yedek Parça
+                </Text>
+                <Text style={styles.teklifSub}>Ali Yılmaz · Teklif Bekleniyor</Text>
+              </View>
+            </View>
+            <View style={styles.teklifBadge}>
+              <Text style={styles.teklifBadgeText}>• Aktif</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Bildirimler</Text>
           <View style={styles.settingCard}>
@@ -439,6 +464,33 @@ const styles = StyleSheet.create({
   orderStatusIcon: { fontSize: 20 },
   orderStatusCount: { fontSize: 16, fontWeight: "800", color: Colors.text },
   orderStatusLabel: { fontSize: 9, color: Colors.text2, textAlign: "center" },
+  teklifCard: {
+    flexDirection:   "row",
+    alignItems:      "center",
+    justifyContent:  "space-between",
+    backgroundColor: Colors.surface2,
+    borderWidth:     1,
+    borderColor:     Colors.border,
+    borderRadius:    16,
+    padding:         14,
+    gap:             10,
+  },
+  teklifLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+  teklifIconWrap: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: Colors.accent + "18",
+    borderWidth: 1, borderColor: Colors.accent + "30",
+    alignItems: "center", justifyContent: "center",
+  },
+  teklifInfo:  { flex: 1 },
+  teklifTitle: { fontSize: 13, fontWeight: "700", color: Colors.text },
+  teklifSub:   { fontSize: 11, color: Colors.text2, marginTop: 2 },
+  teklifBadge: {
+    paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 20, backgroundColor: Colors.accent + "15",
+    borderWidth: 1, borderColor: Colors.accent + "30",
+  },
+  teklifBadgeText: { fontSize: 10, fontWeight: "800", color: Colors.accent },
   settingCard: {
     backgroundColor: Colors.surface2,
     borderWidth: 1,
