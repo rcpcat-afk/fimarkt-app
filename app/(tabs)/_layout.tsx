@@ -27,9 +27,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="shop"
+        name="sanatkat"
         options={{
-          title:       "Keşfet",
+          title:       "Sanatkat",
           header:      () => <GlobalHeader />,
           headerShown: true,
         }}

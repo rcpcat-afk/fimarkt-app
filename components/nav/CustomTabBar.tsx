@@ -33,11 +33,11 @@ const TAB_CONFIG: Record<string, {
       />
     ),
   },
-  shop: {
-    label: "Keşfet",
+  sanatkat: {
+    label: "Sanatkat",
     icon: (a) => (
       <Ionicons
-        name={a ? "compass" : "compass-outline"}
+        name={a ? "color-palette" : "color-palette-outline"}
         size={22}
         color={a ? C.accent : C.subtleForeground}
       />
@@ -71,7 +71,7 @@ const TAB_CONFIG: Record<string, {
 };
 
 // Tabs rendered in the bar (admin excluded — controlled by _layout href:null)
-const VISIBLE_ORDER = ["index", "shop", "print", "orders", "profile"];
+const VISIBLE_ORDER = ["index", "sanatkat", "print", "orders", "profile"];
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets  = useSafeAreaInsets();
