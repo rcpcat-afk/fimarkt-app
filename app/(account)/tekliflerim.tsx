@@ -10,9 +10,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants/theme";
-
-const C = Colors.dark;
+import { Colors } from "../../constants";
 
 // ── Tipler ────────────────────────────────────────────────────────────────────
 type TeklifStatus = "pending" | "offer_received" | "in_progress" | "completed" | "cancelled";
@@ -75,7 +73,7 @@ const MOCK_TEKLIFLER: Teklif[] = [
 // ── Status config ──────────────────────────────────────────────────────────────
 const STATUS_CONFIG: Record<TeklifStatus, { label: string; icon: string; color: string }> = {
   pending:        { label: "Uzman Aranıyor",       icon: "⏳", color: "#f59e0b" },
-  offer_received: { label: "Teklif Alındı",        icon: "💬", color: C.accent  },
+  offer_received: { label: "Teklif Alındı",        icon: "💬", color: Colors.accent  },
   in_progress:    { label: "Devam Ediyor",          icon: "🔧", color: "#3b82f6" },
   completed:      { label: "Tamamlandı",            icon: "✅", color: "#22c55e" },
   cancelled:      { label: "İptal Edildi",          icon: "❌", color: "#ef4444" },
@@ -223,52 +221,52 @@ export default function TekliflerimScreen() {
 
 // ── Stiller ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: C.background },
+  container:      { flex: 1, backgroundColor: Colors.bg },
   header:         { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
-  backBtn:        { width: 40, height: 40, borderRadius: 20, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center" },
-  backArrow:      { fontSize: 28, color: C.text, lineHeight: 32, marginTop: -2 },
+  backBtn:        { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" },
+  backArrow:      { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
   headerCenter:   { flex: 1 },
-  title:          { fontSize: 18, fontWeight: "800", color: C.text },
-  subtitle:       { fontSize: 11, color: C.text2, marginTop: 1 },
-  newBtn:         { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: C.accent + "18", borderWidth: 1, borderColor: C.accent + "30" },
-  newBtnText:     { fontSize: 12, fontWeight: "700", color: C.accent },
+  title:          { fontSize: 18, fontWeight: "800", color: Colors.text },
+  subtitle:       { fontSize: 11, color: Colors.text2, marginTop: 1 },
+  newBtn:         { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: Colors.accent + "18", borderWidth: 1, borderColor: Colors.accent + "30" },
+  newBtnText:     { fontSize: 12, fontWeight: "700", color: Colors.accent },
 
   tabs:           { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
-  tab:            { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, backgroundColor: C.surface2 },
-  tabActive:      { backgroundColor: C.accent },
-  tabText:        { fontSize: 12, fontWeight: "500", color: C.text2 },
-  tabTextActive:  { color: "#fff", fontWeight: "700" },
+  tab:            { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, backgroundColor: Colors.surface2 },
+  tabActive:      { backgroundColor: Colors.accent },
+  tabText:        { fontSize: 12, fontWeight: "700", color: Colors.text2 },
+  tabTextActive:  { color: "#fff" },
 
   list:           { paddingHorizontal: 16, paddingTop: 4 },
 
-  card:           { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, borderRadius: 16, marginBottom: 12, overflow: "hidden" },
+  card:           { backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, marginBottom: 12, overflow: "hidden" },
   cardStripe:     { height: 2 },
   cardBody:       { padding: 14 },
   cardTop:        { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 8 },
-  cardIconWrap:   { width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent + "15", borderWidth: 1, borderColor: C.accent + "25", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  cardIconWrap:   { width: 38, height: 38, borderRadius: 10, backgroundColor: Colors.accent + "15", borderWidth: 1, borderColor: Colors.accent + "25", alignItems: "center", justifyContent: "center", flexShrink: 0 },
   cardTitleWrap:  { flex: 1 },
   cardCategory:   { fontSize: 9, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 },
-  cardTitle:      { fontSize: 13, fontWeight: "800", color: C.text },
+  cardTitle:      { fontSize: 13, fontWeight: "800", color: Colors.text },
   badge:          { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 99, flexShrink: 0 },
   badgeText:      { fontSize: 9, fontWeight: "800" },
-  lastMsg:        { fontSize: 11, color: C.text2, marginBottom: 10 },
-  divider:        { height: 1, backgroundColor: C.border, marginBottom: 10 },
+  lastMsg:        { fontSize: 11, color: Colors.text2, marginBottom: 10 },
+  divider:        { height: 1, backgroundColor: Colors.border, marginBottom: 10 },
   cardBottom:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   cardBottomLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
   engineerRow:    { flexDirection: "row", alignItems: "center", gap: 5 },
-  engineerAvatar: { width: 20, height: 20, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" },
+  engineerAvatar: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
   engineerInitials:{ fontSize: 8, fontWeight: "800", color: "#fff" },
-  engineerName:   { fontSize: 11, color: C.text2 },
-  engineerWaiting:{ fontSize: 11, color: C.text3, fontStyle: "italic" },
-  dot:            { fontSize: 10, color: C.text3 },
-  date:           { fontSize: 10, color: C.text3 },
+  engineerName:   { fontSize: 11, color: Colors.text2 },
+  engineerWaiting:{ fontSize: 11, color: Colors.text3, fontStyle: "italic" },
+  dot:            { fontSize: 10, color: Colors.text3 },
+  date:           { fontSize: 10, color: Colors.text3 },
   cardBottomRight:{ flexDirection: "row", alignItems: "center", gap: 8 },
-  budget:         { fontSize: 12, fontWeight: "800", color: C.text },
-  chatBtn:        { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: C.accent + "15" },
-  chatBtnText:    { fontSize: 11, fontWeight: "700", color: C.accent },
+  budget:         { fontSize: 12, fontWeight: "800", color: Colors.text },
+  chatBtn:        { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: Colors.accent + "15" },
+  chatBtnText:    { fontSize: 11, fontWeight: "700", color: Colors.accent },
 
   empty:          { alignItems: "center", paddingTop: 60, gap: 8 },
   emptyEmoji:     { fontSize: 56, marginBottom: 8 },
-  emptyTitle:     { fontSize: 18, fontWeight: "800", color: C.text },
-  emptySub:       { fontSize: 13, color: C.text2, textAlign: "center" },
+  emptyTitle:     { fontSize: 18, fontWeight: "800", color: Colors.text },
+  emptySub:       { fontSize: 13, color: Colors.text2, textAlign: "center" },
 });
