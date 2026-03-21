@@ -284,37 +284,36 @@ export default function PrintUploadScreen() {
                 <View style={s.colorRow}>
                   {selMat.colors
                     .filter((c) => c.active)
-                    .map((colorObj) => (
+                    .map((colorObj) => {
+                      const isColorSelected = selectedColor === colorObj.name;
+                      const dotHex = COLOR_HEX[colorObj.name] ?? "#94a3b8";
+                      const isLight = colorObj.name === "Beyaz" || colorObj.name === "Şeffaf";
+                      return (
                       <TouchableOpacity
                         key={colorObj.name}
-                        style={[
-                          s.colorItem,
-                          selectedColor === colorObj.name && {
-                            borderColor: tech.color,
-                            borderWidth: 2,
-                          },
-                        ]}
+                        style={s.colorItem}
                         onPress={() => setSelectedColor(colorObj.name)}
                         activeOpacity={0.8}
                       >
-                        <View
-                          style={[
-                            s.colorDot,
-                            {
-                              backgroundColor: COLOR_HEX[colorObj.name] ?? "#94a3b8",
-                              borderColor:
-                                colorObj.name === "Beyaz" || colorObj.name === "Şeffaf"
-                                  ? "#cbd5e1"
-                                  : "transparent",
-                              borderWidth:
-                                colorObj.name === "Beyaz" || colorObj.name === "Şeffaf" ? 1 : 0,
-                            },
-                          ]}
-                        />
+                        {/* Dış halka (seçildiğinde) */}
+                        <View style={[s.colorRingOuter, isColorSelected && { borderColor: tech.color }]}>
+                          <View style={s.colorRingInner}>
+                            <View
+                              style={[
+                                s.colorDot,
+                                {
+                                  backgroundColor: dotHex,
+                                  borderColor:     isLight ? C.border : "transparent",
+                                  borderWidth:     isLight ? 1 : 0,
+                                },
+                              ]}
+                            />
+                          </View>
+                        </View>
                         <Text
                           style={[
                             s.colorName,
-                            selectedColor === colorObj.name && {
+                            isColorSelected && {
                               color:      tech.color,
                               fontWeight: "700",
                             },
@@ -323,13 +322,14 @@ export default function PrintUploadScreen() {
                         >
                           {colorObj.name}
                         </Text>
-                        {selectedColor === colorObj.name && (
+                        {isColorSelected && (
                           <View style={[s.colorCheckBadge, { backgroundColor: tech.color }]}>
                             <Text style={s.colorCheckText}>✓</Text>
                           </View>
                         )}
                       </TouchableOpacity>
-                    ))}
+                      );
+                    })}
                 </View>
               </>
             )}
@@ -618,6 +618,11 @@ export default function PrintUploadScreen() {
                 : ""}
               {quantity} adet
             </Text>
+            {priceResult && (
+              <Text style={[s.summaryPrice, { color: selectedTechData?.color ?? C.accent }]}>
+                ₺{priceResult.totalPrice.toLocaleString("tr-TR")}
+              </Text>
+            )}
           </View>
         )}
         <TouchableOpacity
@@ -876,24 +881,41 @@ const s = StyleSheet.create({
   },
   chipText: { fontSize: 13, fontWeight: "600", color: C.mutedForeground },
 
-  colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   colorItem: {
     alignItems:      "center",
     width:           58,
     paddingVertical: 8,
     paddingHorizontal: 4,
-    backgroundColor: C.surface2,
-    borderRadius:    12,
-    borderWidth:     1,
-    borderColor:     C.border,
     position:        "relative",
   },
-  colorDot:  { width: 28, height: 28, borderRadius: 14, marginBottom: 6 },
+  /* Dış çerçeve: yalnızca seçilince görünür (borderColor geçersiz olduğunda şeffaf) */
+  colorRingOuter: {
+    width:          44,
+    height:         44,
+    borderRadius:   22,
+    borderWidth:    2,
+    borderColor:    "transparent",
+    padding:        3,
+    marginBottom:   5,
+    alignItems:     "center",
+    justifyContent: "center",
+  },
+  /* İç boşluk (background rengi ile halka efekti) */
+  colorRingInner: {
+    width:          34,
+    height:         34,
+    borderRadius:   17,
+    backgroundColor: C.surface2,
+    alignItems:     "center",
+    justifyContent: "center",
+  },
+  colorDot:  { width: 32, height: 32, borderRadius: 16 },
   colorName: { fontSize: 9, color: C.mutedForeground, textAlign: "center", lineHeight: 12 },
   colorCheckBadge: {
     position:       "absolute",
-    top:            -4,
-    right:          -4,
+    top:            0,
+    right:          2,
     width:          16,
     height:         16,
     borderRadius:   8,
@@ -949,15 +971,19 @@ const s = StyleSheet.create({
     borderTopColor:  C.border,
   },
   selectionSummary: {
-    backgroundColor: C.surface,
-    borderRadius:    10,
+    backgroundColor:   C.surface,
+    borderRadius:      10,
     paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginBottom:    10,
-    borderWidth:     1,
-    borderColor:     C.border,
+    paddingVertical:   8,
+    marginBottom:      10,
+    borderWidth:       1,
+    borderColor:       C.border,
+    flexDirection:     "row",
+    justifyContent:    "space-between",
+    alignItems:        "center",
   },
-  summaryText: { fontSize: 12, color: C.mutedForeground },
+  summaryText:  { fontSize: 12, color: C.mutedForeground, flex: 1 },
+  summaryPrice: { fontSize: 14, fontWeight: "800", marginLeft: 8 },
   devamBtn: {
     backgroundColor: C.accent,
     borderRadius:    14,
