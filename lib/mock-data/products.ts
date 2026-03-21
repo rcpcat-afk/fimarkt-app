@@ -2,6 +2,7 @@
 // Gerçek WooCommerce entegrasyonu gelene kadar bu data kullanılır.
 // Ürünler pillar + category slug'ına göre gruplandırılmıştır.
 
+import { TOP_CATEGORIES, type Category } from "../../constants/categories";
 import type { Product } from "../types";
 
 // ── FDM Yazıcılar (magaza/fdm-yazicilar) ─────────────────────────────────────
@@ -433,12 +434,39 @@ export function getProductsByCategory(categorySlug: string): Product[] {
   return ALL_PRODUCTS.filter((p) => p.category === categorySlug);
 }
 
-// Pillar + kategori ikilisiyle filtreler
+// Verilen kategori slug'ı altındaki tüm yaprak slug'ları döner.
+// Eğer slug zaten yapraksa sadece kendini döner.
+function collectLeafSlugs(targetSlug: string, cats: Category[]): string[] | null {
+  for (const cat of cats) {
+    if (cat.slug === targetSlug) {
+      if (!cat.children?.length) return [cat.slug];
+      const leaves: string[] = [];
+      const gather = (c: Category) => {
+        if (!c.children?.length) { leaves.push(c.slug); return; }
+        c.children.forEach(gather);
+      };
+      cat.children.forEach(gather);
+      return leaves;
+    }
+    if (cat.children?.length) {
+      const found = collectLeafSlugs(targetSlug, cat.children);
+      if (found !== null) return found;
+    }
+  }
+  return null;
+}
+
+// Pillar + kategori ikilisiyle filtreler.
+// Üst kategori slug'ı verilirse tüm alt kategorilerin ürünlerini döner.
 export function getProductsByPillarCategory(
   pillarSlug: string,
   categorySlug: string,
 ): Product[] {
+  const pillar = TOP_CATEGORIES.find((p) => p.slug === pillarSlug);
+  const slugs  = pillar
+    ? (collectLeafSlugs(categorySlug, pillar.children) ?? [categorySlug])
+    : [categorySlug];
   return ALL_PRODUCTS.filter(
-    (p) => p.pillar === pillarSlug && p.category === categorySlug,
+    (p) => p.pillar === pillarSlug && slugs.includes(p.category),
   );
 }
