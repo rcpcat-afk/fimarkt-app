@@ -114,7 +114,38 @@ export const Colors = {
 export type ColorScheme = keyof typeof Colors;
 export type ThemeColors = typeof Colors.dark;
 
-// ─── Tipografi ───────────────────────────────────────────────────────────────
+// ─── Tipografi Boyut Skalası ─────────────────────────────────────────────────
+// Tüm yazı boyutlarını buradan yönet.
+// Kullanım: style={{ fontSize: FontSizes.base }}
+// Sistemi büyütmek/küçültmek için sadece bu değerleri değiştir.
+export const FontSizes = {
+  xs:   12,   // etiket, badge, yardımcı metin
+  sm:   13,   // ikincil metin, input label
+  base: 15,   // gövde metni (temel birim)
+  md:   16,   // vurgulu gövde, kart başlığı
+  lg:   18,   // section başlığı
+  xl:   20,   // sayfa alt başlığı
+  '2xl': 24,  // sayfa başlığı
+  '3xl': 30,  // ekran başlığı
+  '4xl': 36,  // hero başlığı
+} as const;
+
+// Satır yükseklikleri — FontSizes ile orantılı (1.4–1.6x)
+export const LineHeights = {
+  xs:   16,
+  sm:   18,
+  base: 22,
+  md:   24,
+  lg:   26,
+  xl:   28,
+  '2xl': 32,
+  '3xl': 40,
+  '4xl': 48,
+} as const;
+
+export type FontSizeKey = keyof typeof FontSizes;
+
+// ─── Tipografi Font Ailesi ────────────────────────────────────────────────────
 export const Fonts = Platform.select({
   ios: {
     sans:    'system-ui',
