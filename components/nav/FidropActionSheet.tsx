@@ -45,6 +45,14 @@ const ACTIONS = [
     color:   "#a855f7",
     href:    "/(tabs)/profile",
   },
+  {
+    id:      "explore",
+    icon:    "rocket-outline" as const,
+    label:   "Fidrop'u Keşfet",
+    sub:     "Teknolojiler, fiyatlar ve güvence",
+    color:   "#22c55e",
+    href:    "/(tabs)/print",
+  },
 ] as const;
 
 export default function FidropActionSheet({ visible, onClose }: Props) {
