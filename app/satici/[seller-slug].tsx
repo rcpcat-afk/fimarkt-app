@@ -274,6 +274,7 @@ const s = StyleSheet.create({
     backgroundColor: `${C.accent}25`,
     borderWidth: 3, borderColor: C.background,
     alignItems: "center", justifyContent: "center",
+    zIndex: 1, elevation: 2,
   },
   avatarText: { color: C.accent, fontSize: FontSizes.lg, fontWeight: "900" },
   actionRow:  { flexDirection: "row", alignItems: "center", gap: 8 },
