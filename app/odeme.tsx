@@ -66,8 +66,8 @@ const paymentSchema = z.object({
   cvv:         z.string().regex(/^[0-9]{3,4}$/, "CVV hatalı"),
   installment: z.number().int().min(1),
   secure3d:    z.boolean(),
-  terms:       z.literal(true, { errorMap: () => ({ message: "Sözleşmeyi onaylamanız gerekir" }) }),
-  kvkk:        z.literal(true, { errorMap: () => ({ message: "KVKK metnini onaylamanız gerekir" }) }),
+  terms:       z.literal(true, { error: "Sözleşmeyi onaylamanız gerekir" }),
+  kvkk:        z.literal(true, { error: "KVKK metnini onaylamanız gerekir" }),
 });
 
 type AddressData = z.infer<typeof addressSchema>;
