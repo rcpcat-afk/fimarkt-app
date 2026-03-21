@@ -103,9 +103,8 @@ export default function SanatciProfilSayfasi() {
               {following ? "✓ Takip" : "Takip Et"}
             </Text>
           </Pressable>
-          {/* Kahve Ismarla placeholder */}
-          <Pressable style={s.coffeeBtn}>
-            <Text style={s.coffeeBtnText}>☕</Text>
+          <Pressable style={s.msgBtn}>
+            <Text style={s.msgBtnText}>✉️</Text>
           </Pressable>
         </View>
       </View>
@@ -275,12 +274,12 @@ const s = StyleSheet.create({
   },
   followBtnActive: { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border },
   followBtnText:   { color: "#fff", fontSize: FontSizes.sm, fontWeight: "700" },
-  coffeeBtn: {
+  msgBtn: {
     width: 36, height: 36, borderRadius: 12,
     backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
     alignItems: "center", justifyContent: "center",
   },
-  coffeeBtnText: { fontSize: 16 },
+  msgBtnText: { fontSize: 16 },
 
   nameRow:      { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, paddingHorizontal: 16 },
   artistName:   { fontSize: FontSizes.xl, fontWeight: "900", color: C.foreground },
