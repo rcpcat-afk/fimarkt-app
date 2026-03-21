@@ -12,7 +12,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -26,7 +25,14 @@ import { z } from "zod";
 import { Colors } from "../constants/theme";
 import { useCart } from "../src/store/CartContext";
 
-const C = Colors.dark;
+const C = {
+  ...Colors.dark,
+  // Kısaltma aliasları — diğer ekranlarla uyumluluk
+  bg:    Colors.dark.background,
+  text:  Colors.dark.foreground,
+  text2: Colors.dark.mutedForeground,
+  text3: Colors.dark.subtleForeground,
+};
 
 // ── Yardımcı ──────────────────────────────────────────────────────────────────
 function fmt(n: number) {
