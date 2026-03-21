@@ -13,6 +13,8 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/theme";
 import { useAuth } from "../../src/store/AuthContext";
+import { useCart } from "../../src/store/CartContext";
+import AddToCartSuccessModal from "../../components/fidrop/AddToCartSuccessModal";
 
 const C = Colors.dark;
 
@@ -113,6 +115,8 @@ export default function PrintSummaryScreen() {
   const params  = useLocalSearchParams();
 
   const [ordering,     setOrdering]     = useState(false);
+  const [showCartModal, setShowCartModal] = useState(false);
+  const { addItem } = useCart();
   const [priceData,    setPriceData]    = useState<{
     unitPrice:      number;
     totalPrice:     number;
@@ -249,6 +253,34 @@ export default function PrintSummaryScreen() {
         },
       ],
     );
+  };
+
+  const handleSepeteEkle = () => {
+    if (!priceData) return;
+    addItem({
+      id:        Date.now(),
+      name:      `Özel 3D Baskı — ${fileName}`,
+      price:     priceData.totalPrice,
+      storeName: "Fimarkt Bulut Üretim Ağı",
+      type:      "print",
+      isDigital: false,
+      meta: {
+        type:           "custom_print",
+        fileName,
+        technology:     tech,
+        technologyName: techData?.title ?? tech,
+        material,
+        materialName:   materialData?.name ?? material,
+        color:          materialData?.color ?? "",
+        infill:         FDM_TECHNOLOGIES.includes(tech) ? infill : null,
+        volumeCm3:      priceData.volumeCm3 ?? 0,
+        weightGram:     priceData.partWeightGram ?? priceData.weightGram ?? 0,
+        printHours:     priceData.printHours ?? 0,
+        stlUrl:         stlUrl,
+        source:         priceData.source,
+      },
+    });
+    setShowCartModal(true);
   };
 
   const handleTeklifIste = () => {
@@ -491,20 +523,36 @@ export default function PrintSummaryScreen() {
           <Text style={s.teklifBtnText}>Detaylı Teklif İste</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.siparisBtn, { backgroundColor: techData?.color ?? C.accent }, (ordering || priceLoading) && { opacity: 0.7 }]}
+          style={[s.siparisBtn, { backgroundColor: techData?.color ?? C.accent }, (priceLoading || !priceData) && { opacity: 0.7 }]}
+          onPress={handleSepeteEkle}
+          disabled={priceLoading || !priceData}
+          activeOpacity={0.85}
+        >
+          <Text style={s.siparisBtnText}>
+            {priceLoading
+              ? "Hesaplanıyor..."
+              : `🛒 Sepete Ekle — ₺${(priceData?.totalPrice ?? 0).toLocaleString("tr-TR")}`}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[s.siparisBtn, { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border }, (ordering || priceLoading) && { opacity: 0.5 }]}
           onPress={handleSiparisVer}
           disabled={ordering || priceLoading}
           activeOpacity={0.85}
         >
-          <Text style={s.siparisBtnText}>
-            {ordering
-              ? "İşleniyor..."
-              : priceLoading
-                ? "Hesaplanıyor..."
-                : `Sipariş Ver — ₺${(priceData?.totalPrice ?? 0).toLocaleString("tr-TR")}`}
+          <Text style={[s.siparisBtnText, { color: C.mutedForeground }]}>
+            {ordering ? "İşleniyor..." : "veya Direkt Sipariş Ver →"}
           </Text>
         </TouchableOpacity>
       </Animated.View>
+
+      <AddToCartSuccessModal
+        visible={showCartModal}
+        fileName={fileName}
+        totalPrice={priceData?.totalPrice}
+        onClose={() => setShowCartModal(false)}
+        onNewModel={() => { setShowCartModal(false); router.back(); }}
+      />
     </View>
   );
 }
