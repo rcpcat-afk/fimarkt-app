@@ -196,6 +196,7 @@ export default function TekliflerimScreen() {
       {/* Liste */}
       <ScrollView
         showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
         contentContainerStyle={styles.list}
       >
         {filtered.length === 0 ? (
@@ -231,8 +232,8 @@ const styles = StyleSheet.create({
   newBtn:         { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: Colors.accent + "18", borderWidth: 1, borderColor: Colors.accent + "30" },
   newBtnText:     { fontSize: 12, fontWeight: "700", color: Colors.accent },
 
-  tabs:           { paddingHorizontal: 16, paddingBottom: 12, gap: 8, alignItems: "center" },
-  tab:            { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, backgroundColor: Colors.surface2 },
+  tabs:           { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
+  tab:            { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, backgroundColor: Colors.surface2, alignSelf: "flex-start" },
   tabActive:      { backgroundColor: Colors.accent },
   tabText:        { fontSize: 12, fontWeight: "700", color: Colors.text2 },
   tabTextActive:  { color: "#fff" },
