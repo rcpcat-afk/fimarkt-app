@@ -13,7 +13,7 @@ export const FREE_SHIPPING_THRESHOLD  = 500;    // TL
 export const SHIPPING_COST_PER_SELLER = 29.99;  // TL
 
 // ── Tipler ─────────────────────────────────────────────────────────────────────
-export type CartItemType = "product" | "print" | "design";
+export type CartItemType = "product" | "print" | "design" | "custom_design";
 
 export interface CartItem {
   id:          number;
