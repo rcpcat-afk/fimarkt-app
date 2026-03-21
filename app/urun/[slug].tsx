@@ -82,6 +82,7 @@ export default function UrunDetaySayfasi() {
   const [isFav, setIsFav] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [added, setAdded] = useState(false);
 
   // Aktif fiyat
   const activePrice = useMemo(() => {
@@ -123,7 +124,7 @@ export default function UrunDetaySayfasi() {
   };
 
   const handleAddToCart = () => {
-    if (!product) return;
+    if (!product || added) return;
     addToCart({
       id: parseInt(product.id.replace(/\D/g, "")) || 1,
       name: product.title,
@@ -136,6 +137,8 @@ export default function UrunDetaySayfasi() {
       description: product.description,
       stock_status: product.inStock ? "instock" : "outofstock",
     });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
   };
 
   if (!product) {
@@ -380,14 +383,16 @@ export default function UrunDetaySayfasi() {
           {/* Sepete Ekle */}
           <Pressable
             onPress={handleAddToCart}
-            disabled={!product.inStock}
+            disabled={!product.inStock || added}
             style={({ pressed }) => [
               styles.addToCartBtn,
-              { backgroundColor: C.accent, opacity: pressed ? 0.85 : 1 },
+              { backgroundColor: added ? C.success : C.accent, opacity: pressed ? 0.85 : 1 },
               !product.inStock && { opacity: 0.5 },
             ]}
           >
-            <Text style={styles.addToCartText}>Sepete Ekle</Text>
+            <Text style={styles.addToCartText}>
+              {added ? "✓ Sepete Eklendi" : "Sepete Ekle"}
+            </Text>
           </Pressable>
         </View>
 
@@ -609,14 +614,16 @@ export default function UrunDetaySayfasi() {
         </View>
         <Pressable
           onPress={handleAddToCart}
-          disabled={!product.inStock}
+          disabled={!product.inStock || added}
           style={({ pressed }) => [
             styles.stickyBtn,
-            { backgroundColor: C.accent, opacity: pressed ? 0.85 : 1 },
+            { backgroundColor: added ? C.success : C.accent, opacity: pressed ? 0.85 : 1 },
             !product.inStock && { opacity: 0.5 },
           ]}
         >
-          <Text style={styles.stickyBtnText}>Sepete Ekle</Text>
+          <Text style={styles.stickyBtnText}>
+            {added ? "✓ Sepete Eklendi" : "Sepete Ekle"}
+          </Text>
         </Pressable>
       </Animated.View>
     </View>
