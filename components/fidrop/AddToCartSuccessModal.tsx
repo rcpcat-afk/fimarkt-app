@@ -28,7 +28,7 @@ export default function AddToCartSuccessModal({
 
   const handleGoToCart = () => {
     onClose();
-    router.push("/(tabs)/cart" as any);
+    router.push("/(account)/cart" as any);
   };
 
   return (
