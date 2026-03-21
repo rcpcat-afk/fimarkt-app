@@ -12,7 +12,7 @@ import Animated, {
   withSpring, withTiming, runOnJS,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { X, Check } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors, FontSizes, LineHeights } from "@/constants/theme";
 import type { FilterGroup, ActiveFilters } from "@/lib/types";
 
@@ -55,7 +55,7 @@ function CheckboxOption({
   return (
     <Pressable onPress={onToggle} style={styles.option}>
       <View style={[styles.checkbox, checked && styles.checkboxActive]}>
-        {checked && <Check size={10} color="#fff" strokeWidth={3} />}
+        {checked && <Ionicons name="checkmark" size={10} color="#fff" />}
       </View>
       <Text style={[styles.optionLabel, checked && styles.optionLabelActive]}>
         {label}
@@ -78,7 +78,7 @@ function ColorOption({
         { backgroundColor: COLOR_MAP[value] ?? value },
         checked && styles.colorSwatchActive,
       ]}>
-        {checked && <Check size={10} color={value === "beyaz" ? "#111" : "#fff"} strokeWidth={3} />}
+        {checked && <Ionicons name="checkmark" size={10} color={value === "beyaz" ? "#111" : "#fff"} />}
       </View>
       <Text style={[styles.colorLabel, checked && { color: C.foreground }]}>{label}</Text>
     </Pressable>
@@ -204,7 +204,7 @@ export default function FilterBottomSheet({
               </Pressable>
             )}
             <Pressable onPress={handleClose} style={styles.closeBtn}>
-              <X size={14} color={C.mutedForeground} />
+              <Ionicons name="close" size={14} color={C.mutedForeground} />
             </Pressable>
           </View>
         </View>

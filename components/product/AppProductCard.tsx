@@ -3,7 +3,7 @@ import {
   View, Text, Image, Pressable, StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Heart } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors, FontSizes, LineHeights } from "@/constants/theme";
 import type { Product, ProductBadge } from "@/lib/types";
 
@@ -106,10 +106,10 @@ export default function AppProductCard({ product, layout = "grid" }: AppProductC
           style={styles.listFavBtn}
           hitSlop={8}
         >
-          <Heart
+          <Ionicons
+            name={fav ? "heart" : "heart-outline"}
             size={18}
             color={fav ? "#ef4444" : C.mutedForeground}
-            fill={fav ? "#ef4444" : "transparent"}
           />
         </Pressable>
       </Pressable>
@@ -144,10 +144,10 @@ export default function AppProductCard({ product, layout = "grid" }: AppProductC
           style={styles.favBtn}
           hitSlop={8}
         >
-          <Heart
+          <Ionicons
+            name={fav ? "heart" : "heart-outline"}
             size={14}
             color={fav ? "#ef4444" : C.mutedForeground}
-            fill={fav ? "#ef4444" : "transparent"}
           />
         </Pressable>
       </View>

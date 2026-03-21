@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
-import { ArrowLeft, SlidersHorizontal, LayoutGrid, List, ChevronDown } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors, FontSizes, LineHeights } from "@/constants/theme";
 import { TOP_CATEGORIES }              from "@/constants/categories";
@@ -231,7 +231,7 @@ export default function CategoryScreen() {
         {/* ── Header ────────────────────────────────────────────────────── */}
         <View style={listStyles.header}>
           <Pressable onPress={() => router.back()} style={listStyles.backBtn} hitSlop={8}>
-            <ArrowLeft size={20} color={C.foreground} />
+            <Ionicons name="arrow-back" size={20} color={C.foreground} />
           </Pressable>
           <Text style={listStyles.headerTitle} numberOfLines={1}>{title}</Text>
           <View style={listStyles.layoutToggle}>
@@ -239,13 +239,13 @@ export default function CategoryScreen() {
               onPress={() => setLayout("grid")}
               style={[listStyles.toggleBtn, layout === "grid" && listStyles.toggleActive]}
             >
-              <LayoutGrid size={16} color={layout === "grid" ? C.accent : C.mutedForeground} />
+              <Ionicons name="grid-outline" size={16} color={layout === "grid" ? C.accent : C.mutedForeground} />
             </Pressable>
             <Pressable
               onPress={() => setLayout("list")}
               style={[listStyles.toggleBtn, layout === "list" && listStyles.toggleActive]}
             >
-              <List size={16} color={layout === "list" ? C.accent : C.mutedForeground} />
+              <Ionicons name="list-outline" size={16} color={layout === "list" ? C.accent : C.mutedForeground} />
             </Pressable>
           </View>
         </View>
@@ -261,7 +261,7 @@ export default function CategoryScreen() {
             style={listStyles.sortBtn}
           >
             <Text style={listStyles.sortBtnText}>{currentSortLabel}</Text>
-            <ChevronDown size={12} color={C.mutedForeground} />
+            <Ionicons name="chevron-down" size={12} color={C.mutedForeground} />
           </Pressable>
         </View>
 
@@ -299,7 +299,7 @@ export default function CategoryScreen() {
             onPress={() => setSortOpen(true)}
             style={({ pressed }) => [listStyles.bottomBtn, pressed && { opacity: 0.8 }]}
           >
-            <ChevronDown size={15} color={C.foreground} />
+            <Ionicons name="chevron-down" size={15} color={C.foreground} />
             <Text style={listStyles.bottomBtnText}>Sırala</Text>
           </Pressable>
 
@@ -309,7 +309,7 @@ export default function CategoryScreen() {
             onPress={() => setFilterOpen(true)}
             style={({ pressed }) => [listStyles.bottomBtn, pressed && { opacity: 0.8 }]}
           >
-            <SlidersHorizontal size={15} color={totalActive > 0 ? C.accent : C.foreground} />
+            <Ionicons name="options-outline" size={15} color={totalActive > 0 ? C.accent : C.foreground} />
             <Text style={[listStyles.bottomBtnText, totalActive > 0 && { color: C.accent }]}>
               Filtrele{totalActive > 0 ? ` (${totalActive})` : ""}
             </Text>
