@@ -32,10 +32,10 @@ const ACTIONS = [
   {
     id:      "custom-design",
     icon:    "construct-outline" as const,
-    label:   "Özel Tasarım İste",
-    sub:     "Mühendislerle çalış",
+    label:   "Tasarım İste",
+    sub:     "Peçete karalamandan 3D modele",
     color:   "#0ea5e9",
-    href:    "/(print)/print-quote",
+    href:    "/(print)/tasarim-iste",
   },
   {
     id:      "sell-model",

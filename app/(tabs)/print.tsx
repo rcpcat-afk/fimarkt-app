@@ -209,10 +209,10 @@ export default function FidropScreen() {
 
         <TouchableOpacity
           style={[s.ctaSecondary, { borderColor: C.border }]}
-          onPress={() => router.push("/(print)/print-quote" as never)}
+          onPress={() => router.push("/(print)/tasarim-iste" as never)}
           activeOpacity={0.8}
         >
-          <Text style={[s.ctaSecondaryText, { color: C.mutedForeground }]}>Özel Teklif İste</Text>
+          <Text style={[s.ctaSecondaryText, { color: C.mutedForeground }]}>✏️ Tasarımın Yok Mu? Çizdirelim!</Text>
         </TouchableOpacity>
       </Animated.View>
 
