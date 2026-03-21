@@ -701,7 +701,7 @@ const s = StyleSheet.create({
   stepLabel:      { fontSize: 11, color: C.subtleForeground },
   stepLabelRight: { fontSize: 11, color: C.accent, fontWeight: "600" },
 
-  viewerWrapper: { width: "100%", height: 220, backgroundColor: "#1a1a2e" },
+  viewerWrapper: { width: "100%", height: 220, backgroundColor: C.surface },
   uploadPlaceholder: {
     flex:           1,
     alignItems:     "center",
@@ -746,7 +746,7 @@ const s = StyleSheet.create({
     paddingVertical: 4,
   },
   changeBtnText:   { fontSize: 11, color: C.mutedForeground, fontWeight: "600" },
-  viewerFileName:  { flex: 1, fontSize: 11, color: "#ffffff99" },
+  viewerFileName:  { flex: 1, fontSize: 11, color: C.subtleForeground },
   fullscreenBtn: {
     width:           28,
     height:          28,
@@ -762,7 +762,7 @@ const s = StyleSheet.create({
   nonStlName:  { fontSize: 14, fontWeight: "600", color: C.foreground },
   nonStlSize:  { fontSize: 12, color: C.mutedForeground },
 
-  modalContainer: { flex: 1, backgroundColor: "#0f0f1a", justifyContent: "center" },
+  modalContainer: { flex: 1, backgroundColor: C.background, justifyContent: "center" },
   modalClose: {
     position:        "absolute",
     top:             50,
