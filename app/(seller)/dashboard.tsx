@@ -2,14 +2,12 @@
 // Native kart tabanlı, ScrollView içinde.
 // Web dashboardunun mobil simetrisi: aynı metrikler, native UI dili.
 // Grafik: sıfır bağımlılık, pure RN View bar chart (Expo Go uyumlu).
-import { useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import {
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -111,7 +109,6 @@ function OrderRow({ order }: { order: PartnerOrder }) {
 
 // ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function SellerDashboardScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
@@ -131,20 +128,9 @@ export default function SellerDashboardScreen() {
     chipText:   { fontSize: 11, fontWeight: "700", color: colors.mutedForeground },
     chipActive: { backgroundColor: "#ff6b2b", borderColor: "#ff6b2b" },
     chipActiveText: { color: "#fff" },
-    bottomBar:  { flexDirection: "row", borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.background },
-    bottomBtn:  { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 12, gap: 3 },
-    bottomIcon: { fontSize: 20 },
-    bottomLabel:{ fontSize: 9, fontWeight: "700", color: colors.mutedForeground },
   }), [colors]);
 
   const chartMax = Math.max(...data.weeklyRevenue.map(d => d.revenue));
-
-  const bottomNavItems = [
-    { icon: "⚡", label: "Dashboard", active: true  },
-    { icon: "📦", label: "Siparişler", active: false },
-    { icon: "💰", label: "Finans",    active: false },
-    { icon: "💬", label: "Mesajlar",  active: false },
-  ];
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -156,11 +142,6 @@ export default function SellerDashboardScreen() {
           <Text style={styles.headerTag}>Çözüm Ortağı Paneli</Text>
           <Text style={styles.headerTitle}>{data.storeName}</Text>
         </View>
-        <TouchableOpacity onPress={() => router.back()}>
-          <View style={{ backgroundColor: colors.surface2, borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}>
-            <Text style={{ fontSize: 11, fontWeight: "700", color: colors.mutedForeground }}>👤 Müşteri</Text>
-          </View>
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
@@ -244,18 +225,6 @@ export default function SellerDashboardScreen() {
         </View>
 
       </ScrollView>
-
-      {/* Alt Navigasyon */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom }]}>
-        {bottomNavItems.map(item => (
-          <TouchableOpacity key={item.label} style={styles.bottomBtn} activeOpacity={0.7}>
-            <Text style={styles.bottomIcon}>{item.icon}</Text>
-            <Text style={[styles.bottomLabel, item.active && { color: "#ff6b2b" }]}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
     </View>
   );
 }

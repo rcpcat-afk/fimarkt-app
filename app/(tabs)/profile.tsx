@@ -467,39 +467,13 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* ══ 🛠 GEÇİCİ TEST BÖLÜMÜ — B6 Kontrolü için ════════════════════ */}
+        {/* ══ ÇÖZÜM ORTAĞI PANELİ ══════════════════════════════════════════ */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: "#f59e0b" }]}>🛠 Geliştirici Testleri</Text>
-          <View style={[styles.settingCard, { borderColor: "#f59e0b40" }]}>
+          <View style={styles.settingCard}>
             <SettingRow
-              icon="🏢"
-              label="Satıcı Başvurusu (Onboarding)"
-              onPress={() => router.push("/(seller)/onboarding" as never)}
-            />
-            <SettingRow
-              icon="⚡"
-              label="Satıcı Dashboard"
+              icon="🏪"
+              label="Satıcı Paneline Geç"
               onPress={() => router.push("/(seller)/dashboard" as never)}
-            />
-            <SettingRow
-              icon="📦"
-              label="Satıcı Envanter (Lite)"
-              onPress={() => router.push("/(seller)/inventory" as never)}
-            />
-            <SettingRow
-              icon="🚚"
-              label="Satıcı Siparişleri"
-              onPress={() => router.push("/(seller)/orders" as never)}
-            />
-            <SettingRow
-              icon="💰"
-              label="Satıcı Finans & Cüzdan"
-              onPress={() => router.push("/(seller)/finance" as never)}
-            />
-            <SettingRow
-              icon="💬"
-              label="Satıcı Mesajları"
-              onPress={() => router.push("/(seller)/messages" as never)}
             />
             <SettingRow
               icon="🔧"

@@ -1,10 +1,28 @@
 // ─── (seller) Route Group Layout ─────────────────────────────────────────────
-// Satıcı ekranları: onboarding + lite panel.
-// URL'ye (seller) prefix eklenmez — Expo Router route group.
-import { Stack } from "expo-router";
+// Satıcı paneli: 5 sekme (Komuta, Ürünlerim, Siparişler, Finans, Mesajlar).
+// Onboarding: sayfaya doğrudan route edilir, tab bar'da gizli.
+import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import SellerTabBar from "../../components/nav/SellerTabBar";
 
 export default function SellerLayout() {
+  const insets  = useSafeAreaInsets();
+  const tabBarH = 60 + Math.max(insets.bottom, 10);
+
   return (
-    <Stack screenOptions={{ headerShown: false }} />
+    <Tabs
+      tabBar={(props) => <SellerTabBar {...props} />}
+      screenOptions={{
+        headerShown:  false,
+        contentStyle: { paddingBottom: tabBarH },
+      }}
+    >
+      <Tabs.Screen name="dashboard"  options={{ title: "Komuta Merkezi" }} />
+      <Tabs.Screen name="inventory"  options={{ title: "Ürünlerim"      }} />
+      <Tabs.Screen name="orders"     options={{ title: "Siparişler"     }} />
+      <Tabs.Screen name="finance"    options={{ title: "Finans"         }} />
+      <Tabs.Screen name="messages"   options={{ title: "Mesajlar"       }} />
+      <Tabs.Screen name="onboarding" options={{ href: null              }} />
+    </Tabs>
   );
 }
