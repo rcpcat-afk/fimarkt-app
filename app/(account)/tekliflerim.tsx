@@ -326,6 +326,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface2,
     borderWidth: 1, borderColor: Colors.border,
     marginRight: 8,
+    alignSelf: "flex-start",
   },
   tabActive:          { backgroundColor: Colors.accent, borderColor: Colors.accent },
   tabText:            { fontSize: 12, fontWeight: "700", color: Colors.text2 },
