@@ -426,7 +426,16 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* ══ 9. HESAP ══════════════════════════════════════════════════════ */}
+        {/* ══ 9. DİJİTAL İÇERİKLERİM ══════════════════════════════════════ */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Dijital İçeriklerim</Text>
+          <View style={styles.settingCard}>
+            <SettingRow icon="📚" label="Dijital Kütüphanem" onPress={() => router.push("/(account)/library" as never)} />
+            <SettingRow icon="❤️" label="Favorilerim"        onPress={() => router.push("/(account)/favorites" as never)} />
+          </View>
+        </View>
+
+        {/* ══ 10. HESAP ═════════════════════════════════════════════════════ */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hesap</Text>
           <View style={styles.settingCard}>
