@@ -496,6 +496,11 @@ export default function ProfileScreen() {
               label="Satıcı Finans & Cüzdan"
               onPress={() => router.push("/(seller)/finance" as never)}
             />
+            <SettingRow
+              icon="💬"
+              label="Satıcı Mesajları"
+              onPress={() => router.push("/(seller)/messages" as never)}
+            />
           </View>
         </View>
 
