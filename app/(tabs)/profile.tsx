@@ -501,6 +501,11 @@ export default function ProfileScreen() {
               label="Satıcı Mesajları"
               onPress={() => router.push("/(seller)/messages" as never)}
             />
+            <SettingRow
+              icon="🔧"
+              label="Mühendis İş Havuzu"
+              onPress={() => router.push("/(engineer)/jobs" as never)}
+            />
           </View>
         </View>
 
