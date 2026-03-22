@@ -3,7 +3,7 @@
 // Alt bölüm: Hesap ayarları ve navigasyon — gerçek API datası
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
