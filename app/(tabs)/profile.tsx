@@ -26,6 +26,12 @@ import {
 } from "../../src/services/api";
 import { useAuth } from "../../src/store/AuthContext";
 
+// ─── Rol kontrol yardımcıları ─────────────────────────────────────────────────
+const SELLER_ROLES   = ["corporate_seller", "individual_seller", "sanatkat_digital", "sanatkat_physical"];
+const ENGINEER_ROLES = ["fidrop_engineer", "rfq_designer"];
+const isSellerRole   = (r: string) => SELLER_ROLES.includes(r);
+const isEngineerRole = (r: string) => ENGINEER_ROLES.includes(r);
+
 // ─── SettingRow ───────────────────────────────────────────────────────────────
 interface SettingRowProps {
   icon:           string;
@@ -236,6 +242,7 @@ export default function ProfileScreen() {
   const [displayName, setDisplayName]     = useState(user?.name || "");
   const [isKurumsal, setIsKurumsal]       = useState(false);
   const [companyName, setCompanyName]     = useState("");
+  const [partnerRole, setPartnerRole]     = useState<string | null>(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -243,6 +250,8 @@ export default function ProfileScreen() {
     try {
       const token = await AsyncStorage.getItem("fimarkt_token");
       if (!token) return;
+      const role = await AsyncStorage.getItem("fimarkt_partner_role");
+      if (role) setPartnerRole(role);
       const [data, customer] = await Promise.all([
         getMyOrders(token),
         getMyCustomer(token),
@@ -333,6 +342,44 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* ══ 1b. PARTNER PANELİ GEÇİŞ (sadece partner rolleri) ══════════ */}
+        {partnerRole && (isSellerRole(partnerRole) || isEngineerRole(partnerRole)) && (
+          <View style={[styles.section, { marginTop: 0, marginBottom: 16 }]}>
+            {isSellerRole(partnerRole) && (
+              <TouchableOpacity
+                style={styles.panelBtn}
+                onPress={() => router.push("/(seller)/dashboard" as never)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.panelBtnIcon, { backgroundColor: "#ff6b2b" }]}>
+                  <Text style={{ fontSize: 16 }}>🏪</Text>
+                </View>
+                <View style={styles.panelBtnText}>
+                  <Text style={styles.panelBtnTitle}>Satıcı Paneline Geç</Text>
+                  <Text style={styles.panelBtnSub}>Ürün ve sipariş yönetimi</Text>
+                </View>
+                <Text style={styles.panelBtnArrow}>→</Text>
+              </TouchableOpacity>
+            )}
+            {isEngineerRole(partnerRole) && (
+              <TouchableOpacity
+                style={[styles.panelBtn, styles.panelBtnEngineer]}
+                onPress={() => router.push("/(engineer)/jobs" as never)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.panelBtnIcon, { backgroundColor: "#6366f1" }]}>
+                  <Text style={{ fontSize: 16 }}>🔧</Text>
+                </View>
+                <View style={styles.panelBtnText}>
+                  <Text style={styles.panelBtnTitle}>İş Masasına Geç</Text>
+                  <Text style={styles.panelBtnSub}>Teklifler ve iş havuzu</Text>
+                </View>
+                <Text style={styles.panelBtnArrow}>→</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
 
         {/* ══ 2. BENTO STATS ════════════════════════════════════════════════ */}
         <BentoStats />
@@ -467,21 +514,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* ══ ÇÖZÜM ORTAĞI PANELİ ══════════════════════════════════════════ */}
-        <View style={styles.section}>
-          <View style={styles.settingCard}>
-            <SettingRow
-              icon="🏪"
-              label="Satıcı Paneline Geç"
-              onPress={() => router.push("/(seller)/dashboard" as never)}
-            />
-            <SettingRow
-              icon="🔧"
-              label="Mühendis İş Havuzu"
-              onPress={() => router.push("/(engineer)/jobs" as never)}
-            />
-          </View>
-        </View>
 
         <View style={{ height: 24 }} />
       </ScrollView>
@@ -671,6 +703,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.accent + "15", borderWidth: 1, borderColor: Colors.accent + "30",
   },
   teklifBadgeText: { fontSize: 10, fontWeight: "800", color: Colors.accent },
+
+  // Partner panel geçiş butonu
+  panelBtn: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: Colors.accent + "10", borderWidth: 1, borderColor: Colors.accent + "30",
+    borderRadius: 16, padding: 14, marginBottom: 10,
+  },
+  panelBtnEngineer: {
+    backgroundColor: "#6366f110",
+    borderColor:     "#6366f130",
+  },
+  panelBtnIcon: {
+    width: 38, height: 38, borderRadius: 12,
+    alignItems: "center", justifyContent: "center",
+  },
+  panelBtnText:  { flex: 1 },
+  panelBtnTitle: { fontSize: 14, fontWeight: "800", color: Colors.text },
+  panelBtnSub:   { fontSize: 11, color: Colors.text2, marginTop: 1 },
+  panelBtnArrow: { fontSize: 18, color: Colors.text3 },
 
   // Setting
   settingCard: {
