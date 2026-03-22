@@ -315,12 +315,12 @@ const styles = StyleSheet.create({
 
   // ── Tabs ──
   // tabsScroll: flexShrink:0 → FlatList (flex:1) tarafından ezilmez
-  tabsScroll: { flexShrink: 0 },
+  tabsScroll: { flexShrink: 0, height: 48 },
   tabsRow: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 6,
   },
   tab: {
     flexDirection: "row", alignItems: "center", gap: 5,
