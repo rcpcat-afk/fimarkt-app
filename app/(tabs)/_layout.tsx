@@ -1,13 +1,14 @@
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../src/store/AuthContext";
+import { useTheme } from "../../hooks/useTheme";
 import GlobalHeader from "../../components/layout/GlobalHeader";
 import CustomTabBar from "../../components/nav/CustomTabBar";
 
 export default function TabLayout() {
   const { user }   = useAuth();
   const insets     = useSafeAreaInsets();
-  // Matches CustomTabBar's safeBottom = Math.max(insets.bottom, 10)
+  const { colors } = useTheme();
   const tabBarH    = 60 + Math.max(insets.bottom, 10);
 
   return (
@@ -15,7 +16,7 @@ export default function TabLayout() {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown:  false,
-        contentStyle: { paddingBottom: tabBarH },
+        contentStyle: { paddingBottom: tabBarH, backgroundColor: colors.background },
       }}
     >
       <Tabs.Screen

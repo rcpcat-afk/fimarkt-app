@@ -12,60 +12,42 @@ import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import FidropActionSheet from "./FidropActionSheet";
 
-const C = Colors.dark;
-
 // ── Tab definitions ───────────────────────────────────────────────────────────
-// Maps route name → display config
-const TAB_CONFIG: Record<string, {
+type TabConfig = {
   label: string;
-  icon: (active: boolean) => ReactNode;
-}> = {
+  icon: (active: boolean, accent: string, muted: string) => ReactNode;
+};
+
+const TAB_CONFIG: Record<string, TabConfig> = {
   index: {
     label: "Ana Sayfa",
-    icon: (a) => (
-      <Ionicons
-        name={a ? "home" : "home-outline"}
-        size={22}
-        color={a ? C.accent : C.subtleForeground}
-      />
+    icon: (a, ac, mu) => (
+      <Ionicons name={a ? "home" : "home-outline"} size={22} color={a ? ac : mu} />
     ),
   },
   sanatkat: {
     label: "Sanatkat",
-    icon: (a) => (
-      <Ionicons
-        name={a ? "color-palette" : "color-palette-outline"}
-        size={22}
-        color={a ? C.accent : C.subtleForeground}
-      />
+    icon: (a, ac, mu) => (
+      <Ionicons name={a ? "color-palette" : "color-palette-outline"} size={22} color={a ? ac : mu} />
     ),
   },
-  // "print" is the center Fidrop button — rendered separately
   print: {
     label: "Fidrop",
     icon: () => null,
   },
   orders: {
     label: "Siparişler",
-    icon: (a) => (
-      <Ionicons
-        name={a ? "cube" : "cube-outline"}
-        size={22}
-        color={a ? C.accent : C.subtleForeground}
-      />
+    icon: (a, ac, mu) => (
+      <Ionicons name={a ? "cube" : "cube-outline"} size={22} color={a ? ac : mu} />
     ),
   },
   profile: {
     label: "Profil",
-    icon: (a) => (
-      <Ionicons
-        name={a ? "person-circle" : "person-circle-outline"}
-        size={22}
-        color={a ? C.accent : C.subtleForeground}
-      />
+    icon: (a, ac, mu) => (
+      <Ionicons name={a ? "person-circle" : "person-circle-outline"} size={22} color={a ? ac : mu} />
     ),
   },
 };
@@ -75,6 +57,7 @@ const VISIBLE_ORDER = ["index", "sanatkat", "print", "orders", "profile"];
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets  = useSafeAreaInsets();
+  const { colors } = useTheme();
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
 
   // Scale animation refs per tab for press feedback
@@ -129,12 +112,11 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
             style={StyleSheet.absoluteFill}
           />
         ) : (
-          // Android fallback: semi-transparent surface
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: C.background + "F0" }]} />
+          <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.background + "F0" }]} />
         )}
 
         {/* Top border */}
-        <View style={[s.topBorder, { backgroundColor: C.border }]} />
+        <View style={[s.topBorder, { backgroundColor: colors.border }]} />
 
         {/* Tab items */}
         <View style={[s.tabRow, { paddingBottom: safeBottom }]}>
@@ -144,53 +126,48 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
             const isCenter  = routeName === "print";
 
             if (isCenter) {
-              // ── Floating center button ──────────────────────────────────
               return (
                 <View key={routeName} style={s.centerWrapper}>
                   <Animated.View style={{ transform: [{ scale: scales[routeName] }] }}>
                     <Pressable
                       onPress={() => handlePress(routeName, isFocused)}
                       style={s.centerBtn}
-                      android_ripple={{ color: C.accent + "44", borderless: true }}
+                      android_ripple={{ color: colors.accent + "44", borderless: true }}
                     >
-                      {/* Glow ring */}
                       <View style={s.centerGlow} />
-                      {/* Button */}
-                      <View style={[s.centerInner, { backgroundColor: C.accent }]}>
+                      <View style={[s.centerInner, { backgroundColor: colors.accent }]}>
                         <Ionicons name="rocket" size={26} color="#fff" />
                       </View>
                     </Pressable>
                   </Animated.View>
-                  <Text style={[s.centerLabel, { color: C.subtleForeground }]}>Fidrop</Text>
+                  <Text style={[s.centerLabel, { color: colors.subtleForeground }]}>Fidrop</Text>
                 </View>
               );
             }
 
-            // ── Regular tab ──────────────────────────────────────────────
             return (
               <Pressable
                 key={routeName}
                 onPress={() => handlePress(routeName, isFocused)}
                 style={s.tabItem}
-                android_ripple={{ color: C.accent + "33", borderless: true }}
+                android_ripple={{ color: colors.accent + "33", borderless: true }}
               >
                 <Animated.View
                   style={[s.tabInner, { transform: [{ scale: scales[routeName] }] }]}
                 >
-                  {config.icon(isFocused)}
+                  {config.icon(isFocused, colors.accent, colors.subtleForeground)}
                   <Text
                     style={[
                       s.tabLabel,
-                      { color: isFocused ? C.accent : C.subtleForeground },
+                      { color: isFocused ? colors.accent : colors.subtleForeground },
                       isFocused && s.tabLabelActive,
                     ]}
                     numberOfLines={1}
                   >
                     {config.label}
                   </Text>
-                  {/* Active dot */}
                   {isFocused && (
-                    <View style={[s.activeDot, { backgroundColor: C.accent }]} />
+                    <View style={[s.activeDot, { backgroundColor: colors.accent }]} />
                   )}
                 </Animated.View>
               </Pressable>
@@ -277,7 +254,7 @@ const s = StyleSheet.create({
     width:       68,
     height:      68,
     borderRadius: 34,
-    backgroundColor: "#ff6b2b33",
+    backgroundColor: "#ff6b2b33", // accent glow — her iki modda da turuncu kalır
   },
   centerInner: {
     width:        56,
