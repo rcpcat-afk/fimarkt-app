@@ -1,12 +1,18 @@
+// ─── Hesap Ayarları — Kişisel Bilgiler (App) ─────────────────────────────────
+// 3 kart: Profil | İletişim & Güvenlik | Fatura Bilgileri
+// Inline editing: her satırda kalem butonu → TextInput + Kaydet/İptal (per-field)
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StatusBar,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,20 +22,181 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants";
 import { getMyCustomer, updateMyCustomer } from "../../src/services/api";
 
+// ─── Validation (sade, Alert tabanlı) ────────────────────────────────────────
+const validate = {
+  name:  (v: string) => v.trim().length >= 2  ? null : "En az 2 karakter girin",
+  phone: (v: string) => /^(05|5)\d{9}$/.test(v) || v === "" ? null : "05XX XXX XX XX formatında girin",
+  password: (current: string, next: string, confirm: string) => {
+    if (!current.trim()) return "Mevcut şifrenizi girin";
+    if (next.length < 8)  return "Yeni şifre en az 8 karakter olmalı";
+    if (!/[A-Z]/.test(next)) return "En az 1 büyük harf içermeli";
+    if (!/[0-9]/.test(next)) return "En az 1 rakam içermeli";
+    if (next !== confirm)    return "Şifreler eşleşmiyor";
+    return null;
+  },
+  company:    (v: string) => v.trim().length >= 2 ? null : "En az 2 karakter girin",
+  vergiNo:    (v: string) => /^\d{10}$/.test(v)  ? null : "10 haneli vergi numarası girin",
+  vergiDairesi: (v: string) => v.trim().length >= 2 ? null : "En az 2 karakter girin",
+};
+
+// ─── AppCard ──────────────────────────────────────────────────────────────────
+function AppCard({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
+  return (
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardHeaderIcon}>{icon}</Text>
+        <Text style={styles.cardHeaderTitle}>{title}</Text>
+      </View>
+      <View style={styles.cardBody}>{children}</View>
+    </View>
+  );
+}
+
+// ─── InlineRow ────────────────────────────────────────────────────────────────
+// Read mod: etiket + değer + kalem ikon | Edit mod: TextInput + Kaydet/İptal
+interface InlineRowProps {
+  label:       string;
+  value:       string;
+  onSave:      (v: string) => Promise<void>;
+  validate?:   (v: string) => string | null;
+  keyboardType?: "default" | "phone-pad" | "numeric" | "email-address";
+  secureTextEntry?: boolean;
+  placeholder?: string;
+  isLast?:     boolean;
+  badge?:      React.ReactNode;
+  locked?:     boolean;
+}
+
+function InlineRow({
+  label, value, onSave, validate: validateFn,
+  keyboardType = "default", secureTextEntry = false,
+  placeholder, isLast, badge, locked,
+}: InlineRowProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [localValue, setLocalValue] = useState(value);
+  const [error, setError]           = useState<string | null>(null);
+  const [saving, setSaving]         = useState(false);
+  const [savedOk, setSavedOk]       = useState(false);
+
+  const handleSave = async () => {
+    if (validateFn) {
+      const err = validateFn(localValue);
+      if (err) { setError(err); return; }
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await onSave(localValue);
+      setSavedOk(true);
+      setIsEditing(false);
+      setTimeout(() => setSavedOk(false), 2500);
+    } catch {
+      setError("Kaydedilemedi, tekrar deneyin.");
+    }
+    setSaving(false);
+  };
+
+  const handleCancel = () => {
+    setLocalValue(value);
+    setError(null);
+    setIsEditing(false);
+  };
+
+  return (
+    <View style={[styles.row, !isLast && styles.rowBorder]}>
+      {!isEditing ? (
+        <View style={styles.rowReadMode}>
+          <View style={styles.rowReadLeft}>
+            <Text style={styles.rowLabel}>{label}</Text>
+            <Text style={styles.rowValue} numberOfLines={1}>{value || "—"}</Text>
+          </View>
+          <View style={styles.rowReadRight}>
+            {savedOk && <Text style={styles.savedText}>✓ Kaydedildi</Text>}
+            {badge}
+            {!locked && (
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => { setLocalValue(value); setIsEditing(true); }}
+              >
+                <Text style={styles.editBtnIcon}>✏️</Text>
+              </TouchableOpacity>
+            )}
+            {locked && (
+              <View style={styles.lockedBadge}>
+                <Text style={styles.lockedBadgeText}>🔒</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      ) : (
+        <View style={styles.rowEditMode}>
+          <Text style={styles.rowLabel}>{label}</Text>
+          <TextInput
+            style={[styles.input, error ? styles.inputError : null]}
+            value={localValue}
+            onChangeText={(t) => { setLocalValue(t); setError(null); }}
+            keyboardType={keyboardType}
+            secureTextEntry={secureTextEntry}
+            placeholder={placeholder}
+            placeholderTextColor={Colors.text3}
+            autoFocus
+          />
+          {error && <Text style={styles.errorText}>{error}</Text>}
+          <View style={styles.rowActions}>
+            <TouchableOpacity
+              style={[styles.actionBtn, styles.actionBtnSave, saving && styles.actionBtnDisabled]}
+              onPress={handleSave}
+              disabled={saving}
+            >
+              <Text style={styles.actionBtnSaveText}>{saving ? "..." : "Kaydet"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionBtn, styles.actionBtnCancel]} onPress={handleCancel}>
+              <Text style={styles.actionBtnCancelText}>İptal</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─── Rozet Bileşenleri ────────────────────────────────────────────────────────
+const VerifiedBadge = () => (
+  <View style={styles.verifiedBadge}>
+    <Text style={styles.verifiedBadgeText}>✓ Doğrulandı</Text>
+  </View>
+);
+
+const ComingSoonBadge = () => (
+  <View style={styles.comingSoonBadge}>
+    <Text style={styles.comingSoonBadgeText}>🔒 Yakında</Text>
+  </View>
+);
+
+// ─── Ana Ekran ────────────────────────────────────────────────────────────────
 export default function PersonalInfoScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [loading, setLoading]       = useState(true);
+  const [firstName, setFirstName]   = useState("");
+  const [lastName, setLastName]     = useState("");
+  const [email, setEmail]           = useState("");
+  const [phone, setPhone]           = useState("");
+  // Şifre
+  const [pwOpen, setPwOpen]           = useState(false);
+  const [currentPw, setCurrentPw]     = useState("");
+  const [newPw, setNewPw]             = useState("");
+  const [confirmPw, setConfirmPw]     = useState("");
+  const [pwSaving, setPwSaving]       = useState(false);
+  // Fatura
+  const [isKurumsal, setIsKurumsal]   = useState(false);
+  const [companyName, setCompanyName] = useState("");
+  const [vergiDairesi, setVergiDairesi] = useState("");
+  const [vergiNo, setVergiNo]         = useState("");
+  const [efatura, setEfatura]         = useState(false);
 
-  useEffect(() => {
-    loadProfile();
-  }, []);
+  useEffect(() => { loadProfile(); }, []);
 
   const loadProfile = async () => {
     setLoading(true);
@@ -39,9 +206,13 @@ export default function PersonalInfoScreen() {
       const customer = await getMyCustomer(token);
       if (customer) {
         setFirstName(customer.first_name || "");
-        setLastName(customer.last_name || "");
-        setEmail(customer.email || "");
+        setLastName(customer.last_name   || "");
+        setEmail(customer.email          || "");
         setPhone(customer.billing?.phone || "");
+        if (customer.billing?.company) {
+          setIsKurumsal(true);
+          setCompanyName(customer.billing.company);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -50,195 +221,398 @@ export default function PersonalInfoScreen() {
     }
   };
 
-  const handleSave = async () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      Alert.alert("Eksik Bilgi", "Ad ve soyad zorunludur.");
-      return;
-    }
-    setSaving(true);
-    try {
-      const token = await AsyncStorage.getItem("fimarkt_token");
-      if (!token) return;
-      const result = await updateMyCustomer(token, {
-        first_name: firstName,
-        last_name: lastName,
-        billing: { phone },
-      });
-      if (result) {
-        Alert.alert("✅ Kaydedildi", "Bilgileriniz güncellendi.");
-      } else {
-        Alert.alert("Hata", "Güncellenemedi, tekrar deneyin.");
-      }
-    } catch (e) {
-      Alert.alert("Hata", "Bir sorun oluştu.");
-    } finally {
-      setSaving(false);
-    }
+  // ── API Patch ────────────────────────────────────────────────────────────
+  const patchCustomer = async (body: Record<string, unknown>) => {
+    const token = await AsyncStorage.getItem("fimarkt_token");
+    if (!token) throw new Error("No token");
+    const result = await updateMyCustomer(token, body as any);
+    if (!result) throw new Error("Güncelleme başarısız");
   };
 
-  const initials =
-    `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
+  // ── Şifre Kaydet ─────────────────────────────────────────────────────────
+  const handlePasswordSave = async () => {
+    const err = validate.password(currentPw, newPw, confirmPw);
+    if (err) { Alert.alert("Hata", err); return; }
+    setPwSaving(true);
+    try {
+      await patchCustomer({ password: newPw });
+      Alert.alert("✅ Başarılı", "Şifreniz güncellendi.");
+      setCurrentPw(""); setNewPw(""); setConfirmPw("");
+      setPwOpen(false);
+    } catch {
+      Alert.alert("Hata", "Şifre güncellenemedi. Tekrar deneyin.");
+    }
+    setPwSaving(false);
+  };
+
+  const initials = `${firstName[0] || ""}${lastName[0] || ""}`.toUpperCase() || "?";
 
   if (loading) {
     return (
-      <View
-        style={[
-          styles.container,
-          {
-            paddingTop: insets.top,
-            justifyContent: "center",
-            alignItems: "center",
-          },
-        ]}
-      >
+      <View style={[styles.container, { paddingTop: insets.top, justifyContent: "center", alignItems: "center" }]}>
         <ActivityIndicator color={Colors.accent} size="large" />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <StatusBar barStyle="light-content" />
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backArrow}>‹</Text>
-        </TouchableOpacity>
-        <Text style={styles.title}>Kişisel Bilgiler</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        <View style={styles.avatarArea}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Text style={styles.backArrow}>‹</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Hesap Ayarları</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Ad</Text>
-            <TextInput
-              style={styles.input}
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder="Adınız"
-              placeholderTextColor={Colors.text3}
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Soyad</Text>
-            <TextInput
-              style={styles.input}
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder="Soyadınız"
-              placeholderTextColor={Colors.text3}
-            />
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>E-posta</Text>
-            <TextInput
-              style={[styles.input, styles.inputDisabled]}
-              value={email}
-              editable={false}
-              placeholderTextColor={Colors.text3}
-            />
-            <Text style={styles.inputHint}>E-posta değiştirilemez</Text>
-          </View>
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Telefon</Text>
-            <TextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="05XX XXX XX XX"
-              placeholderTextColor={Colors.text3}
-              keyboardType="phone-pad"
-            />
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.saveBtn, saving && styles.saveBtnLoading]}
-          onPress={handleSave}
-          disabled={saving}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={styles.scrollContent}
         >
-          <Text style={styles.saveBtnText}>
-            {saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}
-          </Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+
+          {/* ══ KART 1 — PROFİL ═══════════════════════════════════════════ */}
+          <AppCard title="Profil" icon="👤">
+
+            {/* Avatar */}
+            <View style={styles.avatarArea}>
+              <TouchableOpacity style={styles.avatarWrap} activeOpacity={0.8}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{initials}</Text>
+                </View>
+                <View style={styles.avatarOverlay}>
+                  <Text style={styles.avatarOverlayText}>📷</Text>
+                </View>
+              </TouchableOpacity>
+              <Text style={styles.avatarHint}>Fotoğraf değiştir</Text>
+            </View>
+
+            <InlineRow
+              label="Ad"
+              value={firstName}
+              placeholder="Adınız"
+              validate={validate.name}
+              onSave={async (v) => { await patchCustomer({ first_name: v }); setFirstName(v); }}
+            />
+            <InlineRow
+              label="Soyad"
+              value={lastName}
+              placeholder="Soyadınız"
+              validate={validate.name}
+              onSave={async (v) => { await patchCustomer({ last_name: v }); setLastName(v); }}
+            />
+            {/* Sanatkat kullanıcı adı — read-only */}
+            <View style={[styles.row]}>
+              <View style={styles.rowReadMode}>
+                <View style={styles.rowReadLeft}>
+                  <Text style={styles.rowLabel}>Sanatkat Kullanıcı Adı</Text>
+                  <Text style={styles.rowValue}>
+                    @{firstName.toLowerCase().replace(/\s+/g, "") || "kullanici"}
+                  </Text>
+                </View>
+                <ComingSoonBadge />
+              </View>
+            </View>
+          </AppCard>
+
+          {/* ══ KART 2 — İLETİŞİM & GÜVENLİK ════════════════════════════ */}
+          <AppCard title="İletişim & Güvenlik" icon="🔒">
+
+            {/* E-posta — kilitli */}
+            <View style={[styles.row, styles.rowBorder]}>
+              <View style={styles.rowReadMode}>
+                <View style={styles.rowReadLeft}>
+                  <Text style={styles.rowLabel}>E-posta</Text>
+                  <Text style={styles.rowValue} numberOfLines={1}>{email || "—"}</Text>
+                </View>
+                <VerifiedBadge />
+              </View>
+            </View>
+
+            <InlineRow
+              label="Telefon"
+              value={phone}
+              placeholder="05XX XXX XX XX"
+              keyboardType="phone-pad"
+              validate={validate.phone}
+              onSave={async (v) => { await patchCustomer({ billing: { phone: v } }); setPhone(v); }}
+            />
+
+            {/* Şifre Akordeon ─────────────────────────────────────────────── */}
+            <View style={[styles.row]}>
+              <TouchableOpacity
+                style={styles.accordionHeader}
+                onPress={() => setPwOpen(!pwOpen)}
+                activeOpacity={0.7}
+              >
+                <View>
+                  <Text style={styles.rowLabel}>Şifre</Text>
+                  <Text style={styles.rowValue}>••••••••</Text>
+                </View>
+                <View style={[styles.accordionBtn, pwOpen && styles.accordionBtnActive]}>
+                  <Text style={[styles.accordionBtnText, pwOpen && styles.accordionBtnTextActive]}>
+                    {pwOpen ? "✕ Kapat" : "Değiştir"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {pwOpen && (
+                <View style={styles.accordionBody}>
+                  {[
+                    { label: "Mevcut Şifre",     value: currentPw, setter: setCurrentPw, placeholder: "Mevcut şifreniz"     },
+                    { label: "Yeni Şifre",        value: newPw,     setter: setNewPw,     placeholder: "8+ karakter"         },
+                    { label: "Yeni Şifre Tekrar", value: confirmPw, setter: setConfirmPw, placeholder: "Tekrar girin"        },
+                  ].map((field) => (
+                    <View key={field.label} style={styles.pwField}>
+                      <Text style={styles.rowLabel}>{field.label}</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={field.value}
+                        onChangeText={field.setter}
+                        secureTextEntry
+                        placeholder={field.placeholder}
+                        placeholderTextColor={Colors.text3}
+                      />
+                    </View>
+                  ))}
+
+                  <TouchableOpacity
+                    style={[styles.saveAllBtn, pwSaving && styles.saveAllBtnDisabled]}
+                    onPress={handlePasswordSave}
+                    disabled={pwSaving}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.saveAllBtnText}>
+                      {pwSaving ? "Güncelleniyor..." : "Şifreyi Güncelle"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          </AppCard>
+
+          {/* ══ KART 3 — FATURA BİLGİLERİ ════════════════════════════════ */}
+          <AppCard title="Fatura Bilgileri" icon="🧾">
+
+            {/* Bireysel / Kurumsal toggle */}
+            <View style={[styles.row, styles.rowBorder]}>
+              <View style={styles.rowReadMode}>
+                <View style={styles.rowReadLeft}>
+                  <Text style={[styles.rowValue, { marginBottom: 2 }]}>
+                    {isKurumsal ? "Kurumsal Üyelik" : "Bireysel Üyelik"}
+                  </Text>
+                  <Text style={styles.rowLabel}>
+                    {isKurumsal ? "Vergi faturası düzenlenebilir" : "Standart bireysel fatura"}
+                  </Text>
+                </View>
+                <Switch
+                  value={isKurumsal}
+                  onValueChange={setIsKurumsal}
+                  trackColor={{ false: Colors.border, true: Colors.accent }}
+                  thumbColor="#fff"
+                />
+              </View>
+            </View>
+
+            {/* Bireysel: TC Kimlik */}
+            {!isKurumsal && (
+              <View style={[styles.row]}>
+                <View style={styles.rowReadMode}>
+                  <View style={styles.rowReadLeft}>
+                    <Text style={styles.rowLabel}>TC Kimlik No</Text>
+                    <Text style={[styles.rowValue, { letterSpacing: 2 }]}>123•••••89</Text>
+                  </View>
+                  <View style={styles.maskedBadge}>
+                    <Text style={styles.maskedBadgeText}>🔒 Şifreli</Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Kurumsal: Şirket bilgileri */}
+            {isKurumsal && (
+              <>
+                <InlineRow
+                  label="Şirket Unvanı"
+                  value={companyName}
+                  placeholder="Firma Adı A.Ş."
+                  validate={validate.company}
+                  onSave={async (v) => { await patchCustomer({ billing: { company: v } }); setCompanyName(v); }}
+                />
+                <InlineRow
+                  label="Vergi Dairesi"
+                  value={vergiDairesi}
+                  placeholder="Kadıköy Vergi Dairesi"
+                  validate={validate.vergiDairesi}
+                  onSave={async (v) => setVergiDairesi(v)} // mock
+                />
+                <InlineRow
+                  label="Vergi Numarası"
+                  value={vergiNo}
+                  placeholder="10 haneli numara"
+                  keyboardType="numeric"
+                  validate={validate.vergiNo}
+                  onSave={async (v) => setVergiNo(v)} // mock
+                />
+
+                {/* E-Fatura */}
+                <View style={[styles.row, styles.rowBorder]}>
+                  <View style={styles.rowReadMode}>
+                    <View style={styles.rowReadLeft}>
+                      <Text style={styles.rowLabel}>E-Fatura Mükellefi</Text>
+                      <Text style={styles.rowValue}>{efatura ? "Evet" : "Hayır"}</Text>
+                    </View>
+                    <View style={styles.efaturaButtons}>
+                      {(["Evet", "Hayır"] as const).map((opt) => {
+                        const active = (opt === "Evet" && efatura) || (opt === "Hayır" && !efatura);
+                        return (
+                          <TouchableOpacity
+                            key={opt}
+                            style={[styles.efaturaBtn, active && styles.efaturaBtnActive]}
+                            onPress={() => setEfatura(opt === "Evet")}
+                          >
+                            <Text style={[styles.efaturaBtnText, active && styles.efaturaBtnTextActive]}>
+                              {opt}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  </View>
+                </View>
+
+                {/* Bilgi notu */}
+                <View style={styles.infoNote}>
+                  <Text style={styles.infoNoteText}>
+                    💡 Vergi dairesi ve vergi no bilgileri destek ekibimiz tarafından doğrulanacaktır.
+                  </Text>
+                </View>
+              </>
+            )}
+          </AppCard>
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
+// ─── StyleSheet ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
+  container:   { flex: 1, backgroundColor: Colors.bg },
+
+  // Header
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    paddingHorizontal: 16, paddingVertical: 12,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    alignItems: "center", justifyContent: "center",
   },
-  backArrow: {
-    fontSize: 28,
-    color: Colors.text,
-    lineHeight: 32,
-    marginTop: -2,
+  backArrow:   { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
+  headerTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
+
+  scrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 },
+
+  // Card
+  card: {
+    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 20, overflow: "hidden", marginBottom: 14,
   },
-  title: { fontSize: 17, fontWeight: "700", color: Colors.text },
-  content: { paddingHorizontal: 24, paddingBottom: 40 },
-  avatarArea: { alignItems: "center", marginVertical: 24 },
+  cardHeader: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border,
+  },
+  cardHeaderIcon:  { fontSize: 15 },
+  cardHeaderTitle: { fontSize: 13, fontWeight: "700", color: Colors.text },
+  cardBody:        { paddingHorizontal: 16 },
+
+  // Avatar
+  avatarArea: { alignItems: "center", paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  avatarWrap: { position: "relative" },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
+    width: 76, height: 76, borderRadius: 20,
+    backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center",
   },
-  avatarText: { fontSize: 28, fontWeight: "800", color: "#fff" },
-  form: { gap: 16, marginBottom: 24 },
-  inputGroup: { gap: 6 },
-  inputLabel: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: Colors.text2,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+  avatarText:        { fontSize: 26, fontWeight: "800", color: "#fff" },
+  avatarOverlay: {
+    position: "absolute", inset: 0 as any, borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center",
   },
+  avatarOverlayText: { fontSize: 18 },
+  avatarHint:        { fontSize: 11, color: Colors.text3, marginTop: 8 },
+
+  // Row
+  row:       { paddingVertical: 14 },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+
+  rowReadMode:  { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  rowReadLeft:  { flex: 1, minWidth: 0 },
+  rowReadRight: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 0 },
+
+  rowLabel: { fontSize: 10, fontWeight: "700", color: Colors.text3, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 2 },
+  rowValue: { fontSize: 14, fontWeight: "600", color: Colors.text },
+
+  editBtn:     { width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" },
+  editBtnIcon: { fontSize: 13 },
+
+  lockedBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  lockedBadgeText: { fontSize: 12 },
+
+  savedText: { fontSize: 10, fontWeight: "700", color: Colors.green },
+
+  // Badges
+  verifiedBadge:     { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.green + "18", borderWidth: 1, borderColor: Colors.green + "30" },
+  verifiedBadgeText: { fontSize: 10, fontWeight: "700", color: Colors.green },
+  comingSoonBadge:   { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  comingSoonBadgeText: { fontSize: 10, fontWeight: "700", color: Colors.text3 },
+
+  // Edit mode
+  rowEditMode: { gap: 8 },
   input: {
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 15,
-    color: Colors.text,
+    backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.border,
+    borderRadius: 12, padding: 12, fontSize: 14, color: Colors.text,
   },
-  inputDisabled: { opacity: 0.5 },
-  inputHint: { fontSize: 11, color: Colors.text3 },
-  saveBtn: {
-    backgroundColor: Colors.accent,
-    padding: 16,
-    borderRadius: 14,
-    alignItems: "center",
-  },
-  saveBtnLoading: { opacity: 0.7 },
-  saveBtnText: { fontSize: 16, fontWeight: "700", color: "#fff" },
+  inputError: { borderColor: Colors.red },
+  errorText:  { fontSize: 11, color: Colors.red },
+  rowActions: { flexDirection: "row", gap: 8 },
+  actionBtn:  { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center" },
+  actionBtnSave:       { backgroundColor: Colors.accent },
+  actionBtnCancel:     { backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border },
+  actionBtnDisabled:   { opacity: 0.6 },
+  actionBtnSaveText:   { fontSize: 12, fontWeight: "700", color: "#fff" },
+  actionBtnCancelText: { fontSize: 12, fontWeight: "700", color: Colors.text2 },
+
+  // Password accordion
+  accordionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  accordionBtn:    { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  accordionBtnActive: { backgroundColor: Colors.accent + "15", borderColor: Colors.accent + "30" },
+  accordionBtnText: { fontSize: 11, fontWeight: "700", color: Colors.text2 },
+  accordionBtnTextActive: { color: Colors.accent },
+  accordionBody:   { marginTop: 14, gap: 12 },
+  pwField:         { gap: 6 },
+  saveAllBtn:      { backgroundColor: Colors.accent, paddingVertical: 13, borderRadius: 12, alignItems: "center" },
+  saveAllBtnDisabled: { opacity: 0.6 },
+  saveAllBtnText:  { fontSize: 14, fontWeight: "700", color: "#fff" },
+
+  // Billing
+  maskedBadge:     { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  maskedBadgeText: { fontSize: 10, color: Colors.text3 },
+  efaturaButtons:  { flexDirection: "row", gap: 8 },
+  efaturaBtn:      { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
+  efaturaBtnActive:{ backgroundColor: Colors.accent + "18", borderColor: Colors.accent + "35" },
+  efaturaBtnText:  { fontSize: 12, fontWeight: "700", color: Colors.text2 },
+  efaturaBtnTextActive: { color: Colors.accent },
+  infoNote: { marginTop: 4, marginBottom: 8, padding: 10, borderRadius: 12, backgroundColor: Colors.yellow + "10", borderWidth: 1, borderColor: Colors.yellow + "25" },
+  infoNoteText: { fontSize: 11, color: Colors.text2, lineHeight: 16 },
 });
