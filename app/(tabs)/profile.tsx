@@ -231,9 +231,6 @@ export default function ProfileScreen() {
   const tabBarHeight = useTabBarHeight();
   const { user, logout } = useAuth();
 
-  const [notifications, setNotifications] = useState(true);
-  const [orderUpdates, setOrderUpdates]   = useState(true);
-  const [campaigns, setCampaigns]         = useState(false);
   const [orders, setOrders]               = useState<WCOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [displayName, setDisplayName]     = useState(user?.name || "");
@@ -425,9 +422,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Bildirimler</Text>
           <View style={styles.settingCard}>
-            <SettingRow icon="🔔" label="Bildirimler"           isSwitch switchValue={notifications} onSwitchChange={setNotifications} />
-            <SettingRow icon="📦" label="Sipariş Güncellemeleri" isSwitch switchValue={orderUpdates}  onSwitchChange={setOrderUpdates}  />
-            <SettingRow icon="🎁" label="Kampanyalar"            isSwitch switchValue={campaigns}     onSwitchChange={setCampaigns}     />
+            <SettingRow icon="🔔" label="Bildirim Tercihleri" onPress={() => router.push("/(account)/notifications" as never)} />
           </View>
         </View>
 
