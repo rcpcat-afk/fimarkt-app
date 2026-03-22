@@ -237,31 +237,32 @@ export default function TekliflerimScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabs}
       >
-        {TABS.map(tab => {
-          const isActive = activeTab === tab.key;
-          const count = tab.key === "all"
-            ? teklifler.length
-            : teklifler.filter(t => t.status === tab.key).length;
+        <View style={styles.tabs}>
+          {TABS.map(tab => {
+            const isActive = activeTab === tab.key;
+            const count = tab.key === "all"
+              ? teklifler.length
+              : teklifler.filter(t => t.status === tab.key).length;
 
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              style={[styles.tab, isActive && styles.tabActive]}
-              onPress={() => setActiveTab(tab.key)}
-            >
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                {tab.label}
-              </Text>
-              <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
-                <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
-                  {count}
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tab, isActive && styles.tabActive]}
+                onPress={() => setActiveTab(tab.key)}
+              >
+                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                  {tab.label}
                 </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+                <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
+                  <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
+                    {count}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </ScrollView>
 
       {/* ── Liste ── */}
@@ -324,14 +325,16 @@ const styles = StyleSheet.create({
   newBtnText: { fontSize: 12, fontWeight: "700", color: Colors.accent },
 
   // ── Tabs ──
-  tabs: { paddingHorizontal: 16, paddingBottom: 12 },
+  tabs: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingBottom: 12,
+  },
   tab: {
     flexDirection: "row", alignItems: "center", gap: 5,
     paddingHorizontal: 12, paddingVertical: 7,
     borderRadius: 99,
     backgroundColor: Colors.surface2,
     borderWidth: 1, borderColor: Colors.border,
-    alignSelf: "flex-start",
     marginRight: 8,
   },
   tabActive:     { backgroundColor: Colors.accent, borderColor: Colors.accent },
