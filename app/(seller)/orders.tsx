@@ -232,7 +232,7 @@ export default function SellerOrdersScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.chipBar}
-        contentContainerStyle={{ gap: 8 }}
+        contentContainerStyle={{ gap: 8, alignItems: "center" }}
       >
         {CHIPS.map(chip => {
           const isActive = activeTab === chip.status;
