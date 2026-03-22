@@ -18,6 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants";
 import { useTabBarHeight } from "../../hooks/useTabBarHeight";
+import { useTheme } from "../../hooks/useTheme";
 import { MOCK_DASHBOARD } from "../../lib/mock-data/dashboard";
 import {
   getMyCustomer,
@@ -236,6 +237,7 @@ export default function ProfileScreen() {
   const insets       = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   const [orders, setOrders]               = useState<WCOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -463,6 +465,20 @@ export default function ProfileScreen() {
               <Text style={styles.teklifBadgeText}>• Aktif</Text>
             </View>
           </TouchableOpacity>
+        </View>
+
+        {/* ══ 7b. TEMA ══════════════════════════════════════════════════════ */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Görünüm</Text>
+          <View style={styles.settingCard}>
+            <SettingRow
+              icon={isDark ? "🌙" : "☀️"}
+              label="Karanlık Mod"
+              isSwitch
+              switchValue={isDark}
+              onSwitchChange={toggleTheme}
+            />
+          </View>
         </View>
 
         {/* ══ 8. BİLDİRİMLER ════════════════════════════════════════════════ */}

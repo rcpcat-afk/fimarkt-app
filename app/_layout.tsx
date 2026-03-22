@@ -6,12 +6,11 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { useNotifications } from "../hooks/useNotifications";
+import { useTheme } from "../hooks/useTheme";
 import { AuthProvider, useAuth } from "../src/store/AuthContext";
 import { CartProvider } from "../src/store/CartContext";
 import { FavoritesProvider } from "../src/store/FavoritesContext";
-import { Colors } from "../constants/theme";
-
-const C = Colors.dark;
+import { ThemeProvider } from "../src/store/ThemeContext";
 
 // Native splash'ı JS hazır olana kadar tut
 SplashScreen.preventAutoHideAsync();
@@ -19,41 +18,42 @@ SplashScreen.preventAutoHideAsync();
 // ── İç navigatör (Provider'ların içinde — hook'lar burada çalışır) ─────────────
 function RootNavigator() {
   const { isLoading, user } = useAuth();
+  const { colors, isDark }  = useTheme();
   useNotifications(user?.id ?? null);
 
-  // Auth kontrolü bitti → splash'ı gizle
   useEffect(() => {
-    if (!isLoading) {
-      SplashScreen.hideAsync();
-    }
+    if (!isLoading) SplashScreen.hideAsync();
   }, [isLoading]);
 
-  // Splash kapanana kadar boş döndür (native splash arkada gösteriyor)
   if (isLoading) return null;
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown:  false,
-        contentStyle: { backgroundColor: C.background },
-      }}
-    >
-      <Stack.Screen name="index" />
-      <Stack.Screen name="odeme" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerShown:  false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="odeme" options={{ headerShown: false }} />
+      </Stack>
+      <StatusBar style={isDark ? "light" : "dark"} />
+    </>
   );
 }
 
 // ── Root Layout (Provider Ağacı) ───────────────────────────────────────────────
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <FavoritesProvider>
-          <RootNavigator />
-          <StatusBar style="light" />
-        </FavoritesProvider>
-      </CartProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <FavoritesProvider>
+            <RootNavigator />
+          </FavoritesProvider>
+        </CartProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

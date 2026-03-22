@@ -8,23 +8,23 @@
 //   }), [colors]);
 //
 // Eski ekranlar dokunulduğunda (izci kuralı) bu sisteme migrate edilir.
-import { useColorScheme } from "react-native";
 import { Colors, type ThemeColors } from "../constants/theme";
+import { useThemeContext } from "../src/store/ThemeContext";
 
 interface UseThemeReturn {
-  colors:  ThemeColors;
-  isDark:  boolean;
-  scheme:  "dark" | "light";
+  colors:      ThemeColors;
+  isDark:      boolean;
+  scheme:      "dark" | "light";
+  toggleTheme: () => void;
 }
 
 export function useTheme(): UseThemeReturn {
-  const systemScheme = useColorScheme();
-  // Sistem teması yoksa (simulator/web önizleme) dark'a düş
-  const scheme: "dark" | "light" = systemScheme === "light" ? "light" : "dark";
+  const { scheme, isDark, toggleTheme } = useThemeContext();
 
   return {
     colors: Colors[scheme],
-    isDark: scheme === "dark",
+    isDark,
     scheme,
+    toggleTheme,
   };
 }
