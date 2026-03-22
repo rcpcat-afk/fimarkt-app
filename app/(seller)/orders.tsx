@@ -229,43 +229,42 @@ export default function SellerOrdersScreen() {
 
       {/* Chip Bar */}
       <View style={styles.chipBarWrap}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10 }}
-        >
-        {CHIPS.map(chip => {
-          const isActive = activeTab === chip.status;
-          const count    = counts[chip.status] ?? 0;
-          return (
-            <TouchableOpacity
-              key={chip.status}
-              onPress={() => setActiveTab(chip.status)}
-              style={{
-                flexDirection: "row", alignItems: "center", gap: 5,
-                paddingHorizontal: 12, paddingVertical: 7,
-                borderRadius: 99, marginRight: 8, flexShrink: 0,
-                backgroundColor: isActive ? "#ff6b2b" : colors.surface2,
-                borderWidth: 1,
-                borderColor: isActive ? "#ff6b2b" : colors.border,
-              }}
-            >
-              <Text style={{ fontSize: 11, fontWeight: "800", color: isActive ? "#fff" : colors.mutedForeground }}>
-                {chip.dot} {chip.label}
-              </Text>
-              {count > 0 && (
-                <View style={{
-                  backgroundColor: isActive ? "rgba(255,255,255,0.25)" : colors.surface,
-                  borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1,
-                }}>
-                  <Text style={{ fontSize: 9, fontWeight: "900", color: isActive ? "#fff" : colors.mutedForeground }}>
-                    {count}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}>
+            {CHIPS.map(chip => {
+              const isActive = activeTab === chip.status;
+              const count    = counts[chip.status] ?? 0;
+              return (
+                <TouchableOpacity
+                  key={chip.status}
+                  onPress={() => setActiveTab(chip.status)}
+                  style={{
+                    flexDirection: "row", alignItems: "center",
+                    paddingHorizontal: 12, paddingVertical: 7,
+                    borderRadius: 99,
+                    backgroundColor: isActive ? "#ff6b2b" : colors.surface2,
+                    borderWidth: 1,
+                    borderColor: isActive ? "#ff6b2b" : colors.border,
+                  }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: "800", color: isActive ? "#fff" : colors.mutedForeground }}>
+                    {chip.dot} {chip.label}
                   </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+                  {count > 0 && (
+                    <View style={{
+                      marginLeft: 5,
+                      backgroundColor: isActive ? "rgba(255,255,255,0.25)" : colors.surface,
+                      borderRadius: 99, paddingHorizontal: 6, paddingVertical: 1,
+                    }}>
+                      <Text style={{ fontSize: 9, fontWeight: "900", color: isActive ? "#fff" : colors.mutedForeground }}>
+                        {count}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </ScrollView>
       </View>
 
