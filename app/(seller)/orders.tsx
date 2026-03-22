@@ -173,7 +173,7 @@ export default function SellerOrdersScreen() {
     backArrow:   { fontSize: 22, color: colors.foreground, lineHeight: 28, marginTop: -2 },
     headerTitle: { fontSize: 16, fontWeight: "900", color: colors.foreground },
     headerSub:   { fontSize: 10, color: colors.mutedForeground, marginTop: 1 },
-    chipBar:     { paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border },
+    chipBar:     { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
     list:        { flex: 1 },
     listContent: { paddingHorizontal: 16, paddingTop: 12 },
     emptyBox:    { alignItems: "center", paddingTop: 60, gap: 8 },
@@ -232,7 +232,7 @@ export default function SellerOrdersScreen() {
         horizontal
         showsHorizontalScrollIndicator={false}
         style={styles.chipBar}
-        contentContainerStyle={{ gap: 8, alignItems: "center" }}
+        contentContainerStyle={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 2 }}
       >
         {CHIPS.map(chip => {
           const isActive = activeTab === chip.status;
@@ -244,7 +244,7 @@ export default function SellerOrdersScreen() {
               style={{
                 flexDirection: "row", alignItems: "center", gap: 5,
                 paddingHorizontal: 12, paddingVertical: 7,
-                borderRadius: 99,
+                borderRadius: 99, marginRight: 8,
                 backgroundColor: isActive ? "#ff6b2b" : colors.surface2,
                 borderWidth: 1,
                 borderColor: isActive ? "#ff6b2b" : colors.border,
