@@ -1,7 +1,7 @@
 // ─── Dijital Kütüphanem ────────────────────────────────────────────────────────
-// Satın alınan STL/OBJ/STEP dosyaları koleksiyonu
-// • Arama + kategori filtresi (yatay scroll chip'ler)
-// • hasUpdate → mavi parlayan "Yeni Versiyon" rozeti
+// Yatay kart listesi (tekliflerim pattern) — grid layout yok
+// • Arama + kategori filtresi
+// • hasUpdate → mavi "Yeni Versiyon" rozeti
 // • "Fimarkt'ta Ürettir" → /(print)/print-upload
 import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
@@ -23,7 +23,6 @@ import {
   type LibraryItem,
 } from "../../lib/mock-data/library";
 
-// ─── Dosya formatı renkleri ───────────────────────────────────────────────────
 const FORMAT_COLOR: Record<string, string> = {
   STL:  "#3b82f6",
   OBJ:  "#8b5cf6",
@@ -31,51 +30,58 @@ const FORMAT_COLOR: Record<string, string> = {
   ZIP:  "#6b7280",
 };
 
-// ─── Kart Bileşeni ────────────────────────────────────────────────────────────
+// ─── Kart — Yatay layout (image sol, içerik sağ) ─────────────────────────────
 function LibraryCard({ item, onPrint }: { item: LibraryItem; onPrint: () => void }) {
   return (
-    <View style={styles.card}>
-      {/* Görsel Alan */}
-      <View style={[styles.imageArea, { backgroundColor: item.bgColor }]}>
-        <Text style={styles.cardEmoji}>{item.emoji}</Text>
-
-        {/* Yeni Versiyon rozeti */}
+    <View style={[styles.card, item.hasUpdate && styles.cardHighlight]}>
+      {/* Sol: emoji kutusu */}
+      <View style={[styles.imageBox, { backgroundColor: item.bgColor }]}>
+        <Text style={styles.emoji}>{item.emoji}</Text>
         {item.hasUpdate && (
-          <View style={styles.updateBadge}>
-            <Text style={styles.updateBadgeText}>↑ {item.newVersion}</Text>
-          </View>
+          <View style={styles.updateDot} />
         )}
-
-        {/* Format rozeti */}
-        <View style={[styles.formatBadge, { backgroundColor: FORMAT_COLOR[item.fileFormat] ?? "#6b7280" }]}>
-          <Text style={styles.formatBadgeText}>{item.fileFormat}</Text>
-        </View>
       </View>
 
-      {/* Bilgi */}
-      <View style={styles.cardBody}>
-        <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
-        <Text style={styles.cardDesigner} numberOfLines={1}>by {item.designer}</Text>
-
-        {/* Versiyon + Boyut */}
-        <View style={styles.metaRow}>
-          <Text style={styles.metaVersion}>{item.version}</Text>
-          <Text style={styles.metaSize}>{item.fileSize}</Text>
+      {/* Sağ: bilgi + butonlar */}
+      <View style={styles.content}>
+        {/* Üst satır: isim + format */}
+        <View style={styles.titleRow}>
+          <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+          <View style={[styles.formatTag, { backgroundColor: FORMAT_COLOR[item.fileFormat] ?? "#6b7280" }]}>
+            <Text style={styles.formatText}>{item.fileFormat}</Text>
+          </View>
         </View>
 
-        {/* Buton grubu */}
-        <View style={styles.btnRow}>
+        {/* Tasarımcı + meta */}
+        <Text style={styles.designer}>by {item.designer}</Text>
+        <View style={styles.metaRow}>
+          <Text style={styles.metaChip}>{item.version}</Text>
+          <Text style={styles.metaDot}>·</Text>
+          <Text style={styles.metaChip}>{item.fileSize}</Text>
+          <Text style={styles.metaDot}>·</Text>
+          <Text style={styles.metaChip}>{item.purchaseDate}</Text>
+        </View>
+
+        {/* Güncelleme bildirimi */}
+        {item.hasUpdate && (
+          <Text style={styles.updateNotice}>
+            ↑ Yeni versiyon mevcut: {item.newVersion}
+          </Text>
+        )}
+
+        {/* Butonlar */}
+        <View style={styles.actions}>
           {item.hasUpdate ? (
-            <TouchableOpacity style={styles.updateBtn} activeOpacity={0.8}>
-              <Text style={styles.updateBtnText}>⬆ {item.newVersion}</Text>
+            <TouchableOpacity style={styles.btnUpdate} activeOpacity={0.8}>
+              <Text style={styles.btnUpdateText}>⬆ Güncelle</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.downloadBtn} activeOpacity={0.8}>
-              <Text style={styles.downloadBtnText}>⬇ İndir</Text>
+            <TouchableOpacity style={styles.btnDownload} activeOpacity={0.8}>
+              <Text style={styles.btnDownloadText}>⬇ İndir</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.printBtn} activeOpacity={0.8} onPress={onPrint}>
-            <Text style={styles.printBtnText}>🖨</Text>
+          <TouchableOpacity style={styles.btnPrint} activeOpacity={0.8} onPress={onPrint}>
+            <Text style={styles.btnPrintText}>🖨 Ürettir</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -107,12 +113,6 @@ export default function LibraryScreen() {
 
   const updateCount = MOCK_LIBRARY.filter(i => i.hasUpdate).length;
 
-  // 2-kolon satırlar (favorites.tsx ile aynı pattern)
-  const libRows: LibraryItem[][] = [];
-  for (let i = 0; i < filtered.length; i += 2) {
-    libRows.push(filtered.slice(i, i + 2));
-  }
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
@@ -127,14 +127,14 @@ export default function LibraryScreen() {
           <Text style={styles.subtitle}>{MOCK_LIBRARY.length} dosya · bulut depolamada güvende</Text>
         </View>
         {updateCount > 0 && (
-          <View style={styles.updateCountBadge}>
-            <Text style={styles.updateCountText}>{updateCount} yeni</Text>
+          <View style={styles.updateBadge}>
+            <Text style={styles.updateBadgeText}>{updateCount} yeni</Text>
           </View>
         )}
       </View>
 
       {/* Arama */}
-      <View style={styles.searchWrapper}>
+      <View style={styles.searchBar}>
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
@@ -145,52 +145,46 @@ export default function LibraryScreen() {
         />
       </View>
 
-      {/* Kategori filtresi */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterRow}
-      >
-        {FILTER_TABS.map(tab => (
-          <TouchableOpacity
-            key={tab}
-            style={[styles.filterChip, category === tab && styles.filterChipActive]}
-            onPress={() => setCategory(tab)}
-          >
-            <Text style={[styles.filterChipText, category === tab && styles.filterChipTextActive]}>
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Kategori filtresi — tekliflerim tabsWrapper pattern */}
+      <View style={styles.filterWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContent}
+        >
+          {FILTER_TABS.map(tab => (
+            <TouchableOpacity
+              key={tab}
+              style={[styles.chip, category === tab && styles.chipActive]}
+              onPress={() => setCategory(tab)}
+            >
+              <Text style={[styles.chipText, category === tab && styles.chipTextActive]}>
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
-      {/* Kart listesi */}
+      {/* Kart listesi — tekliflerim gibi dikey ScrollView */}
       <ScrollView
         style={styles.list}
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        {libRows.length > 0 ? (
-          <View style={styles.grid}>
-            {libRows.map((row, i) => (
-              <View key={i} style={styles.gridRow}>
-                {row.map(item => (
-                  <LibraryCard
-                    key={item.id}
-                    item={item}
-                    onPrint={() => router.push("/(print)/print-upload" as never)}
-                  />
-                ))}
-                {/* Tek kartlı son satır için dolgu */}
-                {row.length === 1 && <View style={{ flex: 1 }} />}
-              </View>
-            ))}
-          </View>
+        {filtered.length > 0 ? (
+          filtered.map(item => (
+            <LibraryCard
+              key={item.id}
+              item={item}
+              onPrint={() => router.push("/(print)/print-upload" as never)}
+            />
+          ))
         ) : (
-          <View style={styles.emptyState}>
+          <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>📭</Text>
             <Text style={styles.emptyTitle}>Sonuç bulunamadı</Text>
-            <Text style={styles.emptySubtitle}>Arama terimini veya filtreyi değiştir.</Text>
+            <Text style={styles.emptySub}>Arama terimini veya filtreyi değiştir.</Text>
           </View>
         )}
 
@@ -212,136 +206,164 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    gap: 12,
   },
   backBtn: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: Colors.surface2,
     borderWidth: 1, borderColor: Colors.border,
     alignItems: "center", justifyContent: "center",
-    marginRight: 12,
   },
-  backArrow:        { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
-  headerCenter:     { flex: 1 },
-  title:            { fontSize: 18, fontWeight: "800", color: Colors.text },
-  subtitle:         { fontSize: 11, color: Colors.text2, marginTop: 1 },
-  updateCountBadge: {
+  backArrow:    { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
+  headerCenter: { flex: 1 },
+  title:        { fontSize: 18, fontWeight: "800", color: Colors.text },
+  subtitle:     { fontSize: 11, color: Colors.text2, marginTop: 1 },
+  updateBadge: {
     paddingHorizontal: 10, paddingVertical: 4,
     borderRadius: 99, backgroundColor: "#1d4ed8",
-    marginLeft: 8,
   },
-  updateCountText: { fontSize: 11, fontWeight: "800", color: "#fff" },
+  updateBadgeText: { fontSize: 11, fontWeight: "800", color: "#fff" },
 
   // Arama
-  searchWrapper: {
+  searchBar: {
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 16,
-    marginBottom: 10,
+    marginBottom: 8,
+    height: 44,
     backgroundColor: Colors.surface2,
     borderRadius: 12,
     borderWidth: 1, borderColor: Colors.border,
     paddingHorizontal: 12,
-    height: 44,
   },
   searchIcon:  { fontSize: 14, marginRight: 8 },
   searchInput: { flex: 1, fontSize: 13, color: Colors.text },
 
-  // Filtre
-  filterRow: {
+  // Filtre — boş wrapper (tekliflerim tabsWrapper gibi)
+  filterWrapper: {},
+  filterContent: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingVertical: 8,
   },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
+  chip: {
+    paddingHorizontal: 14, paddingVertical: 7,
     borderRadius: 99,
     backgroundColor: Colors.surface2,
     borderWidth: 1, borderColor: Colors.border,
     marginRight: 8,
-    alignSelf: "flex-start",
   },
-  filterChipActive:     { borderColor: Colors.accent, backgroundColor: Colors.accent },
-  filterChipText:       { fontSize: 12, fontWeight: "600", color: Colors.text2 },
-  filterChipTextActive: { color: "#fff" },
+  chipActive:     { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  chipText:       { fontSize: 12, fontWeight: "600", color: Colors.text2 },
+  chipTextActive: { color: "#fff" },
 
   // Liste
   list:        { flex: 1 },
-  listContent: { paddingHorizontal: 12, paddingTop: 8 },
+  listContent: { paddingHorizontal: 16, paddingTop: 4 },
 
-  // Grid — favorites.tsx ile aynı kanıtlanmış pattern
-  grid:    { gap: 10 },
-  gridRow: { flexDirection: "row", gap: 10 },
-
-  // Kart — flex:1 ile satırdaki diğer kartla eşit genişlik alır
+  // ── Kart (yatay, tekliflerim card gibi) ──
   card: {
-    flex: 1,
+    flexDirection: "row",
     backgroundColor: Colors.surface2,
     borderRadius: 16,
     borderWidth: 1, borderColor: Colors.border,
+    marginBottom: 12,
     overflow: "hidden",
   },
+  cardHighlight: {
+    borderColor: "#1d4ed880",
+    shadowColor: "#1d4ed8",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
 
-  // Görsel alan
-  imageArea: {
-    aspectRatio: 1,
+  // Sol: emoji kutusu
+  imageBox: {
+    width: 80,
     alignItems: "center",
     justifyContent: "center",
   },
-  cardEmoji: { fontSize: 36 },
-
-  // Rozetler
-  updateBadge: {
-    position: "absolute", top: 7, left: 7,
-    paddingHorizontal: 7, paddingVertical: 3,
-    borderRadius: 99, backgroundColor: "#1d4ed8",
+  emoji: { fontSize: 32 },
+  updateDot: {
+    position: "absolute",
+    top: 8, right: 8,
+    width: 10, height: 10,
+    borderRadius: 5,
+    backgroundColor: "#3b82f6",
+    borderWidth: 1.5, borderColor: Colors.surface2,
   },
-  updateBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
-  formatBadge: {
-    position: "absolute", bottom: 7, right: 7,
-    paddingHorizontal: 7, paddingVertical: 2,
-    borderRadius: 99,
-  },
-  formatBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
 
-  // Kart içi
-  cardBody:     { padding: 10 },
-  cardName:     { fontSize: 12, fontWeight: "700", color: Colors.text, lineHeight: 16, marginBottom: 2 },
-  cardDesigner: { fontSize: 10, color: Colors.text3, marginBottom: 6 },
-  metaRow:      { flexDirection: "row", alignItems: "center", marginBottom: 8 },
-  metaVersion:  { fontSize: 11, fontWeight: "700", color: Colors.accent, marginRight: 8 },
-  metaSize:     { fontSize: 10, color: Colors.text2 },
-
-  // Buton satırı — yatay, favorites.tsx actions gibi
-  btnRow: { flexDirection: "row", gap: 6 },
-  updateBtn: {
-    flex: 1, paddingVertical: 7, borderRadius: 10,
-    alignItems: "center", backgroundColor: "#1d4ed8",
+  // Sağ: içerik
+  content: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingRight: 12,
+    paddingLeft: 10,
   },
-  updateBtnText: { fontSize: 10, fontWeight: "800", color: "#fff" },
-  downloadBtn: {
-    flex: 1, paddingVertical: 7, borderRadius: 10,
+  titleRow: {
+    flexDirection: "row",
     alignItems: "center",
+    gap: 6,
+    marginBottom: 3,
+  },
+  name: { flex: 1, fontSize: 13, fontWeight: "700", color: Colors.text },
+  formatTag: {
+    paddingHorizontal: 6, paddingVertical: 2,
+    borderRadius: 6,
+  },
+  formatText: { fontSize: 9, fontWeight: "800", color: "#fff" },
+
+  designer: { fontSize: 11, color: Colors.text3, marginBottom: 4 },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  metaChip: { fontSize: 10, color: Colors.text2, fontWeight: "600" },
+  metaDot:  { fontSize: 10, color: Colors.text3, marginHorizontal: 4 },
+
+  updateNotice: {
+    fontSize: 10, fontWeight: "700", color: "#3b82f6",
+    marginBottom: 6,
+  },
+
+  // Butonlar — yatay sıra
+  actions: {
+    flexDirection: "row",
+    gap: 6,
+  },
+  btnUpdate: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: "#1d4ed8",
+  },
+  btnUpdateText: { fontSize: 11, fontWeight: "800", color: "#fff" },
+
+  btnDownload: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8,
     backgroundColor: Colors.surface,
     borderWidth: 1, borderColor: Colors.border,
   },
-  downloadBtnText: { fontSize: 10, fontWeight: "700", color: Colors.text },
-  printBtn: {
-    paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10,
-    alignItems: "center", backgroundColor: Colors.accent,
+  btnDownloadText: { fontSize: 11, fontWeight: "700", color: Colors.text },
+
+  btnPrint: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 8, backgroundColor: Colors.accent,
   },
-  printBtnText: { fontSize: 13 },
+  btnPrintText: { fontSize: 11, fontWeight: "800", color: "#fff" },
 
   // Boş durum
-  emptyState:    { alignItems: "center", paddingTop: 60, paddingBottom: 40 },
-  emptyEmoji:    { fontSize: 48, marginBottom: 12 },
-  emptyTitle:    { fontSize: 15, fontWeight: "700", color: Colors.text },
-  emptySubtitle: { fontSize: 12, color: Colors.text2, marginTop: 4 },
+  empty:     { alignItems: "center", paddingTop: 60, gap: 8 },
+  emptyEmoji: { fontSize: 56, marginBottom: 8 },
+  emptyTitle: { fontSize: 18, fontWeight: "800", color: Colors.text },
+  emptySub:   { fontSize: 13, color: Colors.text2, textAlign: "center" },
 
   // Footer
   footerNote: {
     fontSize: 11, color: Colors.text3, textAlign: "center",
-    lineHeight: 16, paddingHorizontal: 16, marginTop: 16,
+    lineHeight: 16, paddingHorizontal: 16, marginTop: 8,
   },
 });
