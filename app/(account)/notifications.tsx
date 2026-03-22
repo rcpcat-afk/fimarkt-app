@@ -1,95 +1,113 @@
+// ─── Bildirim Tercihleri — Auto-Save Toggle Matrix (App) ─────────────────────
+// 6 konu × 3 kanal (Push / E-posta / SMS) = 18 native Switch
+// Kaydet butonu YOK — her değişimde anında state + Animated fade Toast
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Animated,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants";
 
-const MOCK_NOTIFICATIONS = [
+// ─── Tipler ────────────────────────────────────────────────────────────────────
+type Channel = "push" | "email" | "sms";
+type Prefs   = Record<string, Record<Channel, boolean>>;
+
+interface Topic    { key: string; label: string; hint: string }
+interface Category { key: string; icon: string; label: string; topics: Topic[] }
+
+// ─── Matris Konfigürasyonu ────────────────────────────────────────────────────
+const CATEGORIES: Category[] = [
   {
-    id: "1",
-    type: "order",
-    title: "Siparişiniz Kargoya Verildi",
-    desc: "#12345 numaralı siparişiniz kargoya teslim edildi.",
-    time: "2 saat önce",
-    read: false,
-    icon: "🚚",
-    color: "#0ea5e9",
+    key:   "orders",
+    icon:  "📦",
+    label: "Sipariş ve Teslimat",
+    topics: [
+      { key: "order_status", label: "Sipariş durumu güncellemesi", hint: "Onaylandı, hazırlandı veya iptal edildi." },
+      { key: "shipping",     label: "Kargo ve teslimat takibi",    hint: "Kargoya verildi, yolda ve teslim edildi." },
+    ],
   },
   {
-    id: "2",
-    type: "order",
-    title: "Siparişiniz Hazırlanıyor",
-    desc: "#12344 numaralı siparişiniz üretim aşamasında.",
-    time: "1 gün önce",
-    read: false,
-    icon: "⚙️",
-    color: "#f59e0b",
+    key:   "messages",
+    icon:  "💬",
+    label: "Mesajlar ve Teklifler",
+    topics: [
+      { key: "offer_received", label: "Yeni teklif geldi",  hint: "Kapatırsanız teklifleri geç görebilirsiniz." },
+      { key: "chat_message",   label: "Mühendis mesajı",    hint: "Aktif sohbetlere gelen yeni mesajlar." },
+    ],
   },
   {
-    id: "3",
-    type: "campaign",
-    title: "Yeni Kampanya!",
-    desc: "Sanatkat'ta seçili ürünlerde %20 indirim. Kaçırmayın!",
-    time: "2 gün önce",
-    read: true,
-    icon: "🎉",
-    color: Colors.accent,
-  },
-  {
-    id: "4",
-    type: "order",
-    title: "Siparişiniz Teslim Edildi",
-    desc: "#12340 numaralı siparişiniz teslim edildi. İyi günler!",
-    time: "3 gün önce",
-    read: true,
-    icon: "✅",
-    color: "#22c55e",
-  },
-  {
-    id: "5",
-    type: "system",
-    title: "Profil Bilgilerinizi Güncelleyin",
-    desc: "Daha iyi hizmet için adres bilgilerinizi tamamlayın.",
-    time: "5 gün önce",
-    read: true,
-    icon: "👤",
-    color: "#6366f1",
-  },
-  {
-    id: "6",
-    type: "campaign",
-    title: "3D Baskı Fırsatı",
-    desc: "Bu hafta verilen 3D baskı siparişlerinde ücretsiz kargo!",
-    time: "1 hafta önce",
-    read: true,
-    icon: "🖨️",
-    color: Colors.accent,
+    key:   "campaigns",
+    icon:  "🎁",
+    label: "Kampanya ve Fırsatlar",
+    topics: [
+      { key: "campaigns",  label: "Özel indirim ve kampanyalar", hint: "Sana özel indirim kodları ve fırsatlar." },
+      { key: "price_drop", label: "Favori ürün fiyat düşüşü",   hint: "Favorilediğin ürün fiyatı düştüğünde." },
+    ],
   },
 ];
 
+const CHANNELS: { key: Channel; icon: string; label: string }[] = [
+  { key: "push",  icon: "📱", label: "Push"    },
+  { key: "email", icon: "✉️", label: "E-Posta" },
+  { key: "sms",   icon: "💬", label: "SMS"     },
+];
+
+// ─── Başlangıç Prefs ──────────────────────────────────────────────────────────
+const INITIAL_PREFS: Prefs = {
+  order_status:   { push: true,  email: true,  sms: true  },
+  shipping:       { push: true,  email: true,  sms: true  },
+  offer_received: { push: true,  email: true,  sms: false },
+  chat_message:   { push: true,  email: false, sms: false },
+  campaigns:      { push: false, email: true,  sms: false },
+  price_drop:     { push: true,  email: false, sms: false },
+};
+
+// ─── Animated Toast ───────────────────────────────────────────────────────────
+function ToastBanner({ insetBottom }: { insetBottom: number }) {
+  // exported as a hook-friendly component that receives the animated value externally
+  return null; // rendered inline in parent
+}
+
+// ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function NotificationsScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const router  = useRouter();
+  const insets  = useSafeAreaInsets();
+  const [prefs, setPrefs] = useState<Prefs>(INITIAL_PREFS);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // Toast
+  const toastAnim  = useRef(new Animated.Value(0)).current;
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const showToast = useCallback(() => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    Animated.timing(toastAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+    toastTimer.current = setTimeout(() => {
+      Animated.timing(toastAnim, { toValue: 0, duration: 300, useNativeDriver: true }).start();
+    }, 1500);
+  }, [toastAnim]);
+
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current); }, []);
+
+  const handleToggle = (topicKey: string, channel: Channel) => {
+    setPrefs(prev => ({
+      ...prev,
+      [topicKey]: { ...prev[topicKey], [channel]: !prev[topicKey][channel] },
+    }));
+    showToast();
   };
 
-  const markRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    );
-  };
+  const toastTranslateY = toastAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [20, 0],
+  });
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -97,199 +115,175 @@ export default function NotificationsScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Bildirimler</Text>
-          {unreadCount > 0 && (
-            <Text style={styles.headerSub}>
-              {unreadCount} okunmamış bildirim
-            </Text>
-          )}
+        <View style={styles.headerCenter}>
+          <Text style={styles.title}>Bildirim Tercihleri</Text>
+          <Text style={styles.subtitle}>Değişiklikler otomatik kaydedilir</Text>
         </View>
-        {unreadCount > 0 && (
-          <TouchableOpacity style={styles.markAllBtn} onPress={markAllRead}>
-            <Text style={styles.markAllText}>Tümünü Oku</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Okunmamışlar */}
-        {notifications.filter((n) => !n.read).length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Yeni</Text>
-            {notifications
-              .filter((n) => !n.read)
-              .map((n) => (
-                <TouchableOpacity
-                  key={n.id}
-                  style={[styles.card, styles.cardUnread]}
-                  onPress={() => markRead(n.id)}
-                  activeOpacity={0.85}
-                >
-                  <View
-                    style={[
-                      styles.iconWrap,
-                      { backgroundColor: n.color + "22" },
-                    ]}
-                  >
-                    <Text style={styles.iconText}>{n.icon}</Text>
-                  </View>
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardTop}>
-                      <Text style={styles.cardTitle}>{n.title}</Text>
-                      <Text style={styles.cardTime}>{n.time}</Text>
-                    </View>
-                    <Text style={styles.cardDesc}>{n.desc}</Text>
-                  </View>
-                  <View
-                    style={[styles.unreadDot, { backgroundColor: n.color }]}
-                  />
-                </TouchableOpacity>
-              ))}
-          </View>
-        )}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 40 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {CATEGORIES.map((cat, catIdx) => (
+          <View key={cat.key} style={styles.section}>
+            {/* Section Header */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionIcon}>{cat.icon}</Text>
+              <Text style={styles.sectionLabel}>{cat.label}</Text>
+            </View>
 
-        {/* Okunmuşlar */}
-        {notifications.filter((n) => n.read).length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Önceki</Text>
-            {notifications
-              .filter((n) => n.read)
-              .map((n) => (
-                <TouchableOpacity
-                  key={n.id}
-                  style={styles.card}
-                  activeOpacity={0.85}
-                >
-                  <View
-                    style={[
-                      styles.iconWrap,
-                      { backgroundColor: n.color + "11" },
-                    ]}
-                  >
-                    <Text style={[styles.iconText, { opacity: 0.5 }]}>
-                      {n.icon}
-                    </Text>
+            {/* Konu Kartı */}
+            <View style={styles.card}>
+              {cat.topics.map((topic, topicIdx) => (
+                <View key={topic.key}>
+                  {/* Konu başlığı + hint */}
+                  <View style={styles.topicHeader}>
+                    <Text style={styles.topicLabel}>{topic.label}</Text>
+                    <Text style={styles.topicHint}>{topic.hint}</Text>
                   </View>
-                  <View style={styles.cardContent}>
-                    <View style={styles.cardTop}>
-                      <Text style={[styles.cardTitle, { color: Colors.text2 }]}>
-                        {n.title}
-                      </Text>
-                      <Text style={styles.cardTime}>{n.time}</Text>
-                    </View>
-                    <Text style={styles.cardDesc}>{n.desc}</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
-          </View>
-        )}
 
-        <View style={{ height: 40 }} />
+                  {/* 3 kanal toggle satırı */}
+                  {CHANNELS.map((ch, chIdx) => {
+                    const isLast = topicIdx === cat.topics.length - 1 && chIdx === CHANNELS.length - 1;
+                    return (
+                      <View
+                        key={ch.key}
+                        style={[
+                          styles.row,
+                          !isLast && styles.rowBorder,
+                        ]}
+                      >
+                        <View style={styles.rowLeft}>
+                          <Text style={styles.rowIcon}>{ch.icon}</Text>
+                          <Text style={styles.rowLabel}>{ch.label}</Text>
+                        </View>
+                        <Switch
+                          value={prefs[topic.key][ch.key]}
+                          onValueChange={() => handleToggle(topic.key, ch.key)}
+                          trackColor={{ false: Colors.border, true: `${Colors.accent}99` }}
+                          thumbColor={prefs[topic.key][ch.key] ? Colors.accent : Colors.text3}
+                          ios_backgroundColor={Colors.border}
+                        />
+                      </View>
+                    );
+                  })}
+
+                  {/* Konu ayırıcı (son konu değilse) */}
+                  {topicIdx < cat.topics.length - 1 && (
+                    <View style={styles.topicDivider} />
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+
+        {/* Alt bilgi */}
+        <Text style={styles.footerNote}>
+          Push bildirimleri için cihazınızın bildirim izinleri açık olmalıdır.
+          SMS bildirimleri kayıtlı telefon numaranıza gönderilir.
+        </Text>
       </ScrollView>
+
+      {/* Animated Toast — SafeArea üstünde */}
+      <Animated.View
+        style={[
+          styles.toast,
+          {
+            bottom: insets.bottom + 16,
+            opacity: toastAnim,
+            transform: [{ translateY: toastTranslateY }],
+          },
+        ]}
+        pointerEvents="none"
+      >
+        <Text style={styles.toastText}>✓  Kaydedildi</Text>
+      </Animated.View>
     </View>
   );
 }
 
+// ─── Stiller ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
+
+  // Header
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 12, gap: 12,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
+    borderWidth: 1, borderColor: Colors.border,
+    alignItems: "center", justifyContent: "center",
   },
-  backArrow: {
-    fontSize: 28,
-    color: Colors.text,
-    lineHeight: 32,
-    marginTop: -2,
+  backArrow:    { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
+  headerCenter: { flex: 1 },
+  title:        { fontSize: 18, fontWeight: "800", color: Colors.text },
+  subtitle:     { fontSize: 11, color: Colors.text2, marginTop: 1 },
+
+  // List
+  listContent: { paddingHorizontal: 16, paddingTop: 4 },
+
+  // Section
+  section:       { marginBottom: 24 },
+  sectionHeader: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    paddingHorizontal: 4, marginBottom: 8,
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: Colors.text,
-    letterSpacing: -0.5,
-  },
-  headerSub: { fontSize: 12, color: Colors.text2, marginTop: 1 },
-  markAllBtn: {
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 99,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  markAllText: { fontSize: 11, color: Colors.accent, fontWeight: "600" },
-  section: { paddingHorizontal: 16, marginTop: 16 },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: Colors.text3,
-    letterSpacing: 1,
-    textTransform: "uppercase",
-    marginBottom: 10,
-  },
+  sectionIcon:  { fontSize: 16 },
+  sectionLabel: { fontSize: 13, fontWeight: "800", color: Colors.text, textTransform: "uppercase", letterSpacing: 0.5 },
+
+  // Card
   card: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 14,
-    marginBottom: 10,
-    gap: 12,
-    position: "relative",
-  },
-  cardUnread: {
     backgroundColor: Colors.surface2,
-    borderColor: Colors.border,
+    borderRadius: 16,
+    borderWidth: 1, borderColor: Colors.border,
+    overflow: "hidden",
   },
-  iconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
+
+  // Topic header (konu başlığı + hint — kanallara üst başlık)
+  topicHeader: {
+    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8,
   },
-  iconText: { fontSize: 20 },
-  cardContent: { flex: 1 },
-  cardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 4,
+  topicLabel:   { fontSize: 13, fontWeight: "700", color: Colors.text },
+  topicHint:    { fontSize: 11, color: Colors.text2, marginTop: 2, lineHeight: 16 },
+  topicDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 16, marginTop: 4 },
+
+  // Toggle satırı
+  row: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    paddingHorizontal: 16, paddingVertical: 12,
   },
-  cardTitle: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: Colors.text,
-    flex: 1,
-    marginRight: 8,
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+  rowLeft:   { flexDirection: "row", alignItems: "center", gap: 10 },
+  rowIcon:   { fontSize: 15, width: 22, textAlign: "center" },
+  rowLabel:  { fontSize: 13, fontWeight: "600", color: Colors.text },
+
+  // Footer
+  footerNote: {
+    fontSize: 11, color: Colors.text3, textAlign: "center",
+    lineHeight: 17, paddingHorizontal: 16, marginTop: 4,
   },
-  cardTime: { fontSize: 11, color: Colors.text3 },
-  cardDesc: { fontSize: 12, color: Colors.text2, lineHeight: 18 },
-  unreadDot: {
+
+  // Toast
+  toast: {
     position: "absolute",
-    top: 14,
-    right: 14,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    alignSelf: "center",
+    backgroundColor: Colors.green,
+    paddingHorizontal: 20, paddingVertical: 10,
+    borderRadius: 99,
+    shadowColor: Colors.green,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 8,
   },
+  toastText: { fontSize: 13, fontWeight: "800", color: "#fff" },
 });
