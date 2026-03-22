@@ -1,11 +1,10 @@
 // ─── Satıcı Komuta Merkezi — Lite App Dashboard ───────────────────────────────
 // Native kart tabanlı, ScrollView içinde.
 // Web dashboardunun mobil simetrisi: aynı metrikler, native UI dili.
-// react-native-chart-kit ile haftalık ciro line chart.
+// Grafik: sıfır bağımlılık, pure RN View bar chart (Expo Go uyumlu).
 import { useRouter } from "expo-router";
 import React, { useMemo } from "react";
 import {
-  Dimensions,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -13,13 +12,11 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { LineChart } from "react-native-chart-kit";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../hooks/useTheme";
 import { MOCK_SELLER_DASHBOARD } from "../../lib/mock-data/partner-dashboard";
 import type { PartnerOrder, OrderStatus } from "../../lib/types/partner";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const TL = (n: number) =>
   new Intl.NumberFormat("tr-TR", {
     style: "currency", currency: "TRY", maximumFractionDigits: 0,
@@ -140,25 +137,7 @@ export default function SellerDashboardScreen() {
     bottomLabel:{ fontSize: 9, fontWeight: "700", color: colors.mutedForeground },
   }), [colors]);
 
-  const chartData = {
-    labels:   data.weeklyRevenue.map(d => d.day),
-    datasets: [{
-      data:        data.weeklyRevenue.map(d => d.revenue),
-      color:       (opacity = 1) => `rgba(255, 107, 43, ${opacity})`,
-      strokeWidth: 2.5,
-    }],
-  };
-
-  const chartConfig = {
-    backgroundColor:          "transparent",
-    backgroundGradientFrom:   colors.surface2,
-    backgroundGradientTo:     colors.surface2,
-    decimalPlaces:            0,
-    color:                    (opacity = 1) => `rgba(255, 107, 43, ${opacity})`,
-    labelColor:               (opacity = 1) => `rgba(136, 136, 176, ${opacity})`,
-    propsForDots:             { r: "4", strokeWidth: "2", stroke: "#ff6b2b" },
-    propsForBackgroundLines:  { strokeDasharray: "4 4", stroke: colors.border },
-  };
+  const chartMax = Math.max(...data.weeklyRevenue.map(d => d.revenue));
 
   const bottomNavItems = [
     { icon: "⚡", label: "Dashboard", active: true  },
@@ -218,22 +197,36 @@ export default function SellerDashboardScreen() {
           </View>
         </View>
 
-        {/* ── Ciro Grafiği ── */}
+        {/* ── Ciro Grafiği (Pure RN — sıfır bağımlılık) ── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Son 7 Gün — Ciro Trendi</Text>
-          <View style={[styles.card, { paddingHorizontal: 0, paddingVertical: 16 }]}>
-            <LineChart
-              data={chartData}
-              width={SCREEN_WIDTH - 32}
-              height={160}
-              chartConfig={chartConfig}
-              bezier
-              withInnerLines={true}
-              withOuterLines={false}
-              style={{ borderRadius: 18 }}
-              yAxisSuffix="₺"
-              formatYLabel={v => `${(Number(v) / 1000).toFixed(0)}K`}
-            />
+          <View style={styles.card}>
+            {/* Y ekseni etiketi */}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+              <Text style={{ fontSize: 9, color: "#5a5a7a" }}>{TL(chartMax)}</Text>
+              <Text style={{ fontSize: 9, color: "#5a5a7a" }}>Haftalık Toplam: {TL(data.weeklyRevenue.reduce((s, d) => s + d.revenue, 0))}</Text>
+            </View>
+            {/* Bar chart */}
+            <View style={{ flexDirection: "row", alignItems: "flex-end", height: 90, gap: 6 }}>
+              {data.weeklyRevenue.map((d, i) => {
+                const pct = d.revenue / chartMax;
+                return (
+                  <View key={i} style={{ flex: 1, alignItems: "center", gap: 5 }}>
+                    <Text style={{ fontSize: 8, color: "#8888b0", fontFamily: "monospace" }}>
+                      {(d.revenue / 1000).toFixed(1)}K
+                    </Text>
+                    <View style={{
+                      width: "100%",
+                      height: Math.max(pct * 60, 4),
+                      borderRadius: 5,
+                      backgroundColor: "#ff6b2b",
+                      opacity: 0.5 + pct * 0.5,
+                    }} />
+                    <Text style={{ fontSize: 9, color: "#8888b0", fontWeight: "700" }}>{d.day}</Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
         </View>
 
