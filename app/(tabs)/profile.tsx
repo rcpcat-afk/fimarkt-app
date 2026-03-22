@@ -467,6 +467,23 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* ══ 🛠 GEÇİCİ TEST BÖLÜMÜ — B6 Kontrolü için ════════════════════ */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: "#f59e0b" }]}>🛠 Geliştirici Testleri</Text>
+          <View style={[styles.settingCard, { borderColor: "#f59e0b40" }]}>
+            <SettingRow
+              icon="🏢"
+              label="Satıcı Başvurusu (Onboarding)"
+              onPress={() => router.push("/(seller)/onboarding" as never)}
+            />
+            <SettingRow
+              icon="⚡"
+              label="Satıcı Dashboard"
+              onPress={() => router.push("/(seller)/dashboard" as never)}
+            />
+          </View>
+        </View>
+
         <View style={{ height: 24 }} />
       </ScrollView>
     </View>
