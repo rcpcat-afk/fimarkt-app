@@ -1,10 +1,12 @@
+// ─── Profil & Müşteri Komuta Merkezi ─────────────────────────────────────────
+// Üst bölüm: Dashboard (BentoStats, LiveTracker, SmartReminders) — mock data
+// Alt bölüm: Hesap ayarları ve navigasyon — gerçek API datası
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -16,6 +18,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants";
 import { useTabBarHeight } from "../../hooks/useTabBarHeight";
+import { MOCK_DASHBOARD } from "../../lib/mock-data/dashboard";
 import {
   getMyCustomer,
   getMyOrders,
@@ -23,36 +26,25 @@ import {
 } from "../../src/services/api";
 import { useAuth } from "../../src/store/AuthContext";
 
+// ─── SettingRow ───────────────────────────────────────────────────────────────
 interface SettingRowProps {
-  icon: string;
-  label: string;
-  value?: string;
-  onPress?: () => void;
-  isSwitch?: boolean;
-  switchValue?: boolean;
-  onSwitchChange?: (val: boolean) => void;
-  danger?: boolean;
+  icon:           string;
+  label:          string;
+  value?:         string;
+  onPress?:       () => void;
+  isSwitch?:      boolean;
+  switchValue?:   boolean;
+  onSwitchChange?:(val: boolean) => void;
+  danger?:        boolean;
 }
 
 const SettingRow = ({
-  icon,
-  label,
-  value,
-  onPress,
-  isSwitch,
-  switchValue,
-  onSwitchChange,
-  danger,
+  icon, label, value, onPress,
+  isSwitch, switchValue, onSwitchChange, danger,
 }: SettingRowProps) => (
-  <TouchableOpacity
-    style={styles.settingRow}
-    onPress={onPress}
-    disabled={isSwitch}
-  >
+  <TouchableOpacity style={styles.settingRow} onPress={onPress} disabled={isSwitch}>
     <Text style={styles.settingIcon}>{icon}</Text>
-    <Text style={[styles.settingLabel, danger && { color: Colors.red }]}>
-      {label}
-    </Text>
+    <Text style={[styles.settingLabel, danger && { color: Colors.red }]}>{label}</Text>
     <View style={styles.settingRight}>
       {isSwitch ? (
         <Switch
@@ -64,32 +56,191 @@ const SettingRow = ({
       ) : (
         <>
           {value && <Text style={styles.settingValue}>{value}</Text>}
-          <Text style={[styles.settingArrow, danger && { color: Colors.red }]}>
-            ›
-          </Text>
+          <Text style={[styles.settingArrow, danger && { color: Colors.red }]}>›</Text>
         </>
       )}
     </View>
   </TouchableOpacity>
 );
 
+// ─── LiveTracker (App) ────────────────────────────────────────────────────────
+const LiveTracker = () => {
+  const { liveOrder } = MOCK_DASHBOARD;
+  return (
+    <View style={styles.trackerCard}>
+      {/* Sol turuncu şerit */}
+      <View style={styles.trackerStripe} />
+
+      {/* Başlık */}
+      <View style={styles.trackerHeader}>
+        <View style={styles.trackerPulseWrap}>
+          <View style={styles.trackerPulseDot} />
+        </View>
+        <Text style={styles.trackerTitle}>Canlı Üretim Takibi</Text>
+        <Text style={styles.trackerOrderId}>#{liveOrder.id}</Text>
+      </View>
+
+      {/* Ürün adı */}
+      <Text style={styles.trackerProduct} numberOfLines={1}>
+        {liveOrder.productName}
+      </Text>
+
+      {/* Stepper */}
+      <View style={styles.stepperRow}>
+        {liveOrder.steps.map((step, i) => {
+          const isDone   = i < liveOrder.currentStep;
+          const isActive = i === liveOrder.currentStep;
+          return (
+            <React.Fragment key={i}>
+              {/* Step node */}
+              <View style={styles.stepNode}>
+                <View
+                  style={[
+                    styles.stepCircle,
+                    isDone   && styles.stepCircleDone,
+                    isActive && styles.stepCircleActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.stepCircleText,
+                      (isDone || isActive) && { color: "#fff" },
+                    ]}
+                  >
+                    {isDone ? "✓" : i + 1}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.stepLabel,
+                    isDone   && { color: Colors.green },
+                    isActive && { color: Colors.accent },
+                  ]}
+                  numberOfLines={2}
+                >
+                  {step.label}
+                </Text>
+                <Text style={styles.stepDate}>{step.date ?? "—"}</Text>
+              </View>
+
+              {/* Bağlantı çizgisi */}
+              {i < liveOrder.steps.length - 1 && (
+                <View
+                  style={[
+                    styles.stepLine,
+                    isDone && { backgroundColor: Colors.green },
+                  ]}
+                />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </View>
+
+      {/* Alt bilgi: teslimat */}
+      <View style={styles.trackerFooter}>
+        <View>
+          <Text style={styles.trackerDeliveryLabel}>Tahmini Teslimat</Text>
+          <Text style={styles.trackerDeliveryDate}>{liveOrder.estimatedDelivery}</Text>
+        </View>
+      </View>
+    </View>
+  );
+};
+
+// ─── BentoStats (App) ─────────────────────────────────────────────────────────
+const BENTO_ITEMS = [
+  { key: "activeOrders",  label: "Aktif Sipariş",  icon: "📦", color: Colors.accent },
+  { key: "pendingQuotes", label: "Bekleyen Teklif", icon: "📋", color: Colors.yellow },
+  { key: "favorites",     label: "Favorilerim",     icon: "❤️", color: "#e879f9"     },
+  { key: "walletBalance", label: "Cüzdanım",        icon: "💰", color: Colors.green  },
+] as const;
+
+const BentoStats = () => {
+  const { stats } = MOCK_DASHBOARD;
+  return (
+    <View style={styles.bentoGrid}>
+      {BENTO_ITEMS.map((item) => {
+        const value = stats[item.key as keyof typeof stats];
+        const display =
+          item.key === "walletBalance" ? `${value} ₺` : String(value);
+        return (
+          <View
+            key={item.key}
+            style={[styles.bentoCard, { borderColor: Colors.border }]}
+          >
+            <View
+              style={[
+                styles.bentoIcon,
+                { backgroundColor: item.color + "18" },
+              ]}
+            >
+              <Text style={styles.bentoIconText}>{item.icon}</Text>
+            </View>
+            <Text style={[styles.bentoValue, { color: item.color }]}>
+              {display}
+            </Text>
+            <Text style={styles.bentoLabel}>{item.label}</Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+};
+
+// ─── SmartReminders (App) ────────────────────────────────────────────────────
+const SmartReminders = ({ onCartPress }: { onCartPress: () => void }) => {
+  const { cartItemCount, cartTotal, recentlyViewed } = MOCK_DASHBOARD;
+  return (
+    <View style={styles.section}>
+      {/* Sepet hatırlatıcısı */}
+      {cartItemCount > 0 && (
+        <TouchableOpacity style={styles.cartReminder} onPress={onCartPress} activeOpacity={0.8}>
+          <View style={styles.cartReminderIcon}>
+            <Text style={{ fontSize: 20 }}>🛒</Text>
+          </View>
+          <View style={styles.cartReminderInfo}>
+            <Text style={styles.cartReminderTitle}>Sepetinde {cartItemCount} ürün var</Text>
+            <Text style={styles.cartReminderSub}>{cartTotal} ₺ tutarında</Text>
+          </View>
+          <View style={styles.cartReminderBtn}>
+            <Text style={styles.cartReminderBtnText}>Devam →</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
+      {/* Son incelenenler */}
+      <Text style={styles.sectionTitle}>Son İncelenenler</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
+        {recentlyViewed.map((p) => (
+          <View key={p.id} style={styles.recentCard}>
+            <Text style={{ fontSize: 22, marginBottom: 6 }}>{p.emoji}</Text>
+            <Text style={styles.recentName} numberOfLines={2}>{p.name}</Text>
+            <Text style={styles.recentPrice}>{p.price}</Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
+// ─── Ana Ekran ────────────────────────────────────────────────────────────────
 export default function ProfileScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const router       = useRouter();
+  const insets       = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
   const { user, logout } = useAuth();
-  const [notifications, setNotifications] = useState(true);
-  const [orderUpdates, setOrderUpdates] = useState(true);
-  const [campaigns, setCampaigns] = useState(false);
-  const [orders, setOrders] = useState<WCOrder[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-  const [displayName, setDisplayName] = useState(user?.name || "");
-  const [isKurumsal, setIsKurumsal] = useState(false);
-  const [companyName, setCompanyName] = useState("");
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  const [notifications, setNotifications] = useState(true);
+  const [orderUpdates, setOrderUpdates]   = useState(true);
+  const [campaigns, setCampaigns]         = useState(false);
+  const [orders, setOrders]               = useState<WCOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [displayName, setDisplayName]     = useState(user?.name || "");
+  const [isKurumsal, setIsKurumsal]       = useState(false);
+  const [companyName, setCompanyName]     = useState("");
+
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
@@ -118,33 +269,25 @@ export default function ProfileScreen() {
   };
 
   const orderCounts = {
-    processing: orders.filter(
-      (o) => o.status === "processing" || o.status === "on-hold",
-    ).length,
-    shipped: orders.filter(
-      (o) => o.status === "shipped" || o.status === "hezarfen-shipped",
-    ).length,
-    completed: orders.filter((o) => o.status === "completed").length,
-    cancelled: orders.filter((o) => o.status === "cancelled").length,
+    processing: orders.filter((o) => o.status === "processing" || o.status === "on-hold").length,
+    shipped:    orders.filter((o) => o.status === "shipped" || o.status === "hezarfen-shipped").length,
+    completed:  orders.filter((o) => o.status === "completed").length,
+    cancelled:  orders.filter((o) => o.status === "cancelled").length,
   };
 
   const handleLogout = () => {
     Alert.alert("Çıkış Yap", "Hesabınızdan çıkmak istediğinize emin misiniz?", [
       { text: "İptal", style: "cancel" },
       {
-        text: "Çıkış Yap",
-        style: "destructive",
-        onPress: async () => {
-          await logout();
-          router.replace("/onboarding");
-        },
+        text: "Çıkış Yap", style: "destructive",
+        onPress: async () => { await logout(); router.replace("/onboarding"); },
       },
     ]);
   };
 
-  const name = displayName || user?.name || "Kullanıcı";
-  const avatarSource = isKurumsal && companyName ? companyName : name;
-  const initials = avatarSource
+  const name       = displayName || user?.name || "Kullanıcı";
+  const nameSource = isKurumsal && companyName ? companyName : name;
+  const initials   = nameSource
     .split(" ")
     .map((n: string) => n[0])
     .join("")
@@ -154,104 +297,101 @@ export default function ProfileScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabBarHeight }}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Profil</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: tabBarHeight }}
+      >
+
+        {/* ── Sayfa başlığı ── */}
+        <View style={styles.pageHeader}>
+          <Text style={styles.pageTitle}>Komuta Merkezim</Text>
         </View>
 
-        <View style={styles.userCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
-          <View style={styles.userInfo}>
-            {isKurumsal && companyName ? (
-              <>
-                <Text style={styles.userName}>{companyName}</Text>
-                <Text style={styles.userEmail}>{displayName}</Text>
-                <Text style={styles.userEmail}>{user?.email || ""}</Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.userName}>{name}</Text>
-                <Text style={styles.userEmail}>{user?.email || ""}</Text>
-              </>
+        {/* ══ 1. WELCOME BOARD ══════════════════════════════════════════════ */}
+        <View style={styles.welcomeCard}>
+          {/* Sol: Selamlama + Rozet */}
+          <View style={styles.welcomeLeft}>
+            <Text style={styles.welcomeGreeting}>Hoş Geldin 👋</Text>
+            <Text style={styles.welcomeName} numberOfLines={1}>
+              {isKurumsal && companyName ? companyName : name}
+            </Text>
+            {isKurumsal && companyName && (
+              <Text style={styles.welcomeSub}>{displayName}</Text>
             )}
+            <View style={styles.roleBadge}>
+              <Text style={styles.roleBadgeText}>✦ Bireysel Üye</Text>
+            </View>
           </View>
-          <TouchableOpacity
-            style={styles.editBtn}
-            onPress={() => router.push("/personal-info")}
-          >
-            <Text style={styles.editBtnText}>Düzenle</Text>
-          </TouchableOpacity>
+
+          {/* Sağ: Avatar + Düzenle */}
+          <View style={styles.welcomeRight}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.editBtn}
+              onPress={() => router.push("/personal-info")}
+            >
+              <Text style={styles.editBtnText}>Düzenle</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
+        {/* ══ 2. BENTO STATS ════════════════════════════════════════════════ */}
+        <BentoStats />
+
+        {/* ══ 3. LIVE TRACKER ═══════════════════════════════════════════════ */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Canlı Sipariş Takibi</Text>
+          <LiveTracker />
+        </View>
+
+        {/* ══ 4. SMART REMINDERS ════════════════════════════════════════════ */}
+        <SmartReminders onCartPress={() => router.push("/(account)/cart" as never)} />
+
+        {/* ══ 5. HIZLI NAVİGASYON ═══════════════════════════════════════════ */}
         <View style={styles.quickRow}>
           {[
-            {
-              icon: "📦",
-              label: "Siparişler",
-              onPress: () => router.push("/(tabs)/orders"),
-            },
-            {
-              icon: "❤️",
-              label: "Favoriler",
-              onPress: () => router.push("/favorites"),
-            },
-            {
-              icon: "📍",
-              label: "Adresler",
-              onPress: () => router.push("/addresses"),
-            },
-            {
-              icon: "💳",
-              label: "Ödeme",
-              onPress: () => router.push("/payment-methods"),
-            },
+            { icon: "📦", label: "Siparişler",  onPress: () => router.push("/(tabs)/orders") },
+            { icon: "❤️", label: "Favoriler",   onPress: () => router.push("/favorites")     },
+            { icon: "📍", label: "Adresler",    onPress: () => router.push("/addresses")     },
+            { icon: "💳", label: "Ödeme",       onPress: () => router.push("/payment-methods") },
           ].map((item, i) => (
-            <TouchableOpacity
-              key={i}
-              style={styles.quickItem}
-              onPress={item.onPress}
-            >
+            <TouchableOpacity key={i} style={styles.quickItem} onPress={item.onPress}>
               <Text style={styles.quickIcon}>{item.icon}</Text>
               <Text style={styles.quickLabel}>{item.label}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
+        {/* ══ 6. SİPARİŞLERİM (gerçek API) ════════════════════════════════ */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Siparişlerim</Text>
           <View style={styles.orderStatus}>
             {ordersLoading ? (
               <ActivityIndicator color={Colors.accent} size="small" />
             ) : (
-              <>
-                {[
-                  {
-                    icon: "⏳",
-                    label: "Hazırlanıyor",
-                    count: orderCounts.processing,
-                  },
-                  { icon: "🚚", label: "Kargoda", count: orderCounts.shipped },
-                  { icon: "✅", label: "Teslim", count: orderCounts.completed },
-                  { icon: "❌", label: "İptal", count: orderCounts.cancelled },
-                ].map((item, i) => (
-                  <TouchableOpacity
-                    key={i}
-                    style={styles.orderStatusItem}
-                    onPress={() => router.push("/(tabs)/orders")}
-                  >
-                    <Text style={styles.orderStatusIcon}>{item.icon}</Text>
-                    <Text style={styles.orderStatusCount}>{item.count}</Text>
-                    <Text style={styles.orderStatusLabel}>{item.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </>
+              [
+                { icon: "⏳", label: "Hazırlanıyor", count: orderCounts.processing },
+                { icon: "🚚", label: "Kargoda",       count: orderCounts.shipped   },
+                { icon: "✅", label: "Teslim",        count: orderCounts.completed },
+                { icon: "❌", label: "İptal",         count: orderCounts.cancelled },
+              ].map((item, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.orderStatusItem}
+                  onPress={() => router.push("/(tabs)/orders")}
+                >
+                  <Text style={styles.orderStatusIcon}>{item.icon}</Text>
+                  <Text style={styles.orderStatusCount}>{item.count}</Text>
+                  <Text style={styles.orderStatusLabel}>{item.label}</Text>
+                </TouchableOpacity>
+              ))
             )}
           </View>
         </View>
 
-        {/* ── Ar-Ge & Tasarım Teklifleri ────────────────────────────── */}
+        {/* ══ 7. AR-GE & TASARIM TEKLİFLERİ ═══════════════════════════════ */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Ar-Ge & Tasarım Teklifleri</Text>
@@ -281,241 +421,247 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* ══ 8. BİLDİRİMLER ════════════════════════════════════════════════ */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Bildirimler</Text>
           <View style={styles.settingCard}>
-            <SettingRow
-              icon="🔔"
-              label="Bildirimler"
-              isSwitch
-              switchValue={notifications}
-              onSwitchChange={setNotifications}
-            />
-            <SettingRow
-              icon="📦"
-              label="Sipariş Güncellemeleri"
-              isSwitch
-              switchValue={orderUpdates}
-              onSwitchChange={setOrderUpdates}
-            />
-            <SettingRow
-              icon="🎁"
-              label="Kampanyalar"
-              isSwitch
-              switchValue={campaigns}
-              onSwitchChange={setCampaigns}
-            />
+            <SettingRow icon="🔔" label="Bildirimler"           isSwitch switchValue={notifications} onSwitchChange={setNotifications} />
+            <SettingRow icon="📦" label="Sipariş Güncellemeleri" isSwitch switchValue={orderUpdates}  onSwitchChange={setOrderUpdates}  />
+            <SettingRow icon="🎁" label="Kampanyalar"            isSwitch switchValue={campaigns}     onSwitchChange={setCampaigns}     />
           </View>
         </View>
 
+        {/* ══ 9. HESAP ══════════════════════════════════════════════════════ */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hesap</Text>
           <View style={styles.settingCard}>
-            <SettingRow
-              icon="👤"
-              label="Kişisel Bilgiler"
-              onPress={() => router.push("/personal-info")}
-            />
-            <SettingRow
-              icon="🔒"
-              label="Şifre Değiştir"
-              onPress={() => router.push("/forgot-password")}
-            />
-            <SettingRow
-              icon="📍"
-              label="Adreslerim"
-              onPress={() => router.push("/addresses")}
-            />
-            <SettingRow
-              icon="💳"
-              label="Ödeme Yöntemlerim"
-              onPress={() => router.push("/payment-methods")}
-            />
+            <SettingRow icon="👤" label="Kişisel Bilgiler"    onPress={() => router.push("/personal-info")}    />
+            <SettingRow icon="🔒" label="Şifre Değiştir"      onPress={() => router.push("/forgot-password")}  />
+            <SettingRow icon="📍" label="Adreslerim"          onPress={() => router.push("/addresses")}        />
+            <SettingRow icon="💳" label="Ödeme Yöntemlerim"   onPress={() => router.push("/payment-methods")}  />
           </View>
         </View>
 
+        {/* ══ 10. YARDIM & HUKUKİ ══════════════════════════════════════════ */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Yardım & Hukuki</Text>
           <View style={styles.settingCard}>
-            <SettingRow
-              icon="🏭"
-              label="Hakkımızda"
-              onPress={() => router.push("/(info)/hakkimizda" as any)}
-            />
-            <SettingRow
-              icon="❓"
-              label="SSS"
-              onPress={() => router.push("/(info)/sss" as any)}
-            />
-            <SettingRow
-              icon="📧"
-              label="İletişim"
-              onPress={() => router.push("/(info)/iletisim" as any)}
-            />
-            <SettingRow
-              icon="📄"
-              label="Gizlilik Politikası"
-              onPress={() => router.push("/(info)/gizlilik" as any)}
-            />
-            <SettingRow
-              icon="📋"
-              label="Kullanım Koşulları"
-              onPress={() => router.push("/(info)/kullanim-kosullari" as any)}
-            />
-            <SettingRow
-              icon="🔐"
-              label="KVKK"
-              onPress={() => router.push("/(info)/kvkk" as any)}
-            />
-            <SettingRow icon="ℹ️" label="Versiyon" value="1.0.0" />
+            <SettingRow icon="🏭" label="Hakkımızda"         onPress={() => router.push("/(info)/hakkimizda" as any)}          />
+            <SettingRow icon="❓" label="SSS"                onPress={() => router.push("/(info)/sss" as any)}                 />
+            <SettingRow icon="📧" label="İletişim"           onPress={() => router.push("/(info)/iletisim" as any)}            />
+            <SettingRow icon="📄" label="Gizlilik Politikası" onPress={() => router.push("/(info)/gizlilik" as any)}           />
+            <SettingRow icon="📋" label="Kullanım Koşulları" onPress={() => router.push("/(info)/kullanim-kosullari" as any)}  />
+            <SettingRow icon="🔐" label="KVKK"               onPress={() => router.push("/(info)/kvkk" as any)}               />
+            <SettingRow icon="ℹ️" label="Versiyon"           value="1.0.0" />
           </View>
         </View>
 
+        {/* ══ 11. ÇIKIŞ ════════════════════════════════════════════════════ */}
         <View style={styles.section}>
           <View style={styles.settingCard}>
-            <SettingRow
-              icon="🚪"
-              label="Çıkış Yap"
-              onPress={handleLogout}
-              danger
-            />
+            <SettingRow icon="🚪" label="Çıkış Yap" onPress={handleLogout} danger />
           </View>
         </View>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 24 }} />
       </ScrollView>
     </View>
   );
 }
 
+// ─── StyleSheet ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-  header: { padding: 24, paddingTop: 16 },
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: Colors.text,
-    letterSpacing: -0.5,
+  container:    { flex: 1, backgroundColor: Colors.bg },
+
+  // Sayfa başlığı
+  pageHeader:   { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
+  pageTitle:    { fontSize: 22, fontWeight: "800", color: Colors.text, letterSpacing: -0.5 },
+
+  // Welcome card
+  welcomeCard: {
+    flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between",
+    marginHorizontal: 20, marginBottom: 16,
+    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 20, padding: 16, gap: 12,
   },
-  userCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 24,
-    marginBottom: 20,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { fontSize: 20, fontWeight: "800", color: "#fff" },
-  userInfo: { flex: 1 },
-  userName: { fontSize: 16, fontWeight: "700", color: Colors.text },
-  userEmail: { fontSize: 12, color: Colors.text2, marginTop: 2 },
-  editBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 99,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  editBtnText: { fontSize: 12, color: Colors.text2 },
-  quickRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginHorizontal: 24,
-    marginBottom: 20,
-  },
-  quickItem: {
-    flex: 1,
-    alignItems: "center",
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 12,
-    marginHorizontal: 4,
-  },
-  quickIcon: { fontSize: 22, marginBottom: 6 },
-  quickLabel: { fontSize: 10, color: Colors.text2, fontWeight: "500" },
-  section: { marginHorizontal: 24, marginBottom: 16 },
-  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  sectionLink: { fontSize: 11, fontWeight: "700", color: Colors.accent },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: Colors.text2,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 10,
-  },
-  orderStatus: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 16,
-    padding: 16,
-    minHeight: 80,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orderStatusItem: { flex: 1, alignItems: "center", gap: 4 },
-  orderStatusIcon: { fontSize: 20 },
-  orderStatusCount: { fontSize: 16, fontWeight: "800", color: Colors.text },
-  orderStatusLabel: { fontSize: 9, color: Colors.text2, textAlign: "center" },
-  teklifCard: {
-    flexDirection:   "row",
-    alignItems:      "center",
-    justifyContent:  "space-between",
-    backgroundColor: Colors.surface2,
-    borderWidth:     1,
-    borderColor:     Colors.border,
-    borderRadius:    16,
-    padding:         14,
-    gap:             10,
-  },
-  teklifLeft: { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
-  teklifIconWrap: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: Colors.accent + "18",
+  welcomeLeft:    { flex: 1 },
+  welcomeGreeting:{ fontSize: 11, color: Colors.text2, marginBottom: 2 },
+  welcomeName:    { fontSize: 17, fontWeight: "800", color: Colors.text, letterSpacing: -0.3 },
+  welcomeSub:     { fontSize: 12, color: Colors.text2, marginTop: 1 },
+  roleBadge: {
+    marginTop: 8, alignSelf: "flex-start",
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99,
+    backgroundColor: Colors.accent + "15",
     borderWidth: 1, borderColor: Colors.accent + "30",
+  },
+  roleBadgeText:  { fontSize: 10, fontWeight: "800", color: Colors.accent },
+  welcomeRight:   { alignItems: "center", gap: 8 },
+  avatar: {
+    width: 52, height: 52, borderRadius: 16,
+    backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center",
+  },
+  avatarText:  { fontSize: 18, fontWeight: "800", color: "#fff" },
+  editBtn: {
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99,
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  editBtnText: { fontSize: 11, color: Colors.text2 },
+
+  // Bento stats
+  bentoGrid: {
+    flexDirection: "row", flexWrap: "wrap",
+    marginHorizontal: 20, marginBottom: 16, gap: 10,
+  },
+  bentoCard: {
+    width: "47%", backgroundColor: Colors.surface2,
+    borderWidth: 1, borderRadius: 18, padding: 14, gap: 6,
+  },
+  bentoIcon: {
+    width: 38, height: 38, borderRadius: 12,
     alignItems: "center", justifyContent: "center",
   },
-  teklifInfo:  { flex: 1 },
-  teklifTitle: { fontSize: 13, fontWeight: "700", color: Colors.text },
-  teklifSub:   { fontSize: 11, color: Colors.text2, marginTop: 2 },
+  bentoIconText: { fontSize: 18 },
+  bentoValue:    { fontSize: 22, fontWeight: "900", letterSpacing: -0.5 },
+  bentoLabel:    { fontSize: 10, color: Colors.text2, fontWeight: "500" },
+
+  // Live Tracker
+  trackerCard: {
+    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 20, padding: 16, overflow: "hidden", position: "relative",
+  },
+  trackerStripe: {
+    position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
+    backgroundColor: Colors.accent, borderTopLeftRadius: 20, borderBottomLeftRadius: 20,
+  },
+  trackerHeader: {
+    flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4, paddingLeft: 8,
+  },
+  trackerPulseWrap: {
+    width: 10, height: 10, alignItems: "center", justifyContent: "center",
+  },
+  trackerPulseDot: {
+    width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent,
+  },
+  trackerTitle:   { fontSize: 10, fontWeight: "700", color: Colors.text2, textTransform: "uppercase", letterSpacing: 0.5, flex: 1 },
+  trackerOrderId: { fontSize: 9, color: Colors.text3, fontFamily: "monospace" },
+  trackerProduct: { fontSize: 13, fontWeight: "700", color: Colors.text, marginBottom: 16, paddingLeft: 8 },
+
+  // Stepper
+  stepperRow: { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 4 },
+  stepNode:   { flex: 1, alignItems: "center" },
+  stepCircle: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: Colors.surface, borderWidth: 2, borderColor: Colors.border,
+    alignItems: "center", justifyContent: "center",
+  },
+  stepCircleDone:   { backgroundColor: "#22c55e", borderColor: "#22c55e" },
+  stepCircleActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  stepCircleText:   { fontSize: 11, fontWeight: "800", color: Colors.text3 },
+  stepLabel: {
+    fontSize: 9, fontWeight: "700", color: Colors.text2,
+    textAlign: "center", marginTop: 5, paddingHorizontal: 2,
+  },
+  stepDate:  { fontSize: 8, color: Colors.text3, textAlign: "center", marginTop: 1 },
+  stepLine:  { flex: 1, height: 2, backgroundColor: Colors.border, marginTop: 15 },
+
+  trackerFooter: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border,
+    paddingLeft: 8,
+  },
+  trackerDeliveryLabel: { fontSize: 9, color: Colors.text3, textTransform: "uppercase", letterSpacing: 0.5 },
+  trackerDeliveryDate:  { fontSize: 13, fontWeight: "700", color: Colors.text, marginTop: 1 },
+
+  // Smart reminders
+  cartReminder: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    backgroundColor: Colors.accent + "0f", borderWidth: 1, borderColor: Colors.accent + "30",
+    borderRadius: 16, padding: 14, marginBottom: 14,
+  },
+  cartReminderIcon: {
+    width: 42, height: 42, borderRadius: 12, backgroundColor: Colors.accent + "20",
+    alignItems: "center", justifyContent: "center",
+  },
+  cartReminderInfo:    { flex: 1 },
+  cartReminderTitle:   { fontSize: 12, fontWeight: "700", color: Colors.text },
+  cartReminderSub:     { fontSize: 10, color: Colors.text2, marginTop: 1 },
+  cartReminderBtn: {
+    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10,
+    backgroundColor: Colors.accent,
+  },
+  cartReminderBtnText: { fontSize: 10, fontWeight: "800", color: "#fff" },
+
+  // Recently viewed
+  recentCard: {
+    width: 96, backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 14, padding: 10,
+  },
+  recentName:  { fontSize: 10, fontWeight: "600", color: Colors.text, lineHeight: 14, marginBottom: 4 },
+  recentPrice: { fontSize: 10, fontWeight: "800", color: Colors.accent },
+
+  // Quick row
+  quickRow: {
+    flexDirection: "row", justifyContent: "space-between",
+    marginHorizontal: 20, marginBottom: 16,
+  },
+  quickItem: {
+    flex: 1, alignItems: "center", backgroundColor: Colors.surface2,
+    borderWidth: 1, borderColor: Colors.border, borderRadius: 14, padding: 12, marginHorizontal: 4,
+  },
+  quickIcon:  { fontSize: 22, marginBottom: 6 },
+  quickLabel: { fontSize: 10, color: Colors.text2, fontWeight: "500" },
+
+  // Section
+  section:       { marginHorizontal: 20, marginBottom: 14 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
+  sectionLink:   { fontSize: 11, fontWeight: "700", color: Colors.accent },
+  sectionTitle: {
+    fontSize: 11, fontWeight: "700", color: Colors.text2,
+    textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10,
+  },
+
+  // Order status
+  orderStatus: {
+    flexDirection: "row", backgroundColor: Colors.surface2, borderWidth: 1,
+    borderColor: Colors.border, borderRadius: 16, padding: 16,
+    minHeight: 80, alignItems: "center", justifyContent: "center",
+  },
+  orderStatusItem:  { flex: 1, alignItems: "center", gap: 4 },
+  orderStatusIcon:  { fontSize: 20 },
+  orderStatusCount: { fontSize: 16, fontWeight: "800", color: Colors.text },
+  orderStatusLabel: { fontSize: 9, color: Colors.text2, textAlign: "center" },
+
+  // Teklif kart
+  teklifCard: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 16, padding: 14, gap: 10,
+  },
+  teklifLeft:     { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+  teklifIconWrap: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: Colors.accent + "18", borderWidth: 1, borderColor: Colors.accent + "30",
+    alignItems: "center", justifyContent: "center",
+  },
+  teklifInfo:     { flex: 1 },
+  teklifTitle:    { fontSize: 13, fontWeight: "700", color: Colors.text },
+  teklifSub:      { fontSize: 11, color: Colors.text2, marginTop: 2 },
   teklifBadge: {
-    paddingHorizontal: 8, paddingVertical: 4,
-    borderRadius: 20, backgroundColor: Colors.accent + "15",
-    borderWidth: 1, borderColor: Colors.accent + "30",
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20,
+    backgroundColor: Colors.accent + "15", borderWidth: 1, borderColor: Colors.accent + "30",
   },
   teklifBadgeText: { fontSize: 10, fontWeight: "800", color: Colors.accent },
+
+  // Setting
   settingCard: {
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 16,
-    overflow: "hidden",
+    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 16, overflow: "hidden",
   },
   settingRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 14,
-    gap: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    flexDirection: "row", alignItems: "center",
+    padding: 14, gap: 12, borderBottomWidth: 1, borderBottomColor: Colors.border,
   },
-  settingIcon: { fontSize: 18, width: 28, textAlign: "center" },
+  settingIcon:  { fontSize: 18, width: 28, textAlign: "center" },
   settingLabel: { flex: 1, fontSize: 14, color: Colors.text },
   settingRight: { flexDirection: "row", alignItems: "center", gap: 6 },
   settingValue: { fontSize: 13, color: Colors.text2 },
