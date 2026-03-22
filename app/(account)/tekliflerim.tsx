@@ -1,11 +1,8 @@
 // ─── Tekliflerim — RFQ Inbox (App) ───────────────────────────────────────────
-// offer_received → native shadow glow + kırmızı bildirim badge + belirgin CTA
-// pending        → ⋮ → Alert.alert (destructive) ile İptal Et
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
-  FlatList,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -26,7 +23,6 @@ const STATUS_CONFIG: Record<TeklifStatus, { label: string; icon: string; color: 
   cancelled:      { label: "İptal Edildi",     icon: "❌", color: Colors.red    },
 };
 
-// ─── Tab Konfigürasyonu ────────────────────────────────────────────────────────
 const TABS: { key: string; label: string }[] = [
   { key: "all",            label: "Tümü"          },
   { key: "offer_received", label: "Teklif Alındı" },
@@ -36,11 +32,7 @@ const TABS: { key: string; label: string }[] = [
 ];
 
 // ─── Teklif Kartı ──────────────────────────────────────────────────────────────
-function TeklifCard({
-  t,
-  onPress,
-  onCancel,
-}: {
+function TeklifCard({ t, onPress, onCancel }: {
   t: Teklif;
   onPress: () => void;
   onCancel: (id: string) => void;
@@ -50,45 +42,30 @@ function TeklifCard({
   const isPending       = t.status === "pending";
 
   const handleMenuPress = () => {
-    Alert.alert(
-      t.title,
-      "Bu teklif talebi için ne yapmak istiyorsunuz?",
-      [
-        {
-          text: "❌ İptal Et / Sil",
-          style: "destructive",
-          onPress: () =>
-            Alert.alert(
-              "Emin misiniz?",
-              "Bu talebi iptal etmek geri alınamaz.",
-              [
-                { text: "Vazgeç", style: "cancel" },
-                { text: "İptal Et", style: "destructive", onPress: () => onCancel(t.id) },
-              ],
-            ),
-        },
-        { text: "Vazgeç", style: "cancel" },
-      ],
-    );
+    Alert.alert(t.title, "Bu teklif talebi için ne yapmak istiyorsunuz?", [
+      {
+        text: "❌ İptal Et / Sil",
+        style: "destructive",
+        onPress: () =>
+          Alert.alert("Emin misiniz?", "Bu talebi iptal etmek geri alınamaz.", [
+            { text: "Vazgeç", style: "cancel" },
+            { text: "İptal Et", style: "destructive", onPress: () => onCancel(t.id) },
+          ]),
+      },
+      { text: "Vazgeç", style: "cancel" },
+    ]);
   };
 
-  const glowStyle = isOfferReceived
-    ? {
-        shadowColor:   Colors.accent,
-        shadowOffset:  { width: 0, height: 0 },
-        shadowOpacity: 0.55,
-        shadowRadius:  12,
-        elevation:     14,
-        borderColor:   `${Colors.accent}88`,
-        borderWidth:   1.5,
-      }
-    : {};
+  const glowStyle = isOfferReceived ? {
+    shadowColor: Colors.accent, shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.55, shadowRadius: 12, elevation: 14,
+    borderColor: `${Colors.accent}88`, borderWidth: 1.5,
+  } : {};
 
   return (
     <View style={[styles.card, glowStyle]}>
       <View style={[styles.cardStripe, { backgroundColor: s.color }]} />
       <View style={styles.cardBody}>
-        {/* Başlık Satırı */}
         <View style={styles.cardTop}>
           <View style={[styles.cardIconWrap, { backgroundColor: `${s.color}18`, borderColor: `${s.color}28` }]}>
             <Text style={{ fontSize: 18 }}>📋</Text>
@@ -119,7 +96,6 @@ function TeklifCard({
         <Text style={styles.lastMsg} numberOfLines={1}>{t.lastMessage}</Text>
         <View style={styles.divider} />
 
-        {/* Alt Satır */}
         <View style={styles.cardBottom}>
           <View style={styles.cardBottomLeft}>
             {t.engineer ? (
@@ -145,7 +121,6 @@ function TeklifCard({
           </View>
         </View>
 
-        {/* offer_received CTA */}
         {isOfferReceived && (
           <TouchableOpacity style={styles.offerCta} onPress={onPress} activeOpacity={0.85}>
             <Text style={styles.offerCtaText}>💬 Teklifleri İncele</Text>
@@ -163,22 +138,14 @@ function TeklifCard({
 
 // ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function TekliflerimScreen() {
-  const router      = useRouter();
-  const insets      = useSafeAreaInsets();
-  const listRef     = useRef<FlatList>(null);
+  const router  = useRouter();
+  const insets  = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState("all");
   const [teklifler, setTeklifler] = useState<Teklif[]>(MOCK_TEKLIFLER);
 
-  const filtered =
-    activeTab === "all"
-      ? teklifler
-      : teklifler.filter(t => t.status === activeTab);
-
-  const handleTabChange = (key: string) => {
-    setActiveTab(key);
-    // Tab değişince listeyi başa al — "aşağı kayma" sorunu biter
-    listRef.current?.scrollToOffset({ offset: 0, animated: false });
-  };
+  const filtered = activeTab === "all"
+    ? teklifler
+    : teklifler.filter(t => t.status === activeTab);
 
   const handleCancel = (id: string) => {
     setTeklifler(prev =>
@@ -194,7 +161,7 @@ export default function TekliflerimScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
+      {/* ── Header ── */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backArrow}>‹</Text>
@@ -218,63 +185,65 @@ export default function TekliflerimScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* ── Smart Tabs ──
-          flexShrink:0 → FlatList tarafından ezilmesini önler
-          horizontal ScrollView içinde View wrapper → ilk render ölçüm hatası olmaz */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tabsScroll}
-        contentContainerStyle={styles.tabsRow}
-      >
-        {TABS.map(tab => {
-          const isActive = activeTab === tab.key;
-          const count = tab.key === "all"
-            ? teklifler.length
-            : teklifler.filter(t => t.status === tab.key).length;
-          return (
-            <TouchableOpacity
-              key={tab.key}
-              style={[styles.tab, isActive && styles.tabActive]}
-              onPress={() => handleTabChange(tab.key)}
-            >
-              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                {tab.label}
-              </Text>
-              <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
-                <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
-                  {count}
+      {/* ── Tab Bar ──
+          Ayrı bir horizontal ScrollView, kesin sabit yükseklik yok.
+          İçeriğiyle birlikte doğal boyutlanır. */}
+      <View style={styles.tabsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsContent}
+        >
+          {TABS.map(tab => {
+            const isActive = activeTab === tab.key;
+            const count = tab.key === "all"
+              ? teklifler.length
+              : teklifler.filter(t => t.status === tab.key).length;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.tab, isActive && styles.tabActive]}
+                onPress={() => setActiveTab(tab.key)}
+              >
+                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                  {tab.label}
                 </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+                <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
+                  <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
+                    {count}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
 
-      {/* ── Liste ──
-          style={{ flex: 1 }} → kalan alanı doldurur, diğer elemanları ezmez */}
-      <FlatList
-        ref={listRef}
-        data={filtered}
-        keyExtractor={item => item.id}
-        showsVerticalScrollIndicator={false}
+      {/* ── Kart Listesi ──
+          Tek bir dikey ScrollView — FlatList yerine.
+          flex:1 ile kalan tüm alanı alır. */}
+      <ScrollView
         style={styles.list}
         contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
+        showsVerticalScrollIndicator={false}
+      >
+        {filtered.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>📋</Text>
             <Text style={styles.emptyTitle}>Teklif Bulunamadı</Text>
             <Text style={styles.emptySub}>Bu kategoride teklif talebiniz yok</Text>
           </View>
-        }
-        renderItem={({ item }) => (
-          <TeklifCard
-            t={item}
-            onPress={() => router.push(`/(account)/teklif/${item.id}` as never)}
-            onCancel={handleCancel}
-          />
+        ) : (
+          filtered.map(item => (
+            <TeklifCard
+              key={item.id}
+              t={item}
+              onPress={() => router.push(`/(account)/teklif/${item.id}` as never)}
+              onCancel={handleCancel}
+            />
+          ))
         )}
-      />
+      </ScrollView>
     </View>
   );
 }
@@ -300,8 +269,7 @@ const styles = StyleSheet.create({
   title:          { fontSize: 18, fontWeight: "800", color: Colors.text },
   subtitle:       { fontSize: 11, color: Colors.text2, marginTop: 1 },
   headerNotifBadge: {
-    minWidth: 20, height: 20, borderRadius: 10,
-    backgroundColor: Colors.red,
+    minWidth: 20, height: 20, borderRadius: 10, backgroundColor: Colors.red,
     alignItems: "center", justifyContent: "center", paddingHorizontal: 5,
   },
   headerNotifText: { fontSize: 10, fontWeight: "900", color: "#fff" },
@@ -313,16 +281,9 @@ const styles = StyleSheet.create({
   newBtnText: { fontSize: 12, fontWeight: "700", color: Colors.accent },
 
   // ── Tabs ──
-  // tabsScroll: flexShrink:0 → FlatList (flex:1) tarafından ezilmez
-  // ScrollView sabit yükseklik → flex layout'ta şişmez
-  tabsScroll: { height: 44 },
-  tabsRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 8,
-  },
+  // tabsWrapper: View wrapper içerik kadar büyür, flex almaz
+  tabsWrapper:  { },
+  tabsContent:  { paddingHorizontal: 16, paddingVertical: 8 },
   tab: {
     flexDirection: "row", alignItems: "center", gap: 5,
     paddingHorizontal: 12, paddingVertical: 7,
@@ -330,7 +291,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface2,
     borderWidth: 1, borderColor: Colors.border,
     marginRight: 8,
-    alignSelf: "flex-start",
   },
   tabActive:          { backgroundColor: Colors.accent, borderColor: Colors.accent },
   tabText:            { fontSize: 12, fontWeight: "700", color: Colors.text2 },
@@ -345,7 +305,6 @@ const styles = StyleSheet.create({
   tabCountTextActive: { color: "#fff" },
 
   // ── List ──
-  // style flex:1 → kalan tüm ekranı kaplar, scroll düzgün çalışır
   list:        { flex: 1 },
   listContent: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 40 },
 
@@ -353,15 +312,11 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface2,
     borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 16, marginBottom: 12,
-    overflow: "hidden",
+    borderRadius: 16, marginBottom: 12, overflow: "hidden",
   },
   cardStripe: { height: 2 },
   cardBody:   { padding: 14 },
-  cardTop: {
-    flexDirection: "row", alignItems: "flex-start",
-    gap: 10, marginBottom: 8,
-  },
+  cardTop: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 8 },
   cardIconWrap: {
     width: 38, height: 38, borderRadius: 10, borderWidth: 1,
     alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -371,9 +326,7 @@ const styles = StyleSheet.create({
     fontSize: 9, fontWeight: "700",
     textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2,
   },
-  cardTitle: { fontSize: 13, fontWeight: "800", color: Colors.text },
-
-  // ── Badge + Notif ──
+  cardTitle:   { fontSize: 13, fontWeight: "800", color: Colors.text },
   cardRight:   { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 },
   badge:       { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 99 },
   badgeText:   { fontSize: 9, fontWeight: "800" },
@@ -385,27 +338,19 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: Colors.bg,
   },
   notifDotText: { fontSize: 9, fontWeight: "900", color: "#fff" },
-
-  // ── ⋮ Menü ──
   menuBtn: {
-    width: 28, height: 28, borderRadius: 8,
-    backgroundColor: Colors.surface,
+    width: 28, height: 28, borderRadius: 8, backgroundColor: Colors.surface,
     alignItems: "center", justifyContent: "center",
     borderWidth: 1, borderColor: Colors.border,
   },
   menuBtnText: { fontSize: 16, color: Colors.text2, lineHeight: 20 },
-
-  // ── Son Mesaj + Divider ──
   lastMsg: { fontSize: 11, color: Colors.text2, marginBottom: 10 },
   divider: { height: 1, backgroundColor: Colors.border, marginBottom: 10 },
-
-  // ── Alt Satır ──
-  cardBottom:      { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardBottomLeft:  { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
-  engineerRow:     { flexDirection: "row", alignItems: "center", gap: 5 },
+  cardBottom:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  cardBottomLeft: { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
+  engineerRow:    { flexDirection: "row", alignItems: "center", gap: 5 },
   engineerAvatar: {
-    width: 20, height: 20, borderRadius: 10,
-    backgroundColor: Colors.accent,
+    width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.accent,
     alignItems: "center", justifyContent: "center",
   },
   engineerInitials: { fontSize: 8, fontWeight: "800", color: "#fff" },
@@ -417,8 +362,6 @@ const styles = StyleSheet.create({
   budget:           { fontSize: 12, fontWeight: "800", color: Colors.text },
   chatBtn:          { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
   chatBtnText:      { fontSize: 11, fontWeight: "700" },
-
-  // ── offer_received CTA ──
   offerCta: {
     marginTop: 12, backgroundColor: Colors.accent,
     paddingVertical: 13, borderRadius: 12,
@@ -427,8 +370,6 @@ const styles = StyleSheet.create({
   offerCtaText:      { fontSize: 14, fontWeight: "800", color: "#fff" },
   offerCtaBadge:     { backgroundColor: "rgba(255,255,255,0.25)", paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99 },
   offerCtaBadgeText: { fontSize: 10, fontWeight: "900", color: "#fff" },
-
-  // ── Boş Durum ──
   empty:      { alignItems: "center", paddingTop: 60, gap: 8 },
   emptyEmoji: { fontSize: 56, marginBottom: 8 },
   emptyTitle: { fontSize: 18, fontWeight: "800", color: Colors.text },
