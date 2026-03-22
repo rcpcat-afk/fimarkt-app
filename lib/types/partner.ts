@@ -1,6 +1,6 @@
 // ─── Çözüm Ortağı (Partner) Tip Tanımları ────────────────────────────────────
 // Bölüm 6: Satıcı & Mühendis paneli — tüm partner tipleri burada yönetilir.
-// Web tarafıyla birebir aynı — fimarkt-web/lib/types/partner.ts ile senkron tut.
+// App tarafıyla birebir aynı — fimarkt-app/lib/types/partner.ts ile senkron tut.
 
 export type PartnerType =
   | "corporate_seller"   // Kurumsal Mağaza Satıcısı (Ltd., A.Ş., Kooperatif)
@@ -11,6 +11,61 @@ export type PartnerType =
   | "rfq_designer";      // RFQ Tasarımcısı (özel tasarım)
 
 export type OnboardingCategory = "corporate" | "individual";
+
+// ─── Onboarding Kart Metadata ─────────────────────────────────────────────────
+// Her PartnerType için Adım 1'de gösterilecek kart içeriği ve KYC kategorisi.
+export interface PartnerTypeMeta {
+  label:       string;
+  emoji:       string;
+  description: string;
+  tags:        string[];
+  kycCategory: OnboardingCategory;
+}
+
+export const PARTNER_TYPE_META: Record<PartnerType, PartnerTypeMeta> = {
+  corporate_seller: {
+    label:       "Kurumsal Satıcı",
+    emoji:       "🏢",
+    description: "Ltd. Şti., A.Ş., Kooperatif veya diğer tüzel kişilikler",
+    tags:        ["Vergi Levhası", "Mersis No", "Şirket IBAN"],
+    kycCategory: "corporate",
+  },
+  individual_seller: {
+    label:       "Bireysel Satıcı",
+    emoji:       "👤",
+    description: "Esnaf muafiyetli, serbest meslek veya kendi adına çalışan",
+    tags:        ["TC Kimlik", "Esnaf Muafiyet Belgesi", "Şahsi IBAN"],
+    kycCategory: "individual",
+  },
+  sanatkat_digital: {
+    label:       "Sanatkat Dijital",
+    emoji:       "🎨",
+    description: "STL / OBJ dosya satan 3D tasarımcılar",
+    tags:        ["TC Kimlik", "Tasarım Portföyü", "Şahsi IBAN"],
+    kycCategory: "individual",
+  },
+  sanatkat_physical: {
+    label:       "Sanatkat Fiziksel",
+    emoji:       "🗿",
+    description: "Biblo, heykel veya el yapımı fiziksel eser satan sanatçılar",
+    tags:        ["TC Kimlik", "Ürün Fotoğrafı", "Şahsi IBAN"],
+    kycCategory: "individual",
+  },
+  fidrop_engineer: {
+    label:       "Fidrop Mühendisi",
+    emoji:       "⚙️",
+    description: "Fidrop sistemi üzerinden 3D baskı üretimi yapan mühendisler",
+    tags:        ["TC Kimlik", "Makine/Ekipman Belgesi", "Şahsi IBAN"],
+    kycCategory: "individual",
+  },
+  rfq_designer: {
+    label:       "RFQ Tasarımcısı",
+    emoji:       "✏️",
+    description: "Müşteri taleplerini alan özel 3D tasarım hizmeti verenler",
+    tags:        ["TC Kimlik", "Tasarım Portföyü", "Şahsi IBAN"],
+    kycCategory: "individual",
+  },
+};
 
 export type PartnerStatus = "pending" | "active" | "suspended" | "rejected";
 
