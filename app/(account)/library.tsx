@@ -6,7 +6,6 @@
 import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
-  Animated,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -37,18 +36,13 @@ function LibraryCard({ item, onPrint }: { item: LibraryItem; onPrint: () => void
   return (
     <View style={styles.card}>
       {/* Görsel Alan */}
-      <View
-        style={[
-          styles.cardImage,
-          { backgroundColor: item.bgColor },
-        ]}
-      >
+      <View style={[styles.cardImage, { backgroundColor: item.bgColor }]}>
         <Text style={styles.cardEmoji}>{item.emoji}</Text>
 
         {/* Yeni Versiyon rozeti */}
         {item.hasUpdate && (
           <View style={styles.updateBadge}>
-            <Text style={styles.updateBadgeText}>● Yeni Versiyon {item.newVersion}</Text>
+            <Text style={styles.updateBadgeText}>↑ {item.newVersion}</Text>
           </View>
         )}
 
@@ -63,29 +57,26 @@ function LibraryCard({ item, onPrint }: { item: LibraryItem; onPrint: () => void
         <Text style={styles.cardName} numberOfLines={2}>{item.name}</Text>
         <Text style={styles.cardDesigner}>by {item.designer}</Text>
 
-        {/* Meta */}
+        {/* Meta satırı */}
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>{item.purchaseDate}</Text>
-          <Text style={styles.metaText}>{item.fileSize}</Text>
-          <Text style={[styles.metaText, { color: Colors.accent, fontWeight: "700" }]}>{item.version}</Text>
+          <Text style={styles.metaVersion}>{item.version}</Text>
+          <Text style={styles.metaSize}>{item.fileSize}</Text>
         </View>
 
-        {/* Aksiyon butonları */}
-        <View style={styles.cardActions}>
-          {item.hasUpdate ? (
-            <TouchableOpacity style={styles.updateBtn}>
-              <Text style={styles.updateBtnText}>⬆ Güncelle — {item.newVersion}</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.downloadBtn}>
-              <Text style={styles.downloadBtnText}>⬇ İndir</Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity style={styles.printBtn} onPress={onPrint}>
-            <Text style={styles.printBtnText}>🖨 Ürettir</Text>
+        {/* Aksiyon butonları — her biri ayrı marginTop ile ayrıldı (gap yerine) */}
+        {item.hasUpdate ? (
+          <TouchableOpacity style={styles.updateBtn} activeOpacity={0.8}>
+            <Text style={styles.updateBtnText}>⬆ Güncelle {item.newVersion}</Text>
           </TouchableOpacity>
-        </View>
+        ) : (
+          <TouchableOpacity style={styles.downloadBtn} activeOpacity={0.8}>
+            <Text style={styles.downloadBtnText}>⬇ İndir</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity style={styles.printBtn} activeOpacity={0.8} onPress={onPrint}>
+          <Text style={styles.printBtnText}>🖨 Ürettir</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -153,7 +144,7 @@ export default function LibraryScreen() {
         />
       </View>
 
-      {/* Kategori filtresi */}
+      {/* Kategori filtresi — gap yerine marginRight ile */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -195,7 +186,7 @@ export default function LibraryScreen() {
                   />
                 </View>
               ))}
-              {/* Tek elemanlı satır için boşluk dolgusu */}
+              {/* Tek elemanlı son satır için boşluk dolgusu */}
               {row.length === 1 && <View style={styles.cardWrapper} />}
             </View>
           ))
@@ -221,41 +212,59 @@ const styles = StyleSheet.create({
 
   // Header
   header: {
-    flexDirection: "row", alignItems: "center",
-    paddingHorizontal: 16, paddingVertical: 12, gap: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   backBtn: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: Colors.surface2,
     borderWidth: 1, borderColor: Colors.border,
     alignItems: "center", justifyContent: "center",
+    marginRight: 12,
   },
-  backArrow:         { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
-  headerCenter:      { flex: 1 },
-  title:             { fontSize: 18, fontWeight: "800", color: Colors.text },
-  subtitle:          { fontSize: 11, color: Colors.text2, marginTop: 1 },
-  updateCountBadge:  {
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99,
-    backgroundColor: "#1d4ed8",
+  backArrow:        { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
+  headerCenter:     { flex: 1 },
+  title:            { fontSize: 18, fontWeight: "800", color: Colors.text },
+  subtitle:         { fontSize: 11, color: Colors.text2, marginTop: 1 },
+  updateCountBadge: {
+    paddingHorizontal: 10, paddingVertical: 4,
+    borderRadius: 99, backgroundColor: "#1d4ed8",
+    marginLeft: 8,
   },
-  updateCountText:   { fontSize: 11, fontWeight: "800", color: "#fff" },
+  updateCountText: { fontSize: 11, fontWeight: "800", color: "#fff" },
 
   // Arama
   searchWrapper: {
-    flexDirection: "row", alignItems: "center",
-    marginHorizontal: 16, marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginBottom: 10,
     backgroundColor: Colors.surface2,
-    borderRadius: 12, borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 12,
+    borderWidth: 1, borderColor: Colors.border,
     paddingHorizontal: 12,
+    height: 44,
   },
   searchIcon:  { fontSize: 14, marginRight: 8 },
-  searchInput: { flex: 1, height: 42, fontSize: 13, color: Colors.text },
+  searchInput: { flex: 1, fontSize: 13, color: Colors.text },
 
-  // Filtre
-  filterRow: { flexDirection: "row", paddingHorizontal: 16, paddingVertical: 6, gap: 8 },
+  // Filtre — marginRight yerine chip'lere marjin veriliyor
+  filterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
   filterChip: {
-    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99,
-    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 99,
+    backgroundColor: Colors.surface2,
+    borderWidth: 1, borderColor: Colors.border,
+    marginRight: 8,
+    alignSelf: "flex-start",
   },
   filterChipActive:     { borderColor: Colors.accent, backgroundColor: Colors.accent },
   filterChipText:       { fontSize: 12, fontWeight: "600", color: Colors.text2 },
@@ -264,73 +273,98 @@ const styles = StyleSheet.create({
   // Liste
   list:        { flex: 1 },
   listContent: { paddingHorizontal: 12, paddingTop: 8 },
-  row:         { flexDirection: "row", gap: 10, marginBottom: 10 },
-  cardWrapper: { flex: 1 },
 
-  // Kart
+  // 2-kolon grid: alignItems:"flex-start" → kartlar birbirinin yüksekliğine stretch olmaz
+  row: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: 10,
+  },
+  cardWrapper: {
+    flex: 1,
+    marginHorizontal: 5,
+  },
+
+  // Kart — overflow:hidden yerine borderRadius yeterli (absolute badge'ler için gerekli)
   card: {
     backgroundColor: Colors.surface2,
     borderRadius: 16,
     borderWidth: 1, borderColor: Colors.border,
     overflow: "hidden",
   },
+
+  // Görsel alan — aspectRatio ile kare
   cardImage: {
     aspectRatio: 1,
-    alignItems: "center", justifyContent: "center",
-    position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  cardEmoji: { fontSize: 40 },
+  cardEmoji: { fontSize: 38 },
 
-  // Rozet — Yeni Versiyon
+  // Rozet — Yeni Versiyon (position absolute)
   updateBadge: {
-    position: "absolute", top: 8, left: 8,
-    paddingHorizontal: 8, paddingVertical: 3,
+    position: "absolute",
+    top: 7, left: 7,
+    paddingHorizontal: 7, paddingVertical: 3,
     borderRadius: 99,
     backgroundColor: "#1d4ed8",
   },
   updateBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
 
-  // Rozet — Format
+  // Rozet — Format (position absolute)
   formatBadge: {
-    position: "absolute", bottom: 8, right: 8,
+    position: "absolute",
+    bottom: 7, right: 7,
     paddingHorizontal: 7, paddingVertical: 2,
     borderRadius: 99,
   },
   formatBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
 
-  // Kart içi
-  cardBody: { padding: 10, gap: 6 },
-  cardName: { fontSize: 12, fontWeight: "700", color: Colors.text, lineHeight: 16 },
-  cardDesigner: { fontSize: 10, color: Colors.text3 },
-  metaRow:  { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  metaText: { fontSize: 10, color: Colors.text2 },
+  // Kart içi bilgi — gap yerine her elemente marginBottom
+  cardBody: { padding: 10 },
+  cardName: {
+    fontSize: 12, fontWeight: "700", color: Colors.text,
+    lineHeight: 16, marginBottom: 3,
+  },
+  cardDesigner: { fontSize: 10, color: Colors.text3, marginBottom: 6 },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  metaVersion: { fontSize: 11, fontWeight: "700", color: Colors.accent, marginRight: 8 },
+  metaSize:    { fontSize: 10, color: Colors.text2 },
 
-  cardActions: { gap: 6, marginTop: 2 },
-
+  // Butonlar — paddingVertical ile boyut kontrolü, gap yerine marginBottom
   updateBtn: {
-    paddingVertical: 7, borderRadius: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
     alignItems: "center",
     backgroundColor: "#1d4ed8",
+    marginBottom: 6,
   },
   updateBtnText: { fontSize: 11, fontWeight: "800", color: "#fff" },
 
   downloadBtn: {
-    paddingVertical: 7, borderRadius: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
     alignItems: "center",
-    backgroundColor: Colors.surface2,
+    backgroundColor: Colors.surface,
     borderWidth: 1, borderColor: Colors.border,
+    marginBottom: 6,
   },
   downloadBtnText: { fontSize: 11, fontWeight: "700", color: Colors.text },
 
   printBtn: {
-    paddingVertical: 7, borderRadius: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
     alignItems: "center",
     backgroundColor: Colors.accent,
   },
   printBtnText: { fontSize: 11, fontWeight: "800", color: "#fff" },
 
   // Boş durum
-  emptyState: { alignItems: "center", paddingTop: 60, paddingBottom: 40 },
+  emptyState:    { alignItems: "center", paddingTop: 60, paddingBottom: 40 },
   emptyEmoji:    { fontSize: 48, marginBottom: 12 },
   emptyTitle:    { fontSize: 15, fontWeight: "700", color: Colors.text },
   emptySubtitle: { fontSize: 12, color: Colors.text2, marginTop: 4 },
