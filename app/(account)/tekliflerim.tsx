@@ -224,32 +224,30 @@ export default function TekliflerimScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.tabsScroll}
+        contentContainerStyle={styles.tabsRow}
       >
-        <View style={styles.tabsRow}>
-          {TABS.map(tab => {
-            const isActive = activeTab === tab.key;
-            const count = tab.key === "all"
-              ? teklifler.length
-              : teklifler.filter(t => t.status === tab.key).length;
-            return (
-              <TouchableOpacity
-                key={tab.key}
-                style={[styles.tab, isActive && styles.tabActive]}
-                onPress={() => handleTabChange(tab.key)}
-              >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                  {tab.label}
+        {TABS.map(tab => {
+          const isActive = activeTab === tab.key;
+          const count = tab.key === "all"
+            ? teklifler.length
+            : teklifler.filter(t => t.status === tab.key).length;
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tab, isActive && styles.tabActive]}
+              onPress={() => handleTabChange(tab.key)}
+            >
+              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                {tab.label}
+              </Text>
+              <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
+                <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
+                  {count}
                 </Text>
-                <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
-                  <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
-                    {count}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
       {/* ── Liste ──
@@ -315,7 +313,6 @@ const styles = StyleSheet.create({
 
   // ── Tabs ──
   // tabsScroll: flexShrink:0 → FlatList (flex:1) tarafından ezilmez
-  tabsScroll: { flexShrink: 0, height: 48 },
   tabsRow: {
     flexDirection: "row",
     alignItems: "center",
