@@ -244,7 +244,7 @@ export default function SellerOrdersScreen() {
               style={{
                 flexDirection: "row", alignItems: "center", gap: 5,
                 paddingHorizontal: 12, paddingVertical: 7,
-                borderRadius: 99, marginRight: 8,
+                borderRadius: 99, marginRight: 8, flexShrink: 0,
                 backgroundColor: isActive ? "#ff6b2b" : colors.surface2,
                 borderWidth: 1,
                 borderColor: isActive ? "#ff6b2b" : colors.border,
