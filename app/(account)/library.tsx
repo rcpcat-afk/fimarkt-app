@@ -273,6 +273,7 @@ const styles = StyleSheet.create({
   gridItem: {
     width: "50%",
     padding: 5,
+    alignSelf: "flex-start",
   },
 
   // Kart — overflow:hidden yerine borderRadius yeterli (absolute badge'ler için gerekli)
