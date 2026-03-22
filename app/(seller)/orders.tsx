@@ -43,17 +43,17 @@ const TYPE_META: Record<SellerOrderType, { label: string; color: string }> = {
   fidrop:   { label: "🖨️ Fidrop 3D", color: "#ff6b2b" },
 };
 
-const CHIPS: { status: SellerOrderStatus | "all"; label: string; dot: string }[] = [
-  { status: "all",        label: "Tümü",        dot: "⚫" },
-  { status: "new",        label: "Yeni",        dot: "🔴" },
-  { status: "processing", label: "Hazırlanıyor",dot: "🟠" },
-  { status: "shipped",    label: "Kargoda",     dot: "🔵" },
-  { status: "completed",  label: "Tamamlandı",  dot: "🟢" },
+const CHIPS: { status: SellerOrderStatus | "all"; label: string; dotColor: string }[] = [
+  { status: "all",        label: "Tümü",        dotColor: "#6b7280" },
+  { status: "new",        label: "Yeni",        dotColor: "#ef4444" },
+  { status: "processing", label: "Hazırlanıyor",dotColor: "#f97316" },
+  { status: "shipped",    label: "Kargoda",     dotColor: "#3b82f6" },
+  { status: "completed",  label: "Tamamlandı",  dotColor: "#22c55e" },
 ];
 
 const NEXT_ACTION: Partial<Record<SellerOrderStatus, string>> = {
   new:        "Onayla",
-  processing: "Kargolandı",
+  processing: "Kargoya Ver",
 };
 const NEXT_STATUS: Partial<Record<SellerOrderStatus, SellerOrderStatus>> = {
   new:        "processing",
@@ -98,8 +98,9 @@ function OrderCard({
             </View>
           </View>
           {/* Durum rozeti */}
-          <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 99, backgroundColor: sm.color + "18" }}>
-            <Text style={{ fontSize: 9, fontWeight: "800", color: sm.color }}>{sm.dot} {sm.label}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 8, paddingVertical: 3, borderRadius: 99, backgroundColor: sm.color + "18" }}>
+            <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: sm.color, marginRight: 4 }} />
+            <Text style={{ fontSize: 9, fontWeight: "800", color: sm.color }}>{sm.label}</Text>
           </View>
         </View>
 
@@ -247,8 +248,14 @@ export default function SellerOrdersScreen() {
                     borderColor: isActive ? "#ff6b2b" : colors.border,
                   }}
                 >
+                  {/* Renkli nokta — emoji yerine */}
+                  <View style={{
+                    width: 7, height: 7, borderRadius: 4,
+                    backgroundColor: isActive ? "#fff" : chip.dotColor,
+                    marginRight: 5,
+                  }} />
                   <Text style={{ fontSize: 11, fontWeight: "800", color: isActive ? "#fff" : colors.mutedForeground }}>
-                    {chip.dot} {chip.label}
+                    {chip.label}
                   </Text>
                   {count > 0 && (
                     <View style={{
