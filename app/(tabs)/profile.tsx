@@ -48,30 +48,38 @@ interface SettingRowProps {
 const SettingRow = ({
   icon, label, value, onPress,
   isSwitch, switchValue, onSwitchChange, danger,
-}: SettingRowProps) => (
-  <TouchableOpacity style={styles.settingRow} onPress={onPress} disabled={isSwitch}>
-    <Text style={styles.settingIcon}>{icon}</Text>
-    <Text style={[styles.settingLabel, danger && { color: Colors.red }]}>{label}</Text>
-    <View style={styles.settingRight}>
-      {isSwitch ? (
-        <Switch
-          value={switchValue}
-          onValueChange={onSwitchChange}
-          trackColor={{ false: Colors.border, true: Colors.accent }}
-          thumbColor="#fff"
-        />
-      ) : (
-        <>
-          {value && <Text style={styles.settingValue}>{value}</Text>}
-          <Text style={[styles.settingArrow, danger && { color: Colors.red }]}>›</Text>
-        </>
-      )}
-    </View>
-  </TouchableOpacity>
-);
+}: SettingRowProps) => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  // Switch varsa dokunmayı kesmemek için View kullan
+  const Wrapper = isSwitch ? View : TouchableOpacity;
+  return (
+    <Wrapper style={styles.settingRow} {...(!isSwitch && { onPress })}>
+      <Text style={styles.settingIcon}>{icon}</Text>
+      <Text style={[styles.settingLabel, danger && { color: colors.error }]}>{label}</Text>
+      <View style={styles.settingRight}>
+        {isSwitch ? (
+          <Switch
+            value={switchValue}
+            onValueChange={onSwitchChange}
+            trackColor={{ false: colors.border, true: colors.accent }}
+            thumbColor="#fff"
+          />
+        ) : (
+          <>
+            {value && <Text style={styles.settingValue}>{value}</Text>}
+            <Text style={[styles.settingArrow, danger && { color: colors.error }]}>›</Text>
+          </>
+        )}
+      </View>
+    </Wrapper>
+  );
+};
 
 // ─── LiveTracker (App) ────────────────────────────────────────────────────────
 const LiveTracker = () => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { liveOrder } = MOCK_DASHBOARD;
   return (
     <View style={styles.trackerCard}>
@@ -120,8 +128,8 @@ const LiveTracker = () => {
                 <Text
                   style={[
                     styles.stepLabel,
-                    isDone   && { color: Colors.green },
-                    isActive && { color: Colors.accent },
+                    isDone   && { color: colors.success },
+                    isActive && { color: colors.accent },
                   ]}
                   numberOfLines={2}
                 >
@@ -135,7 +143,7 @@ const LiveTracker = () => {
                 <View
                   style={[
                     styles.stepLine,
-                    isDone && { backgroundColor: Colors.green },
+                    isDone && { backgroundColor: colors.success },
                   ]}
                 />
               )}
@@ -164,6 +172,8 @@ const BENTO_ITEMS = [
 ] as const;
 
 const BentoStats = () => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { stats } = MOCK_DASHBOARD;
   return (
     <View style={styles.bentoGrid}>
@@ -174,7 +184,7 @@ const BentoStats = () => {
         return (
           <View
             key={item.key}
-            style={[styles.bentoCard, { borderColor: Colors.border }]}
+            style={[styles.bentoCard, { borderColor: colors.border }]}
           >
             <View
               style={[
@@ -197,6 +207,8 @@ const BentoStats = () => {
 
 // ─── SmartReminders (App) ────────────────────────────────────────────────────
 const SmartReminders = ({ onCartPress }: { onCartPress: () => void }) => {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { cartItemCount, cartTotal, recentlyViewed } = MOCK_DASHBOARD;
   return (
     <View style={styles.section}>
@@ -237,7 +249,8 @@ export default function ProfileScreen() {
   const insets       = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
   const { user, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  const { colors, isDark, toggleTheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [orders, setOrders]               = useState<WCOrder[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -303,8 +316,8 @@ export default function ProfileScreen() {
     .slice(0, 2);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: tabBarHeight }}
@@ -415,7 +428,7 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Siparişlerim</Text>
           <View style={styles.orderStatus}>
             {ordersLoading ? (
-              <ActivityIndicator color={Colors.accent} size="small" />
+              <ActivityIndicator color={colors.accent} size="small" />
             ) : (
               [
                 { icon: "⏳", label: "Hazırlanıyor", count: orderCounts.processing },
@@ -544,220 +557,181 @@ export default function ProfileScreen() {
   );
 }
 
-// ─── StyleSheet ───────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: Colors.bg },
+// ─── StyleSheet Factory ───────────────────────────────────────────────────────
+// Tema tokenlarıyla çalışır; useMemo ile component içinde çağrılır.
+function createStyles(C: typeof Colors.dark) {
+  return StyleSheet.create({
+    container:    { flex: 1, backgroundColor: C.background },
 
-  // Sayfa başlığı
-  pageHeader:   { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
-  pageTitle:    { fontSize: 22, fontWeight: "800", color: Colors.text, letterSpacing: -0.5 },
+    pageHeader:   { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 },
+    pageTitle:    { fontSize: 22, fontWeight: "800", color: C.foreground, letterSpacing: -0.5 },
 
-  // Welcome card
-  welcomeCard: {
-    flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between",
-    marginHorizontal: 20, marginBottom: 16,
-    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 20, padding: 16, gap: 12,
-  },
-  welcomeLeft:    { flex: 1 },
-  welcomeGreeting:{ fontSize: 11, color: Colors.text2, marginBottom: 2 },
-  welcomeName:    { fontSize: 17, fontWeight: "800", color: Colors.text, letterSpacing: -0.3 },
-  welcomeSub:     { fontSize: 12, color: Colors.text2, marginTop: 1 },
-  roleBadge: {
-    marginTop: 8, alignSelf: "flex-start",
-    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99,
-    backgroundColor: Colors.accent + "15",
-    borderWidth: 1, borderColor: Colors.accent + "30",
-  },
-  roleBadgeText:  { fontSize: 10, fontWeight: "800", color: Colors.accent },
-  welcomeRight:   { alignItems: "center", gap: 8 },
-  avatar: {
-    width: 52, height: 52, borderRadius: 16,
-    backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center",
-  },
-  avatarText:  { fontSize: 18, fontWeight: "800", color: "#fff" },
-  editBtn: {
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99,
-    borderWidth: 1, borderColor: Colors.border,
-  },
-  editBtnText: { fontSize: 11, color: Colors.text2 },
+    welcomeCard: {
+      flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between",
+      marginHorizontal: 20, marginBottom: 16,
+      backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      borderRadius: 20, padding: 16, gap: 12,
+    },
+    welcomeLeft:    { flex: 1 },
+    welcomeGreeting:{ fontSize: 11, color: C.mutedForeground, marginBottom: 2 },
+    welcomeName:    { fontSize: 17, fontWeight: "800", color: C.foreground, letterSpacing: -0.3 },
+    welcomeSub:     { fontSize: 12, color: C.mutedForeground, marginTop: 1 },
+    roleBadge: {
+      marginTop: 8, alignSelf: "flex-start",
+      paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99,
+      backgroundColor: C.accent + "15", borderWidth: 1, borderColor: C.accent + "30",
+    },
+    roleBadgeText:  { fontSize: 10, fontWeight: "800", color: C.accent },
+    welcomeRight:   { alignItems: "center", gap: 8 },
+    avatar: {
+      width: 52, height: 52, borderRadius: 16,
+      backgroundColor: C.accent, alignItems: "center", justifyContent: "center",
+    },
+    avatarText:  { fontSize: 18, fontWeight: "800", color: "#fff" },
+    editBtn: {
+      paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99,
+      borderWidth: 1, borderColor: C.border,
+    },
+    editBtnText: { fontSize: 11, color: C.mutedForeground },
 
-  // Bento stats
-  bentoGrid: {
-    flexDirection: "row", flexWrap: "wrap",
-    marginHorizontal: 20, marginBottom: 16, gap: 10,
-  },
-  bentoCard: {
-    width: "47%", backgroundColor: Colors.surface2,
-    borderWidth: 1, borderRadius: 18, padding: 14, gap: 6,
-  },
-  bentoIcon: {
-    width: 38, height: 38, borderRadius: 12,
-    alignItems: "center", justifyContent: "center",
-  },
-  bentoIconText: { fontSize: 18 },
-  bentoValue:    { fontSize: 22, fontWeight: "900", letterSpacing: -0.5 },
-  bentoLabel:    { fontSize: 10, color: Colors.text2, fontWeight: "500" },
+    bentoGrid: {
+      flexDirection: "row", flexWrap: "wrap",
+      marginHorizontal: 20, marginBottom: 16, gap: 10,
+    },
+    bentoCard: {
+      width: "47%", backgroundColor: C.surface2,
+      borderWidth: 1, borderRadius: 18, padding: 14, gap: 6,
+    },
+    bentoIcon: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+    bentoIconText: { fontSize: 18 },
+    bentoValue:    { fontSize: 22, fontWeight: "900", letterSpacing: -0.5 },
+    bentoLabel:    { fontSize: 10, color: C.mutedForeground, fontWeight: "500" },
 
-  // Live Tracker
-  trackerCard: {
-    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 20, padding: 16, overflow: "hidden", position: "relative",
-  },
-  trackerStripe: {
-    position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
-    backgroundColor: Colors.accent, borderTopLeftRadius: 20, borderBottomLeftRadius: 20,
-  },
-  trackerHeader: {
-    flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4, paddingLeft: 8,
-  },
-  trackerPulseWrap: {
-    width: 10, height: 10, alignItems: "center", justifyContent: "center",
-  },
-  trackerPulseDot: {
-    width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.accent,
-  },
-  trackerTitle:   { fontSize: 10, fontWeight: "700", color: Colors.text2, textTransform: "uppercase", letterSpacing: 0.5, flex: 1 },
-  trackerOrderId: { fontSize: 9, color: Colors.text3, fontFamily: "monospace" },
-  trackerProduct: { fontSize: 13, fontWeight: "700", color: Colors.text, marginBottom: 16, paddingLeft: 8 },
+    trackerCard: {
+      backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      borderRadius: 20, padding: 16, overflow: "hidden", position: "relative",
+    },
+    trackerStripe: {
+      position: "absolute", left: 0, top: 0, bottom: 0, width: 4,
+      backgroundColor: C.accent, borderTopLeftRadius: 20, borderBottomLeftRadius: 20,
+    },
+    trackerHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 4, paddingLeft: 8 },
+    trackerPulseWrap: { width: 10, height: 10, alignItems: "center", justifyContent: "center" },
+    trackerPulseDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.accent },
+    trackerTitle:   { fontSize: 10, fontWeight: "700", color: C.mutedForeground, textTransform: "uppercase", letterSpacing: 0.5, flex: 1 },
+    trackerOrderId: { fontSize: 9, color: C.subtleForeground, fontFamily: "monospace" },
+    trackerProduct: { fontSize: 13, fontWeight: "700", color: C.foreground, marginBottom: 16, paddingLeft: 8 },
 
-  // Stepper
-  stepperRow: { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 4 },
-  stepNode:   { flex: 1, alignItems: "center" },
-  stepCircle: {
-    width: 32, height: 32, borderRadius: 16,
-    backgroundColor: Colors.surface, borderWidth: 2, borderColor: Colors.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  stepCircleDone:   { backgroundColor: "#22c55e", borderColor: "#22c55e" },
-  stepCircleActive: { backgroundColor: Colors.accent, borderColor: Colors.accent },
-  stepCircleText:   { fontSize: 11, fontWeight: "800", color: Colors.text3 },
-  stepLabel: {
-    fontSize: 9, fontWeight: "700", color: Colors.text2,
-    textAlign: "center", marginTop: 5, paddingHorizontal: 2,
-  },
-  stepDate:  { fontSize: 8, color: Colors.text3, textAlign: "center", marginTop: 1 },
-  stepLine:  { flex: 1, height: 2, backgroundColor: Colors.border, marginTop: 15 },
+    stepperRow: { flexDirection: "row", alignItems: "flex-start", paddingHorizontal: 4 },
+    stepNode:   { flex: 1, alignItems: "center" },
+    stepCircle: {
+      width: 32, height: 32, borderRadius: 16,
+      backgroundColor: C.surface, borderWidth: 2, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    stepCircleDone:   { backgroundColor: "#22c55e", borderColor: "#22c55e" },
+    stepCircleActive: { backgroundColor: C.accent, borderColor: C.accent },
+    stepCircleText:   { fontSize: 11, fontWeight: "800", color: C.subtleForeground },
+    stepLabel: {
+      fontSize: 9, fontWeight: "700", color: C.mutedForeground,
+      textAlign: "center", marginTop: 5, paddingHorizontal: 2,
+    },
+    stepDate: { fontSize: 8, color: C.subtleForeground, textAlign: "center", marginTop: 1 },
+    stepLine: { flex: 1, height: 2, backgroundColor: C.border, marginTop: 15 },
 
-  trackerFooter: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.border,
-    paddingLeft: 8,
-  },
-  trackerDeliveryLabel: { fontSize: 9, color: Colors.text3, textTransform: "uppercase", letterSpacing: 0.5 },
-  trackerDeliveryDate:  { fontSize: 13, fontWeight: "700", color: Colors.text, marginTop: 1 },
+    trackerFooter: {
+      flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+      marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border, paddingLeft: 8,
+    },
+    trackerDeliveryLabel: { fontSize: 9, color: C.subtleForeground, textTransform: "uppercase", letterSpacing: 0.5 },
+    trackerDeliveryDate:  { fontSize: 13, fontWeight: "700", color: C.foreground, marginTop: 1 },
 
-  // Smart reminders
-  cartReminder: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    backgroundColor: Colors.accent + "0f", borderWidth: 1, borderColor: Colors.accent + "30",
-    borderRadius: 16, padding: 14, marginBottom: 14,
-  },
-  cartReminderIcon: {
-    width: 42, height: 42, borderRadius: 12, backgroundColor: Colors.accent + "20",
-    alignItems: "center", justifyContent: "center",
-  },
-  cartReminderInfo:    { flex: 1 },
-  cartReminderTitle:   { fontSize: 12, fontWeight: "700", color: Colors.text },
-  cartReminderSub:     { fontSize: 10, color: Colors.text2, marginTop: 1 },
-  cartReminderBtn: {
-    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10,
-    backgroundColor: Colors.accent,
-  },
-  cartReminderBtnText: { fontSize: 10, fontWeight: "800", color: "#fff" },
+    cartReminder: {
+      flexDirection: "row", alignItems: "center", gap: 12,
+      backgroundColor: C.accent + "0f", borderWidth: 1, borderColor: C.accent + "30",
+      borderRadius: 16, padding: 14, marginBottom: 14,
+    },
+    cartReminderIcon: {
+      width: 42, height: 42, borderRadius: 12, backgroundColor: C.accent + "20",
+      alignItems: "center", justifyContent: "center",
+    },
+    cartReminderInfo:    { flex: 1 },
+    cartReminderTitle:   { fontSize: 12, fontWeight: "700", color: C.foreground },
+    cartReminderSub:     { fontSize: 10, color: C.mutedForeground, marginTop: 1 },
+    cartReminderBtn:     { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: C.accent },
+    cartReminderBtnText: { fontSize: 10, fontWeight: "800", color: "#fff" },
 
-  // Recently viewed
-  recentCard: {
-    width: 96, backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 14, padding: 10,
-  },
-  recentName:  { fontSize: 10, fontWeight: "600", color: Colors.text, lineHeight: 14, marginBottom: 4 },
-  recentPrice: { fontSize: 10, fontWeight: "800", color: Colors.accent },
+    recentCard: {
+      width: 96, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      borderRadius: 14, padding: 10,
+    },
+    recentName:  { fontSize: 10, fontWeight: "600", color: C.foreground, lineHeight: 14, marginBottom: 4 },
+    recentPrice: { fontSize: 10, fontWeight: "800", color: C.accent },
 
-  // Quick row
-  quickRow: {
-    flexDirection: "row", justifyContent: "space-between",
-    marginHorizontal: 20, marginBottom: 16,
-  },
-  quickItem: {
-    flex: 1, alignItems: "center", backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border, borderRadius: 14, padding: 12, marginHorizontal: 4,
-  },
-  quickIcon:  { fontSize: 22, marginBottom: 6 },
-  quickLabel: { fontSize: 10, color: Colors.text2, fontWeight: "500" },
+    quickRow:  { flexDirection: "row", justifyContent: "space-between", marginHorizontal: 20, marginBottom: 16 },
+    quickItem: {
+      flex: 1, alignItems: "center", backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 12, marginHorizontal: 4,
+    },
+    quickIcon:  { fontSize: 22, marginBottom: 6 },
+    quickLabel: { fontSize: 10, color: C.mutedForeground, fontWeight: "500" },
 
-  // Section
-  section:       { marginHorizontal: 20, marginBottom: 14 },
-  sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
-  sectionLink:   { fontSize: 11, fontWeight: "700", color: Colors.accent },
-  sectionTitle: {
-    fontSize: 11, fontWeight: "700", color: Colors.text2,
-    textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10,
-  },
+    section:       { marginHorizontal: 20, marginBottom: 14 },
+    sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
+    sectionLink:   { fontSize: 11, fontWeight: "700", color: C.accent },
+    sectionTitle:  { fontSize: 11, fontWeight: "700", color: C.mutedForeground, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 10 },
 
-  // Order status
-  orderStatus: {
-    flexDirection: "row", backgroundColor: Colors.surface2, borderWidth: 1,
-    borderColor: Colors.border, borderRadius: 16, padding: 16,
-    minHeight: 80, alignItems: "center", justifyContent: "center",
-  },
-  orderStatusItem:  { flex: 1, alignItems: "center", gap: 4 },
-  orderStatusIcon:  { fontSize: 20 },
-  orderStatusCount: { fontSize: 16, fontWeight: "800", color: Colors.text },
-  orderStatusLabel: { fontSize: 9, color: Colors.text2, textAlign: "center" },
+    orderStatus: {
+      flexDirection: "row", backgroundColor: C.surface2, borderWidth: 1,
+      borderColor: C.border, borderRadius: 16, padding: 16,
+      minHeight: 80, alignItems: "center", justifyContent: "center",
+    },
+    orderStatusItem:  { flex: 1, alignItems: "center", gap: 4 },
+    orderStatusIcon:  { fontSize: 20 },
+    orderStatusCount: { fontSize: 16, fontWeight: "800", color: C.foreground },
+    orderStatusLabel: { fontSize: 9, color: C.mutedForeground, textAlign: "center" },
 
-  // Teklif kart
-  teklifCard: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 16, padding: 14, gap: 10,
-  },
-  teklifLeft:     { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
-  teklifIconWrap: {
-    width: 40, height: 40, borderRadius: 12,
-    backgroundColor: Colors.accent + "18", borderWidth: 1, borderColor: Colors.accent + "30",
-    alignItems: "center", justifyContent: "center",
-  },
-  teklifInfo:     { flex: 1 },
-  teklifTitle:    { fontSize: 13, fontWeight: "700", color: Colors.text },
-  teklifSub:      { fontSize: 11, color: Colors.text2, marginTop: 2 },
-  teklifBadge: {
-    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20,
-    backgroundColor: Colors.accent + "15", borderWidth: 1, borderColor: Colors.accent + "30",
-  },
-  teklifBadgeText: { fontSize: 10, fontWeight: "800", color: Colors.accent },
+    teklifCard: {
+      flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+      backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      borderRadius: 16, padding: 14, gap: 10,
+    },
+    teklifLeft:     { flexDirection: "row", alignItems: "center", gap: 10, flex: 1 },
+    teklifIconWrap: {
+      width: 40, height: 40, borderRadius: 12,
+      backgroundColor: C.accent + "18", borderWidth: 1, borderColor: C.accent + "30",
+      alignItems: "center", justifyContent: "center",
+    },
+    teklifInfo:     { flex: 1 },
+    teklifTitle:    { fontSize: 13, fontWeight: "700", color: C.foreground },
+    teklifSub:      { fontSize: 11, color: C.mutedForeground, marginTop: 2 },
+    teklifBadge:    { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 20, backgroundColor: C.accent + "15", borderWidth: 1, borderColor: C.accent + "30" },
+    teklifBadgeText:{ fontSize: 10, fontWeight: "800", color: C.accent },
 
-  // Partner panel geçiş butonu
-  panelBtn: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    backgroundColor: Colors.accent + "10", borderWidth: 1, borderColor: Colors.accent + "30",
-    borderRadius: 16, padding: 14, marginBottom: 10,
-  },
-  panelBtnEngineer: {
-    backgroundColor: "#6366f110",
-    borderColor:     "#6366f130",
-  },
-  panelBtnIcon: {
-    width: 38, height: 38, borderRadius: 12,
-    alignItems: "center", justifyContent: "center",
-  },
-  panelBtnText:  { flex: 1 },
-  panelBtnTitle: { fontSize: 14, fontWeight: "800", color: Colors.text },
-  panelBtnSub:   { fontSize: 11, color: Colors.text2, marginTop: 1 },
-  panelBtnArrow: { fontSize: 18, color: Colors.text3 },
+    panelBtn: {
+      flexDirection: "row", alignItems: "center", gap: 12,
+      backgroundColor: C.accent + "10", borderWidth: 1, borderColor: C.accent + "30",
+      borderRadius: 16, padding: 14, marginBottom: 10,
+    },
+    panelBtnEngineer: { backgroundColor: "#6366f110", borderColor: "#6366f130" },
+    panelBtnIcon:  { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+    panelBtnText:  { flex: 1 },
+    panelBtnTitle: { fontSize: 14, fontWeight: "800", color: C.foreground },
+    panelBtnSub:   { fontSize: 11, color: C.mutedForeground, marginTop: 1 },
+    panelBtnArrow: { fontSize: 18, color: C.subtleForeground },
 
-  // Setting
-  settingCard: {
-    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 16, overflow: "hidden",
-  },
-  settingRow: {
-    flexDirection: "row", alignItems: "center",
-    padding: 14, gap: 12, borderBottomWidth: 1, borderBottomColor: Colors.border,
-  },
-  settingIcon:  { fontSize: 18, width: 28, textAlign: "center" },
-  settingLabel: { flex: 1, fontSize: 14, color: Colors.text },
-  settingRight: { flexDirection: "row", alignItems: "center", gap: 6 },
-  settingValue: { fontSize: 13, color: Colors.text2 },
-  settingArrow: { fontSize: 20, color: Colors.text3 },
-});
+    settingCard: {
+      backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      borderRadius: 16, overflow: "hidden",
+    },
+    settingRow: {
+      flexDirection: "row", alignItems: "center",
+      padding: 14, gap: 12, borderBottomWidth: 1, borderBottomColor: C.border,
+    },
+    settingIcon:  { fontSize: 18, width: 28, textAlign: "center" },
+    settingLabel: { flex: 1, fontSize: 14, color: C.foreground },
+    settingRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+    settingValue: { fontSize: 13, color: C.mutedForeground },
+    settingArrow: { fontSize: 20, color: C.subtleForeground },
+  });
+}
