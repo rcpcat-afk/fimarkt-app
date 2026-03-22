@@ -106,12 +106,6 @@ export default function LibraryScreen() {
 
   const updateCount = MOCK_LIBRARY.filter(i => i.hasUpdate).length;
 
-  // 2-kolon grid: çiftlere böl
-  const rows: LibraryItem[][] = [];
-  for (let i = 0; i < filtered.length; i += 2) {
-    rows.push(filtered.slice(i, i + 2));
-  }
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
@@ -175,21 +169,17 @@ export default function LibraryScreen() {
         contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + 40 }]}
         showsVerticalScrollIndicator={false}
       >
-        {rows.length > 0 ? (
-          rows.map((row, rowIdx) => (
-            <View key={rowIdx} style={styles.row}>
-              {row.map(item => (
-                <View key={item.id} style={styles.cardWrapper}>
-                  <LibraryCard
-                    item={item}
-                    onPrint={() => router.push("/(print)/print-upload" as never)}
-                  />
-                </View>
-              ))}
-              {/* Tek elemanlı son satır için boşluk dolgusu */}
-              {row.length === 1 && <View style={styles.cardWrapper} />}
-            </View>
-          ))
+        {filtered.length > 0 ? (
+          <View style={styles.grid}>
+            {filtered.map(item => (
+              <View key={item.id} style={styles.gridItem}>
+                <LibraryCard
+                  item={item}
+                  onPrint={() => router.push("/(print)/print-upload" as never)}
+                />
+              </View>
+            ))}
+          </View>
         ) : (
           <View style={styles.emptyState}>
             <Text style={styles.emptyEmoji}>📭</Text>
@@ -272,17 +262,17 @@ const styles = StyleSheet.create({
 
   // Liste
   list:        { flex: 1 },
-  listContent: { paddingHorizontal: 12, paddingTop: 8 },
+  listContent: { paddingTop: 8 },
 
-  // 2-kolon grid: alignItems:"flex-start" → kartlar birbirinin yüksekliğine stretch olmaz
-  row: {
+  // 2-kolon grid — flexWrap ile her item doğal yüksekliğini korur, stretch olmaz
+  grid: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 10,
+    flexWrap: "wrap",
+    paddingHorizontal: 8,
   },
-  cardWrapper: {
-    flex: 1,
-    marginHorizontal: 5,
+  gridItem: {
+    width: "50%",
+    padding: 5,
   },
 
   // Kart — overflow:hidden yerine borderRadius yeterli (absolute badge'ler için gerekli)
