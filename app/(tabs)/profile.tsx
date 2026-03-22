@@ -490,6 +490,13 @@ export default function ProfileScreen() {
             <SettingRow icon="🔒" label="Şifre Değiştir"      onPress={() => router.push("/forgot-password")}  />
             <SettingRow icon="📍" label="Adreslerim"          onPress={() => router.push("/addresses")}        />
             <SettingRow icon="💳" label="Ödeme Yöntemlerim"   onPress={() => router.push("/payment-methods")}  />
+            {!partnerRole && (
+              <SettingRow
+                icon="🚀"
+                label="Çözüm Ortağı Ol"
+                onPress={() => router.push("/(seller)/onboarding" as never)}
+              />
+            )}
           </View>
         </View>
 
