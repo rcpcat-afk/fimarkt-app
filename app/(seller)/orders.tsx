@@ -173,7 +173,7 @@ export default function SellerOrdersScreen() {
     backArrow:   { fontSize: 22, color: colors.foreground, lineHeight: 28, marginTop: -2 },
     headerTitle: { fontSize: 16, fontWeight: "900", color: colors.foreground },
     headerSub:   { fontSize: 10, color: colors.mutedForeground, marginTop: 1 },
-    chipBar:     { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: colors.border },
+    chipBarWrap: { borderBottomWidth: 1, borderBottomColor: colors.border },
     list:        { flex: 1 },
     listContent: { paddingHorizontal: 16, paddingTop: 12 },
     emptyBox:    { alignItems: "center", paddingTop: 60, gap: 8 },
@@ -228,12 +228,12 @@ export default function SellerOrdersScreen() {
       </View>
 
       {/* Chip Bar */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.chipBar}
-        contentContainerStyle={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 2 }}
-      >
+      <View style={styles.chipBarWrap}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 10 }}
+        >
         {CHIPS.map(chip => {
           const isActive = activeTab === chip.status;
           const count    = counts[chip.status] ?? 0;
@@ -266,7 +266,8 @@ export default function SellerOrdersScreen() {
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {/* Liste */}
       <ScrollView
