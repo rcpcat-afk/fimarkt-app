@@ -1,7 +1,11 @@
-// ─── Tekliflerim — RFQ Liste Ekranı ──────────────────────────────────────────
+// ─── Tekliflerim — RFQ Inbox (App) ───────────────────────────────────────────
+// offer_received → native shadow glow + kırmızı bildirim badge + belirgin CTA
+// pending        → ⋮ → Alert.alert (destructive) ile İptal Et
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
+  FlatList,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -11,111 +15,126 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants";
+import { MOCK_TEKLIFLER, type Teklif, type TeklifStatus } from "../../lib/mock-data/rfq-list";
 
-// ── Tipler ────────────────────────────────────────────────────────────────────
-type TeklifStatus = "pending" | "offer_received" | "in_progress" | "completed" | "cancelled";
-
-interface Teklif {
-  id:          string;
-  title:       string;
-  category:    string;
-  status:      TeklifStatus;
-  engineer:    { name: string; initials: string } | null;
-  budget:      string;
-  date:        string;
-  lastMessage: string;
-}
-
-// ── Mock veri ─────────────────────────────────────────────────────────────────
-const MOCK_TEKLIFLER: Teklif[] = [
-  {
-    id:          "rfq-2024-001",
-    title:       "Kırık Dişli Mili — Yedek Parça",
-    category:    "Mühendislik Parçası",
-    status:      "offer_received",
-    engineer:    { name: "Ali Yılmaz", initials: "AY" },
-    budget:      "500₺",
-    date:        "12 Mar 2026",
-    lastMessage: "500₺'ye teklif verdim, ne düşünürsünüz?",
-  },
-  {
-    id:          "rfq-2024-002",
-    title:       "Firma Logosu 3D Plaket",
-    category:    "Kurumsal Tasarım",
-    status:      "pending",
-    engineer:    null,
-    budget:      "300–600₺",
-    date:        "18 Mar 2026",
-    lastMessage: "Uzman araması yapılıyor...",
-  },
-  {
-    id:          "rfq-2024-003",
-    title:       "Özel Bisiklet Gidon Tutacağı",
-    category:    "Spor & Outdoor",
-    status:      "in_progress",
-    engineer:    { name: "Selin Kara", initials: "SK" },
-    budget:      "850₺",
-    date:        "5 Mar 2026",
-    lastMessage: "Tasarım dosyaları hazırlanıyor, %60 tamamlandı.",
-  },
-  {
-    id:          "rfq-2024-004",
-    title:       "Vintage Heykel Replikası",
-    category:    "Sanat & Hobi",
-    status:      "completed",
-    engineer:    { name: "Mert Karakoç", initials: "MK" },
-    budget:      "1.200₺",
-    date:        "20 Şub 2026",
-    lastMessage: "Dosyalar teslim edildi. Proje tamamlandı! 🎉",
-  },
-];
-
-// ── Status config ──────────────────────────────────────────────────────────────
+// ─── Status Config (Colors token'ları) ────────────────────────────────────────
 const STATUS_CONFIG: Record<TeklifStatus, { label: string; icon: string; color: string }> = {
-  pending:        { label: "Uzman Aranıyor",       icon: "⏳", color: "#f59e0b" },
-  offer_received: { label: "Teklif Alındı",        icon: "💬", color: Colors.accent  },
-  in_progress:    { label: "Devam Ediyor",          icon: "🔧", color: "#3b82f6" },
-  completed:      { label: "Tamamlandı",            icon: "✅", color: "#22c55e" },
-  cancelled:      { label: "İptal Edildi",          icon: "❌", color: "#ef4444" },
+  pending:        { label: "Uzman Aranıyor",       icon: "⏳", color: Colors.yellow  },
+  offer_received: { label: "Yeni Teklif Var!",     icon: "💬", color: Colors.accent  },
+  in_progress:    { label: "Devam Ediyor",          icon: "🔧", color: "#3b82f6"      },
+  completed:      { label: "Tamamlandı",            icon: "✅", color: Colors.green   },
+  cancelled:      { label: "İptal Edildi",          icon: "❌", color: Colors.red     },
 };
 
-// ── Tab config ─────────────────────────────────────────────────────────────────
-const TAB_FILTERS: { key: string; label: string }[] = [
+// ─── Tab Konfigürasyonu ────────────────────────────────────────────────────────
+const TABS: { key: string; label: string }[] = [
   { key: "all",            label: "Tümü"          },
   { key: "offer_received", label: "Teklif Alındı" },
+  { key: "pending",        label: "Uzman Aranıyor" },
   { key: "in_progress",    label: "Devam Ediyor"  },
   { key: "completed",      label: "Tamamlandı"    },
 ];
 
-// ── Teklif kartı ──────────────────────────────────────────────────────────────
-function TeklifCard({ t, onPress }: { t: Teklif; onPress: () => void }) {
-  const s = STATUS_CONFIG[t.status];
+// ─── Teklif Kartı ──────────────────────────────────────────────────────────────
+function TeklifCard({
+  t,
+  onPress,
+  onCancel,
+}: {
+  t: Teklif;
+  onPress: () => void;
+  onCancel: (id: string) => void;
+}) {
+  const s               = STATUS_CONFIG[t.status];
+  const isOfferReceived = t.status === "offer_received";
+  const isPending       = t.status === "pending";
+
+  const handleMenuPress = () => {
+    Alert.alert(
+      t.title,
+      "Bu teklif talebi için ne yapmak istiyorsunuz?",
+      [
+        {
+          text: "❌ İptal Et / Sil",
+          style: "destructive",
+          onPress: () =>
+            Alert.alert(
+              "Emin misiniz?",
+              "Bu talebi iptal etmek geri alınamaz.",
+              [
+                { text: "Vazgeç", style: "cancel" },
+                { text: "İptal Et", style: "destructive", onPress: () => onCancel(t.id) },
+              ],
+            ),
+        },
+        { text: "Vazgeç", style: "cancel" },
+      ],
+    );
+  };
+
+  // offer_received: glow shadow (iOS shadow + Android elevation)
+  const glowStyle = isOfferReceived
+    ? {
+        shadowColor:  Colors.accent,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.55,
+        shadowRadius:  12,
+        elevation:     14,
+        borderColor:   `${Colors.accent}88`,
+        borderWidth:   1.5,
+      }
+    : {};
+
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
-      {/* Renk şeridi */}
+    <View style={[styles.card, glowStyle]}>
+      {/* Üst renk şeridi */}
       <View style={[styles.cardStripe, { backgroundColor: s.color }]} />
 
       <View style={styles.cardBody}>
-        {/* Üst satır */}
+        {/* ── Başlık Satırı ── */}
         <View style={styles.cardTop}>
-          <View style={styles.cardIconWrap}>
+          {/* Sol: ikon */}
+          <View style={[styles.cardIconWrap, { backgroundColor: `${s.color}18`, borderColor: `${s.color}28` }]}>
             <Text style={{ fontSize: 18 }}>📋</Text>
           </View>
+
+          {/* Başlık + kategori */}
           <View style={styles.cardTitleWrap}>
             <Text style={[styles.cardCategory, { color: s.color }]}>{t.category}</Text>
             <Text style={styles.cardTitle} numberOfLines={1}>{t.title}</Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: s.color + "18" }]}>
-            <Text style={[styles.badgeText, { color: s.color }]}>{s.icon} {s.label}</Text>
+
+          {/* Sağ: badge + bildirim noktası + ⋮ menüsü */}
+          <View style={styles.cardRight}>
+            {/* Badge + kırmızı dot */}
+            <View>
+              <View style={[styles.badge, { backgroundColor: `${s.color}18` }]}>
+                <Text style={[styles.badgeText, { color: s.color }]}>
+                  {s.icon} {s.label}
+                </Text>
+              </View>
+              {isOfferReceived && t.unreadCount > 0 && (
+                <View style={styles.notifDot}>
+                  <Text style={styles.notifDotText}>{t.unreadCount}</Text>
+                </View>
+              )}
+            </View>
+
+            {/* ⋮ menüsü — sadece pending */}
+            {isPending && (
+              <TouchableOpacity style={styles.menuBtn} onPress={handleMenuPress}>
+                <Text style={styles.menuBtnText}>⋮</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
-        {/* Son mesaj */}
+        {/* Son Mesaj */}
         <Text style={styles.lastMsg} numberOfLines={1}>{t.lastMessage}</Text>
 
         <View style={styles.divider} />
 
-        {/* Alt satır */}
+        {/* ── Alt Satır ── */}
         <View style={styles.cardBottom}>
           <View style={styles.cardBottomLeft}>
             {t.engineer ? (
@@ -123,7 +142,7 @@ function TeklifCard({ t, onPress }: { t: Teklif; onPress: () => void }) {
                 <View style={styles.engineerAvatar}>
                   <Text style={styles.engineerInitials}>{t.engineer.initials}</Text>
                 </View>
-                <Text style={styles.engineerName}>{t.engineer.name}</Text>
+                <Text style={styles.engineerName} numberOfLines={1}>{t.engineer.name}</Text>
               </View>
             ) : (
               <Text style={styles.engineerWaiting}>Uzman bekleniyor</Text>
@@ -133,39 +152,79 @@ function TeklifCard({ t, onPress }: { t: Teklif; onPress: () => void }) {
           </View>
           <View style={styles.cardBottomRight}>
             <Text style={styles.budget}>{t.budget}</Text>
-            <View style={styles.chatBtn}>
-              <Text style={styles.chatBtnText}>Sohbet →</Text>
-            </View>
+            {/* Küçük sohbet butonu — offer_received değilse */}
+            {!isOfferReceived && t.status !== "cancelled" && (
+              <TouchableOpacity style={[styles.chatBtn, { backgroundColor: `${s.color}18` }]} onPress={onPress}>
+                <Text style={[styles.chatBtnText, { color: s.color }]}>Sohbet →</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
+
+        {/* ── "Teklifleri İncele" CTA — offer_received ── */}
+        {isOfferReceived && (
+          <TouchableOpacity
+            style={styles.offerCta}
+            onPress={onPress}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.offerCtaText}>💬 Teklifleri İncele</Text>
+            {t.unreadCount > 0 && (
+              <View style={styles.offerCtaBadge}>
+                <Text style={styles.offerCtaBadgeText}>{t.unreadCount} yeni</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
-// ── Ekran ─────────────────────────────────────────────────────────────────────
+// ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function TekliflerimScreen() {
-  const router  = useRouter();
-  const insets  = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState("all");
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const [activeTab, setActiveTab]   = useState("all");
+  const [teklifler, setTeklifler]   = useState<Teklif[]>(MOCK_TEKLIFLER);
 
-  const filtered = activeTab === "all"
-    ? MOCK_TEKLIFLER
-    : MOCK_TEKLIFLER.filter(t => t.status === activeTab);
+  const filtered =
+    activeTab === "all"
+      ? teklifler
+      : teklifler.filter(t => t.status === activeTab);
+
+  const handleCancel = (id: string) => {
+    setTeklifler(prev =>
+      prev.map(t => t.id === id ? { ...t, status: "cancelled" as TeklifStatus } : t),
+    );
+  };
+
+  const newOfferCount = teklifler.filter(
+    t => t.status === "offer_received" && t.unreadCount > 0,
+  ).length;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" />
 
-      {/* Header */}
+      {/* ── Header ── */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
+
         <View style={styles.headerCenter}>
-          <Text style={styles.title}>Tekliflerim</Text>
-          <Text style={styles.subtitle}>{MOCK_TEKLIFLER.length} aktif talep</Text>
+          <View style={styles.headerTitleRow}>
+            <Text style={styles.title}>Tekliflerim</Text>
+            {newOfferCount > 0 && (
+              <View style={styles.headerNotifBadge}>
+                <Text style={styles.headerNotifText}>{newOfferCount}</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.subtitle}>{teklifler.length} aktif talep</Text>
         </View>
+
         <TouchableOpacity
           style={styles.newBtn}
           onPress={() => router.push("/(print)/tasarim-iste" as never)}
@@ -174,100 +233,215 @@ export default function TekliflerimScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tab filtreler */}
+      {/* ── Smart Tabs ── */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.tabs}
       >
-        {TAB_FILTERS.map(tab => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-            onPress={() => setActiveTab(tab.key)}
-          >
-            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {TABS.map(tab => {
+          const isActive = activeTab === tab.key;
+          const count = tab.key === "all"
+            ? teklifler.length
+            : teklifler.filter(t => t.status === tab.key).length;
+
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              style={[styles.tab, isActive && styles.tabActive]}
+              onPress={() => setActiveTab(tab.key)}
+            >
+              <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                {tab.label}
+              </Text>
+              <View style={[styles.tabCount, isActive && styles.tabCountActive]}>
+                <Text style={[styles.tabCountText, isActive && styles.tabCountTextActive]}>
+                  {count}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
 
-      {/* Liste */}
-      <ScrollView
+      {/* ── Liste ── */}
+      <FlatList
+        data={filtered}
+        keyExtractor={item => item.id}
         showsVerticalScrollIndicator={false}
-        style={{ flex: 1 }}
         contentContainerStyle={styles.list}
-      >
-        {filtered.length === 0 ? (
+        ListEmptyComponent={
           <View style={styles.empty}>
             <Text style={styles.emptyEmoji}>📋</Text>
             <Text style={styles.emptyTitle}>Teklif Bulunamadı</Text>
             <Text style={styles.emptySub}>Bu kategoride teklif talebiniz yok</Text>
           </View>
-        ) : (
-          filtered.map(t => (
-            <TeklifCard
-              key={t.id}
-              t={t}
-              onPress={() => router.push(`/(account)/teklif/${t.id}` as never)}
-            />
-          ))
+        }
+        renderItem={({ item }) => (
+          <TeklifCard
+            t={item}
+            onPress={() => router.push(`/(account)/teklif/${item.id}` as never)}
+            onCancel={handleCancel}
+          />
         )}
-        <View style={{ height: 40 }} />
-      </ScrollView>
+      />
     </View>
   );
 }
 
-// ── Stiller ───────────────────────────────────────────────────────────────────
+// ─── Stiller ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: Colors.bg },
-  header:         { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
-  backBtn:        { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" },
+  container: { flex: 1, backgroundColor: Colors.bg },
+
+  // ── Header ──
+  header: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 12, gap: 12,
+  },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: Colors.surface2,
+    borderWidth: 1, borderColor: Colors.border,
+    alignItems: "center", justifyContent: "center",
+  },
   backArrow:      { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
   headerCenter:   { flex: 1 },
+  headerTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   title:          { fontSize: 18, fontWeight: "800", color: Colors.text },
   subtitle:       { fontSize: 11, color: Colors.text2, marginTop: 1 },
-  newBtn:         { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 10, backgroundColor: Colors.accent + "18", borderWidth: 1, borderColor: Colors.accent + "30" },
-  newBtnText:     { fontSize: 12, fontWeight: "700", color: Colors.accent },
+  headerNotifBadge: {
+    minWidth: 20, height: 20, borderRadius: 10,
+    backgroundColor: Colors.red,
+    alignItems: "center", justifyContent: "center", paddingHorizontal: 5,
+  },
+  headerNotifText: { fontSize: 10, fontWeight: "900", color: "#fff" },
+  newBtn: {
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: 10,
+    backgroundColor: `${Colors.accent}18`,
+    borderWidth: 1, borderColor: `${Colors.accent}30`,
+  },
+  newBtnText: { fontSize: 12, fontWeight: "700", color: Colors.accent },
 
-  tabs:           { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
-  tab:            { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 99, backgroundColor: Colors.surface2, alignSelf: "flex-start" },
-  tabActive:      { backgroundColor: Colors.accent },
-  tabText:        { fontSize: 12, fontWeight: "700", color: Colors.text2 },
-  tabTextActive:  { color: "#fff" },
+  // ── Tabs ──
+  tabs: { paddingHorizontal: 16, paddingBottom: 12, gap: 8 },
+  tab: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    paddingHorizontal: 12, paddingVertical: 7,
+    borderRadius: 99,
+    backgroundColor: Colors.surface2,
+    borderWidth: 1, borderColor: Colors.border,
+    alignSelf: "flex-start",
+  },
+  tabActive:     { backgroundColor: Colors.accent, borderColor: Colors.accent },
+  tabText:       { fontSize: 12, fontWeight: "700", color: Colors.text2 },
+  tabTextActive: { color: "#fff" },
+  tabCount: {
+    minWidth: 16, height: 16, borderRadius: 8,
+    backgroundColor: Colors.surface,
+    alignItems: "center", justifyContent: "center", paddingHorizontal: 4,
+  },
+  tabCountActive:    { backgroundColor: "rgba(255,255,255,0.25)" },
+  tabCountText:      { fontSize: 9, fontWeight: "900", color: Colors.text3 },
+  tabCountTextActive: { color: "#fff" },
 
-  list:           { paddingHorizontal: 16, paddingTop: 4 },
+  // ── List ──
+  list: { paddingHorizontal: 16, paddingTop: 4, paddingBottom: 40 },
 
-  card:           { backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border, borderRadius: 16, marginBottom: 12, overflow: "hidden" },
-  cardStripe:     { height: 2 },
-  cardBody:       { padding: 14 },
-  cardTop:        { flexDirection: "row", alignItems: "flex-start", gap: 10, marginBottom: 8 },
-  cardIconWrap:   { width: 38, height: 38, borderRadius: 10, backgroundColor: Colors.accent + "15", borderWidth: 1, borderColor: Colors.accent + "25", alignItems: "center", justifyContent: "center", flexShrink: 0 },
-  cardTitleWrap:  { flex: 1 },
-  cardCategory:   { fontSize: 9, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 },
-  cardTitle:      { fontSize: 13, fontWeight: "800", color: Colors.text },
-  badge:          { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 99, flexShrink: 0 },
-  badgeText:      { fontSize: 9, fontWeight: "800" },
-  lastMsg:        { fontSize: 11, color: Colors.text2, marginBottom: 10 },
-  divider:        { height: 1, backgroundColor: Colors.border, marginBottom: 10 },
-  cardBottom:     { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardBottomLeft: { flexDirection: "row", alignItems: "center", gap: 6 },
-  engineerRow:    { flexDirection: "row", alignItems: "center", gap: 5 },
-  engineerAvatar: { width: 20, height: 20, borderRadius: 10, backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center" },
-  engineerInitials:{ fontSize: 8, fontWeight: "800", color: "#fff" },
-  engineerName:   { fontSize: 11, color: Colors.text2 },
-  engineerWaiting:{ fontSize: 11, color: Colors.text3, fontStyle: "italic" },
-  dot:            { fontSize: 10, color: Colors.text3 },
-  date:           { fontSize: 10, color: Colors.text3 },
-  cardBottomRight:{ flexDirection: "row", alignItems: "center", gap: 8 },
-  budget:         { fontSize: 12, fontWeight: "800", color: Colors.text },
-  chatBtn:        { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, backgroundColor: Colors.accent + "15" },
-  chatBtnText:    { fontSize: 11, fontWeight: "700", color: Colors.accent },
+  // ── Card ──
+  card: {
+    backgroundColor: Colors.surface2,
+    borderWidth: 1, borderColor: Colors.border,
+    borderRadius: 16, marginBottom: 12,
+    overflow: "hidden",
+  },
+  cardStripe:    { height: 2 },
+  cardBody:      { padding: 14 },
+  cardTop: {
+    flexDirection: "row", alignItems: "flex-start",
+    gap: 10, marginBottom: 8,
+  },
+  cardIconWrap: {
+    width: 38, height: 38, borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center", justifyContent: "center", flexShrink: 0,
+  },
+  cardTitleWrap: { flex: 1 },
+  cardCategory: {
+    fontSize: 9, fontWeight: "700",
+    textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2,
+  },
+  cardTitle: { fontSize: 13, fontWeight: "800", color: Colors.text },
 
-  empty:          { alignItems: "center", paddingTop: 60, gap: 8 },
-  emptyEmoji:     { fontSize: 56, marginBottom: 8 },
-  emptyTitle:     { fontSize: 18, fontWeight: "800", color: Colors.text },
-  emptySub:       { fontSize: 13, color: Colors.text2, textAlign: "center" },
+  // ── Badge + Notif ──
+  cardRight:    { flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0 },
+  badge:        { paddingHorizontal: 7, paddingVertical: 3, borderRadius: 99 },
+  badgeText:    { fontSize: 9, fontWeight: "800" },
+  notifDot: {
+    position: "absolute", top: -6, right: -6,
+    minWidth: 18, height: 18, borderRadius: 9,
+    backgroundColor: Colors.red,
+    alignItems: "center", justifyContent: "center", paddingHorizontal: 4,
+    borderWidth: 1.5, borderColor: Colors.bg,
+  },
+  notifDotText:  { fontSize: 9, fontWeight: "900", color: "#fff" },
+
+  // ── ⋮ Menü Butonu ──
+  menuBtn: {
+    width: 28, height: 28, borderRadius: 8,
+    backgroundColor: Colors.surface,
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  menuBtnText: { fontSize: 16, color: Colors.text2, lineHeight: 20 },
+
+  // ── Son Mesaj + Divider ──
+  lastMsg: { fontSize: 11, color: Colors.text2, marginBottom: 10 },
+  divider: { height: 1, backgroundColor: Colors.border, marginBottom: 10 },
+
+  // ── Alt Satır ──
+  cardBottom: {
+    flexDirection: "row", alignItems: "center",
+    justifyContent: "space-between",
+  },
+  cardBottomLeft:   { flexDirection: "row", alignItems: "center", gap: 6, flex: 1 },
+  engineerRow:      { flexDirection: "row", alignItems: "center", gap: 5 },
+  engineerAvatar: {
+    width: 20, height: 20, borderRadius: 10,
+    backgroundColor: Colors.accent,
+    alignItems: "center", justifyContent: "center",
+  },
+  engineerInitials: { fontSize: 8, fontWeight: "800", color: "#fff" },
+  engineerName:     { fontSize: 11, color: Colors.text2, maxWidth: 90 },
+  engineerWaiting:  { fontSize: 11, color: Colors.text3, fontStyle: "italic" },
+  dot:              { fontSize: 10, color: Colors.text3 },
+  date:             { fontSize: 10, color: Colors.text3 },
+  cardBottomRight:  { flexDirection: "row", alignItems: "center", gap: 8 },
+  budget:           { fontSize: 12, fontWeight: "800", color: Colors.text },
+  chatBtn:          { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  chatBtnText:      { fontSize: 11, fontWeight: "700" },
+
+  // ── offer_received CTA ──
+  offerCta: {
+    marginTop: 12,
+    backgroundColor: Colors.accent,
+    paddingVertical: 13,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  offerCtaText:  { fontSize: 14, fontWeight: "800", color: "#fff" },
+  offerCtaBadge: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+    paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99,
+  },
+  offerCtaBadgeText: { fontSize: 10, fontWeight: "900", color: "#fff" },
+
+  // ── Boş Durum ──
+  empty:      { alignItems: "center", paddingTop: 60, gap: 8 },
+  emptyEmoji: { fontSize: 56, marginBottom: 8 },
+  emptyTitle: { fontSize: 18, fontWeight: "800", color: Colors.text },
+  emptySub:   { fontSize: 13, color: Colors.text2, textAlign: "center" },
 });
