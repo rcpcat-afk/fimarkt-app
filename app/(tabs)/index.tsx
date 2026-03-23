@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { View, ActivityIndicator } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import VisitorHome from "@/components/home/VisitorHome";
 import UserHome    from "@/components/home/UserHome";
 import { type WebUser } from "@/lib/types";
 
 export default function HomeScreen() {
-  // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
-  const C = Colors["dark"];
+  const { colors: C } = useTheme();
   const [user,    setUser]    = useState<WebUser | null>(null);
   const [loading, setLoading] = useState(true);
 

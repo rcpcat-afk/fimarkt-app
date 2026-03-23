@@ -9,13 +9,11 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { useCart } from "../../src/store/CartContext";
 import { TOP_CATEGORIES } from "../../constants/categories";
 import DrawerMenu from "../nav/DrawerMenu";
 import SearchBar from "../search/SearchBar";
-
-const C = Colors.dark;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -34,6 +32,7 @@ function getCategoryRoute(
 
 // ── Notification Modal skeleton ───────────────────────────────────────────────
 function NotifModal({ onClose }: { onClose: () => void }) {
+  const { colors: C } = useTheme();
   return (
     <Modal visible animationType="slide" transparent statusBarTranslucent>
       <View style={ms.modalOverlay}>
@@ -64,6 +63,7 @@ function NotifModal({ onClose }: { onClose: () => void }) {
 
 // ── Support Modal skeleton ────────────────────────────────────────────────────
 function SupportModal({ onClose }: { onClose: () => void }) {
+  const { colors: C } = useTheme();
   const router = useRouter();
   const ITEMS = [
     { icon: "📚", label: "Yardım Merkezi",  route: "/yardim" },
@@ -101,6 +101,7 @@ function SupportModal({ onClose }: { onClose: () => void }) {
 
 // ── GlobalHeader ──────────────────────────────────────────────────────────────
 export default function GlobalHeader() {
+  const { colors: C } = useTheme();
   const router        = useRouter();
   const insets        = useSafeAreaInsets();
   const { totalItems } = useCart();

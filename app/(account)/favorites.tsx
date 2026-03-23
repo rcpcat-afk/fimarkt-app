@@ -2,7 +2,7 @@
 // Tab 1 — Favorilerim   : 2 kolonlu grid + hasPriceDrop rozeti + Sepete At / Kaldır
 // Tab 2 — Değerlendirme : Teşvik banner + liste + Makes native Modal
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   Modal,
@@ -15,7 +15,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants";
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import {
   MOCK_FAVORITES,
   MOCK_PENDING_REVIEWS,
@@ -23,25 +24,206 @@ import {
   type PendingReview,
 } from "../../lib/mock-data/favorites-reviews";
 
+// ─── buildC helper ─────────────────────────────────────────────────────────────
+function buildC(colors: ThemeColors) {
+  return {
+    ...colors,
+    bg:    colors.background,
+    text:  colors.foreground,
+    text2: colors.mutedForeground,
+    text3: colors.subtleForeground,
+  };
+}
+type AliasedColors = ReturnType<typeof buildC>;
+
+// ─── createStyles factory ──────────────────────────────────────────────────────
+function createStyles(C: AliasedColors) {
+  return StyleSheet.create({
+    // ── StarRating ──
+    srRow:      { flexDirection: "row", gap: 4 },
+    srStar:     { padding: 2 },
+    srStarText: { fontSize: 36 },
+
+    // ── MakesModal ──
+    mmBackdrop:     { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "flex-end" },
+    mmSheet: {
+      backgroundColor: C.surface2,
+      borderTopLeftRadius: 24, borderTopRightRadius: 24,
+      overflow: "hidden", maxHeight: "90%",
+    },
+    mmStripe:       { height: 3 },
+    mmBody:         { padding: 20, paddingBottom: 36 },
+    // Success
+    mmSuccessBox:   { alignItems: "center", paddingVertical: 40, gap: 8 },
+    mmSuccessEmoji: { fontSize: 56, marginBottom: 4 },
+    mmSuccessTitle: { fontSize: 18, fontWeight: "800", color: C.text },
+    mmSuccessSub:   { fontSize: 13, color: C.text2 },
+    // Product row
+    mmProductRow:   { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 20 },
+    mmProductEmoji: { width: 48, height: 48, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+    mmProductSeller:{ fontSize: 10, color: C.text2 },
+    mmProductName:  { fontSize: 13, fontWeight: "800", color: C.text, lineHeight: 18 },
+    mmCloseBtn:     { width: 32, height: 32, borderRadius: 8, backgroundColor: C.surface, alignItems: "center", justifyContent: "center" },
+    mmCloseBtnText: { fontSize: 14, color: C.text2 },
+    // Section
+    mmSection:      { marginBottom: 16 },
+    mmSectionLabel: { fontSize: 9, fontWeight: "800", letterSpacing: 1, color: C.text2, textTransform: "uppercase", marginBottom: 8 },
+    mmStarLabel:    { fontSize: 12, color: C.text2, marginTop: 6 },
+    // Textarea
+    mmTextarea: {
+      backgroundColor: C.surface, borderWidth: 1, borderColor: C.border,
+      borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
+      fontSize: 13, color: C.text, minHeight: 90,
+    },
+    // Makes
+    mmMakesLabelRow:   { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
+    mmMakesBadge:      { backgroundColor: `${C.accent}20`, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99 },
+    mmMakesBadgeText:  { fontSize: 9, fontWeight: "800", color: C.accent },
+    mmImagePicker: {
+      borderWidth: 2, borderColor: C.border, borderStyle: "dashed",
+      borderRadius: 14, paddingVertical: 24,
+      alignItems: "center", gap: 4,
+      backgroundColor: C.surface,
+    },
+    mmImagePickerEmoji: { fontSize: 32, marginBottom: 4 },
+    mmImagePickerTitle: { fontSize: 13, fontWeight: "700", color: C.text },
+    mmImagePickerSub:   { fontSize: 11, color: C.text2 },
+    // Submit
+    mmSubmitBtn:         { backgroundColor: C.accent, paddingVertical: 15, borderRadius: 14, alignItems: "center", marginTop: 4 },
+    mmSubmitBtnDisabled: { opacity: 0.4 },
+    mmSubmitBtnText:     { fontSize: 14, fontWeight: "800", color: "#fff" },
+
+    // ── FavoriteCard ──
+    fcCard:         { backgroundColor: C.surface2, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: C.border, flex: 1 },
+    fcCardDisabled: { opacity: 0.6 },
+    fcDropBadge: {
+      position: "absolute", top: 8, left: 8, zIndex: 10,
+      backgroundColor: "#22c55e", paddingHorizontal: 7, paddingVertical: 3,
+      borderRadius: 99,
+    },
+    fcDropBadgeText: { fontSize: 9, fontWeight: "900", color: "#fff" },
+    fcImageArea:     { aspectRatio: 1, alignItems: "center", justifyContent: "center" },
+    fcBody:          { padding: 10, gap: 3 },
+    fcCategory:      { fontSize: 8, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: C.text2 },
+    fcName:          { fontSize: 11, fontWeight: "800", color: C.text, lineHeight: 15 },
+    fcRatingRow:     { flexDirection: "row", alignItems: "center", gap: 4 },
+    fcRating:        { fontSize: 9, color: C.text3 },
+    fcDot:           { fontSize: 9, color: C.text3 },
+    fcSeller:        { fontSize: 9, color: C.text3, flex: 1 },
+    fcPriceRow:      { flexDirection: "row", alignItems: "baseline", gap: 6 },
+    fcPrice:         { fontSize: 13, fontWeight: "800", color: C.text },
+    fcOriginalPrice: { fontSize: 10, color: C.text3, textDecorationLine: "line-through" },
+    fcActions:       { flexDirection: "row", gap: 6, marginTop: 4 },
+    fcCartBtn:       { flex: 1, paddingVertical: 7, borderRadius: 10, alignItems: "center" },
+    fcCartBtnText:   { fontSize: 10, fontWeight: "700" },
+    fcRemoveBtn:     { width: 32, height: 32, borderRadius: 10, backgroundColor: C.surface, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.border },
+    fcRemoveBtnText: { fontSize: 14 },
+
+    // ── Main Screen ──
+    container: { flex: 1, backgroundColor: C.bg },
+
+    // Header
+    header: {
+      flexDirection: "row", alignItems: "center",
+      paddingHorizontal: 16, paddingVertical: 12, gap: 12,
+    },
+    backBtn: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    backArrow:    { fontSize: 28, color: C.text, lineHeight: 32, marginTop: -2 },
+    headerCenter: { flex: 1 },
+    title:        { fontSize: 18, fontWeight: "800", color: C.text },
+    subtitle:     { fontSize: 11, color: C.text2, marginTop: 1 },
+
+    // Segment
+    segmentWrap: { paddingHorizontal: 16, paddingBottom: 12 },
+    segment: {
+      flexDirection: "row",
+      backgroundColor: C.surface2,
+      borderRadius: 14, padding: 3,
+      borderWidth: 1, borderColor: C.border,
+    },
+    segBtn: {
+      flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+      gap: 6, paddingVertical: 8, borderRadius: 11,
+    },
+    segBtnActive:      { backgroundColor: C.accent },
+    segBtnText:        { fontSize: 11, fontWeight: "700", color: C.text2 },
+    segBtnTextActive:  { color: "#fff" },
+    segCount: {
+      minWidth: 16, height: 16, borderRadius: 8,
+      backgroundColor: C.surface,
+      alignItems: "center", justifyContent: "center", paddingHorizontal: 4,
+    },
+    segCountActive:    { backgroundColor: "rgba(255,255,255,0.25)" },
+    segCountText:      { fontSize: 9, fontWeight: "900", color: C.text3 },
+    segCountTextActive:{ color: "#fff" },
+
+    // List
+    listContent: { paddingHorizontal: 16, paddingBottom: 40 },
+
+    // Grid
+    grid:    { gap: 10 },
+    gridRow: { flexDirection: "row", gap: 10 },
+
+    // Banner
+    banner: {
+      flexDirection: "row", alignItems: "center",
+      backgroundColor: `${C.accent}18`,
+      borderWidth: 1, borderColor: `${C.accent}30`,
+      borderRadius: 16, padding: 14, marginBottom: 12,
+    },
+    bannerTitle: { fontSize: 12, fontWeight: "800", color: C.text },
+    bannerSub:   { fontSize: 11, color: C.text2, marginTop: 2 },
+
+    // Review Card
+    reviewCard: {
+      flexDirection: "row", alignItems: "center", gap: 12,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      borderRadius: 16, padding: 12, marginBottom: 10,
+    },
+    reviewEmoji:    { width: 52, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+    reviewCategory: { fontSize: 8, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: C.text2 },
+    reviewName:     { fontSize: 13, fontWeight: "800", color: C.text },
+    reviewMeta:     { fontSize: 9, color: C.text3, marginTop: 2 },
+    reviewBtn: {
+      backgroundColor: C.accent,
+      paddingHorizontal: 10, paddingVertical: 8,
+      borderRadius: 12, alignItems: "center", gap: 2,
+    },
+    reviewBtnText:  { fontSize: 16 },
+    reviewBtnLabel: { fontSize: 9, fontWeight: "800", color: "#fff" },
+
+    // Empty
+    empty:      { alignItems: "center", paddingTop: 60, gap: 8 },
+    emptyEmoji: { fontSize: 56, marginBottom: 8 },
+    emptyTitle: { fontSize: 16, fontWeight: "800", color: C.text },
+    emptySub:   { fontSize: 13, color: C.text2, textAlign: "center" },
+  });
+}
+
+const STAR_LABELS = ["", "Çok Kötü 😞", "Kötü 😕", "Orta 😐", "İyi 😊", "Mükemmel! 🤩"];
+
 // ─── Star Rating ──────────────────────────────────────────────────────────────
 function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   return (
-    <View style={sr.row}>
+    <View style={styles.srRow}>
       {[1, 2, 3, 4, 5].map(star => (
-        <TouchableOpacity key={star} onPress={() => onChange(star)} style={sr.star}>
-          <Text style={[sr.starText, { color: star <= value ? "#f59e0b" : Colors.border }]}>★</Text>
+        <TouchableOpacity key={star} onPress={() => onChange(star)} style={styles.srStar}>
+          <Text style={[styles.srStarText, { color: star <= value ? "#f59e0b" : C.border }]}>★</Text>
         </TouchableOpacity>
       ))}
     </View>
   );
 }
-const sr = StyleSheet.create({
-  row:      { flexDirection: "row", gap: 4 },
-  star:     { padding: 2 },
-  starText: { fontSize: 36 },
-});
-
-const STAR_LABELS = ["", "Çok Kötü 😞", "Kötü 😕", "Orta 😐", "İyi 😊", "Mükemmel! 🤩"];
 
 // ─── Makes Modal ──────────────────────────────────────────────────────────────
 function MakesModal({
@@ -53,6 +235,10 @@ function MakesModal({
   onClose: () => void;
   onSubmit: (id: string) => void;
 }) {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const [rating, setRating]       = useState(0);
   const [comment, setComment]     = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -77,80 +263,80 @@ function MakesModal({
 
   return (
     <Modal visible={!!product} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={mm.backdrop}>
+      <View style={styles.mmBackdrop}>
         <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={mm.sheet}>
+        <View style={styles.mmSheet}>
           {/* Şerit */}
-          <View style={[mm.stripe, { backgroundColor: Colors.accent }]} />
+          <View style={[styles.mmStripe, { backgroundColor: C.accent }]} />
 
-          <ScrollView contentContainerStyle={mm.body} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={styles.mmBody} showsVerticalScrollIndicator={false}>
             {submitted ? (
-              <View style={mm.successBox}>
-                <Text style={mm.successEmoji}>🏆</Text>
-                <Text style={mm.successTitle}>Değerlendirme Gönderildi!</Text>
-                <Text style={mm.successSub}>+50 Fimarkt Puan kazandın 🎉</Text>
+              <View style={styles.mmSuccessBox}>
+                <Text style={styles.mmSuccessEmoji}>🏆</Text>
+                <Text style={styles.mmSuccessTitle}>Değerlendirme Gönderildi!</Text>
+                <Text style={styles.mmSuccessSub}>+50 Fimarkt Puan kazandın 🎉</Text>
               </View>
             ) : (
               <>
                 {/* Ürün başlığı */}
-                <View style={mm.productRow}>
-                  <View style={[mm.productEmoji, { backgroundColor: product.bgColor }]}>
+                <View style={styles.mmProductRow}>
+                  <View style={[styles.mmProductEmoji, { backgroundColor: product.bgColor }]}>
                     <Text style={{ fontSize: 22 }}>{product.emoji}</Text>
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={mm.productSeller}>{product.seller} · {product.deliveredDate}</Text>
-                    <Text style={mm.productName} numberOfLines={2}>{product.productName}</Text>
+                    <Text style={styles.mmProductSeller}>{product.seller} · {product.deliveredDate}</Text>
+                    <Text style={styles.mmProductName} numberOfLines={2}>{product.productName}</Text>
                   </View>
-                  <TouchableOpacity style={mm.closeBtn} onPress={onClose}>
-                    <Text style={mm.closeBtnText}>✕</Text>
+                  <TouchableOpacity style={styles.mmCloseBtn} onPress={onClose}>
+                    <Text style={styles.mmCloseBtnText}>✕</Text>
                   </TouchableOpacity>
                 </View>
 
                 {/* Yıldız */}
-                <View style={mm.section}>
-                  <Text style={mm.sectionLabel}>PUANIN</Text>
+                <View style={styles.mmSection}>
+                  <Text style={styles.mmSectionLabel}>PUANIN</Text>
                   <StarRating value={rating} onChange={setRating} />
-                  {rating > 0 && <Text style={mm.starLabel}>{STAR_LABELS[rating]}</Text>}
+                  {rating > 0 && <Text style={styles.mmStarLabel}>{STAR_LABELS[rating]}</Text>}
                 </View>
 
                 {/* Yorum */}
-                <View style={mm.section}>
-                  <Text style={mm.sectionLabel}>YORUMUN</Text>
+                <View style={styles.mmSection}>
+                  <Text style={styles.mmSectionLabel}>YORUMUN</Text>
                   <TextInput
                     value={comment}
                     onChangeText={setComment}
                     placeholder="Bu ürün hakkında deneyimini paylaş..."
-                    placeholderTextColor={Colors.text3}
+                    placeholderTextColor={C.text3}
                     multiline
                     numberOfLines={4}
-                    style={mm.textarea}
+                    style={styles.mmTextarea}
                     textAlignVertical="top"
                   />
                 </View>
 
                 {/* Makes — Görsel Yükleme Placeholder */}
-                <View style={mm.section}>
-                  <View style={mm.makesLabelRow}>
-                    <Text style={mm.sectionLabel}>MAKES — BASKINII GÖSTER</Text>
-                    <View style={mm.makesBadge}>
-                      <Text style={mm.makesBadgeText}>+20 Puan</Text>
+                <View style={styles.mmSection}>
+                  <View style={styles.mmMakesLabelRow}>
+                    <Text style={styles.mmSectionLabel}>MAKES — BASKINII GÖSTER</Text>
+                    <View style={styles.mmMakesBadge}>
+                      <Text style={styles.mmMakesBadgeText}>+20 Puan</Text>
                     </View>
                   </View>
-                  <TouchableOpacity style={mm.imagePicker} onPress={handleImagePicker} activeOpacity={0.8}>
-                    <Text style={mm.imagePickerEmoji}>📸</Text>
-                    <Text style={mm.imagePickerTitle}>Fotoğraf Ekle</Text>
-                    <Text style={mm.imagePickerSub}>3D baskının nasıl çıktığını göster</Text>
+                  <TouchableOpacity style={styles.mmImagePicker} onPress={handleImagePicker} activeOpacity={0.8}>
+                    <Text style={styles.mmImagePickerEmoji}>📸</Text>
+                    <Text style={styles.mmImagePickerTitle}>Fotoğraf Ekle</Text>
+                    <Text style={styles.mmImagePickerSub}>3D baskının nasıl çıktığını göster</Text>
                   </TouchableOpacity>
                 </View>
 
                 {/* Submit */}
                 <TouchableOpacity
-                  style={[mm.submitBtn, rating === 0 && mm.submitBtnDisabled]}
+                  style={[styles.mmSubmitBtn, rating === 0 && styles.mmSubmitBtnDisabled]}
                   onPress={handleSubmit}
                   disabled={rating === 0}
                   activeOpacity={0.85}
                 >
-                  <Text style={mm.submitBtnText}>⭐ Değerlendirmeyi Gönder</Text>
+                  <Text style={styles.mmSubmitBtnText}>⭐ Değerlendirmeyi Gönder</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -161,56 +347,6 @@ function MakesModal({
   );
 }
 
-const mm = StyleSheet.create({
-  backdrop:     { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "flex-end" },
-  sheet: {
-    backgroundColor: Colors.surface2,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    overflow: "hidden", maxHeight: "90%",
-  },
-  stripe:       { height: 3 },
-  body:         { padding: 20, paddingBottom: 36 },
-  // Success
-  successBox:   { alignItems: "center", paddingVertical: 40, gap: 8 },
-  successEmoji: { fontSize: 56, marginBottom: 4 },
-  successTitle: { fontSize: 18, fontWeight: "800", color: Colors.text },
-  successSub:   { fontSize: 13, color: Colors.text2 },
-  // Product row
-  productRow:   { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 20 },
-  productEmoji: { width: 48, height: 48, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  productSeller:{ fontSize: 10, color: Colors.text2 },
-  productName:  { fontSize: 13, fontWeight: "800", color: Colors.text, lineHeight: 18 },
-  closeBtn:     { width: 32, height: 32, borderRadius: 8, backgroundColor: Colors.surface, alignItems: "center", justifyContent: "center" },
-  closeBtnText: { fontSize: 14, color: Colors.text2 },
-  // Section
-  section:      { marginBottom: 16 },
-  sectionLabel: { fontSize: 9, fontWeight: "800", letterSpacing: 1, color: Colors.text2, textTransform: "uppercase", marginBottom: 8 },
-  starLabel:    { fontSize: 12, color: Colors.text2, marginTop: 6 },
-  // Textarea
-  textarea: {
-    backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10,
-    fontSize: 13, color: Colors.text, minHeight: 90,
-  },
-  // Makes
-  makesLabelRow:   { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 8 },
-  makesBadge:      { backgroundColor: `${Colors.accent}20`, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 99 },
-  makesBadgeText:  { fontSize: 9, fontWeight: "800", color: Colors.accent },
-  imagePicker: {
-    borderWidth: 2, borderColor: Colors.border, borderStyle: "dashed",
-    borderRadius: 14, paddingVertical: 24,
-    alignItems: "center", gap: 4,
-    backgroundColor: Colors.surface,
-  },
-  imagePickerEmoji: { fontSize: 32, marginBottom: 4 },
-  imagePickerTitle: { fontSize: 13, fontWeight: "700", color: Colors.text },
-  imagePickerSub:   { fontSize: 11, color: Colors.text2 },
-  // Submit
-  submitBtn:         { backgroundColor: Colors.accent, paddingVertical: 15, borderRadius: 14, alignItems: "center", marginTop: 4 },
-  submitBtnDisabled: { opacity: 0.4 },
-  submitBtnText:     { fontSize: 14, fontWeight: "800", color: "#fff" },
-});
-
 // ─── Favori Kartı ─────────────────────────────────────────────────────────────
 function FavoriteCard({
   product,
@@ -219,6 +355,10 @@ function FavoriteCard({
   product: FavoriteProduct;
   onRemove: (id: string) => void;
 }) {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const [cartAdded, setCartAdded] = useState(false);
 
   const handleCart = () => {
@@ -234,47 +374,47 @@ function FavoriteCard({
   };
 
   return (
-    <View style={[fc.card, !product.inStock && fc.cardDisabled]}>
+    <View style={[styles.fcCard, !product.inStock && styles.fcCardDisabled]}>
       {/* Price Drop Badge */}
       {product.hasPriceDrop && (
-        <View style={fc.dropBadge}>
-          <Text style={fc.dropBadgeText}>🏷️ %{product.discountPercent} İndirim!</Text>
+        <View style={styles.fcDropBadge}>
+          <Text style={styles.fcDropBadgeText}>🏷️ %{product.discountPercent} İndirim!</Text>
         </View>
       )}
 
       {/* Görsel */}
-      <View style={[fc.imageArea, { backgroundColor: product.bgColor }]}>
+      <View style={[styles.fcImageArea, { backgroundColor: product.bgColor }]}>
         <Text style={{ fontSize: 40 }}>{product.emoji}</Text>
       </View>
 
-      <View style={fc.body}>
-        <Text style={fc.category}>{product.category}</Text>
-        <Text style={fc.name} numberOfLines={2}>{product.name}</Text>
-        <View style={fc.ratingRow}>
-          <Text style={fc.rating}>⭐ {product.rating}</Text>
-          <Text style={fc.dot}>·</Text>
-          <Text style={fc.seller} numberOfLines={1}>{product.seller}</Text>
+      <View style={styles.fcBody}>
+        <Text style={styles.fcCategory}>{product.category}</Text>
+        <Text style={styles.fcName} numberOfLines={2}>{product.name}</Text>
+        <View style={styles.fcRatingRow}>
+          <Text style={styles.fcRating}>⭐ {product.rating}</Text>
+          <Text style={styles.fcDot}>·</Text>
+          <Text style={styles.fcSeller} numberOfLines={1}>{product.seller}</Text>
         </View>
-        <View style={fc.priceRow}>
-          <Text style={fc.price}>{product.price}</Text>
+        <View style={styles.fcPriceRow}>
+          <Text style={styles.fcPrice}>{product.price}</Text>
           {product.originalPrice && (
-            <Text style={fc.originalPrice}>{product.originalPrice}</Text>
+            <Text style={styles.fcOriginalPrice}>{product.originalPrice}</Text>
           )}
         </View>
         {/* Aksiyonlar */}
-        <View style={fc.actions}>
+        <View style={styles.fcActions}>
           <TouchableOpacity
-            style={[fc.cartBtn, { backgroundColor: cartAdded ? `${Colors.green}18` : `${Colors.accent}18` }]}
+            style={[styles.fcCartBtn, { backgroundColor: cartAdded ? `${"#22c55e"}18` : `${C.accent}18` }]}
             onPress={handleCart}
             disabled={!product.inStock}
             activeOpacity={0.8}
           >
-            <Text style={[fc.cartBtnText, { color: cartAdded ? Colors.green : Colors.accent }]}>
+            <Text style={[styles.fcCartBtnText, { color: cartAdded ? "#22c55e" : C.accent }]}>
               {cartAdded ? "✓ Eklendi" : "🛒 Sepete At"}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={fc.removeBtn} onPress={handleRemove}>
-            <Text style={fc.removeBtnText}>🗑️</Text>
+          <TouchableOpacity style={styles.fcRemoveBtn} onPress={handleRemove}>
+            <Text style={styles.fcRemoveBtnText}>🗑️</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -282,35 +422,12 @@ function FavoriteCard({
   );
 }
 
-const fc = StyleSheet.create({
-  card:         { backgroundColor: Colors.surface2, borderRadius: 16, overflow: "hidden", borderWidth: 1, borderColor: Colors.border, flex: 1 },
-  cardDisabled: { opacity: 0.6 },
-  dropBadge: {
-    position: "absolute", top: 8, left: 8, zIndex: 10,
-    backgroundColor: Colors.green, paddingHorizontal: 7, paddingVertical: 3,
-    borderRadius: 99,
-  },
-  dropBadgeText: { fontSize: 9, fontWeight: "900", color: "#fff" },
-  imageArea:     { aspectRatio: 1, alignItems: "center", justifyContent: "center" },
-  body:          { padding: 10, gap: 3 },
-  category:      { fontSize: 8, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: Colors.text2 },
-  name:          { fontSize: 11, fontWeight: "800", color: Colors.text, lineHeight: 15 },
-  ratingRow:     { flexDirection: "row", alignItems: "center", gap: 4 },
-  rating:        { fontSize: 9, color: Colors.text3 },
-  dot:           { fontSize: 9, color: Colors.text3 },
-  seller:        { fontSize: 9, color: Colors.text3, flex: 1 },
-  priceRow:      { flexDirection: "row", alignItems: "baseline", gap: 6 },
-  price:         { fontSize: 13, fontWeight: "800", color: Colors.text },
-  originalPrice: { fontSize: 10, color: Colors.text3, textDecorationLine: "line-through" },
-  actions:       { flexDirection: "row", gap: 6, marginTop: 4 },
-  cartBtn:       { flex: 1, paddingVertical: 7, borderRadius: 10, alignItems: "center" },
-  cartBtnText:   { fontSize: 10, fontWeight: "700" },
-  removeBtn:     { width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.surface, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: Colors.border },
-  removeBtnText: { fontSize: 14 },
-});
-
 // ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function FavoritesScreen() {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const [activeTab, setActiveTab]     = useState<"favorites" | "reviews">("favorites");
@@ -329,7 +446,7 @@ export default function FavoritesScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -449,90 +566,3 @@ export default function FavoritesScreen() {
     </View>
   );
 }
-
-// ─── Stiller ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-
-  // Header
-  header: {
-    flexDirection: "row", alignItems: "center",
-    paddingHorizontal: 16, paddingVertical: 12, gap: 12,
-  },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  backArrow:    { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
-  headerCenter: { flex: 1 },
-  title:        { fontSize: 18, fontWeight: "800", color: Colors.text },
-  subtitle:     { fontSize: 11, color: Colors.text2, marginTop: 1 },
-
-  // Segment
-  segmentWrap: { paddingHorizontal: 16, paddingBottom: 12 },
-  segment: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface2,
-    borderRadius: 14, padding: 3,
-    borderWidth: 1, borderColor: Colors.border,
-  },
-  segBtn: {
-    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
-    gap: 6, paddingVertical: 8, borderRadius: 11,
-  },
-  segBtnActive:      { backgroundColor: Colors.accent },
-  segBtnText:        { fontSize: 11, fontWeight: "700", color: Colors.text2 },
-  segBtnTextActive:  { color: "#fff" },
-  segCount: {
-    minWidth: 16, height: 16, borderRadius: 8,
-    backgroundColor: Colors.surface,
-    alignItems: "center", justifyContent: "center", paddingHorizontal: 4,
-  },
-  segCountActive:    { backgroundColor: "rgba(255,255,255,0.25)" },
-  segCountText:      { fontSize: 9, fontWeight: "900", color: Colors.text3 },
-  segCountTextActive:{ color: "#fff" },
-
-  // List
-  listContent: { paddingHorizontal: 16, paddingBottom: 40 },
-
-  // Grid
-  grid:    { gap: 10 },
-  gridRow: { flexDirection: "row", gap: 10 },
-
-  // Banner
-  banner: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: `${Colors.accent}18`,
-    borderWidth: 1, borderColor: `${Colors.accent}30`,
-    borderRadius: 16, padding: 14, marginBottom: 12,
-  },
-  bannerTitle: { fontSize: 12, fontWeight: "800", color: Colors.text },
-  bannerSub:   { fontSize: 11, color: Colors.text2, marginTop: 2 },
-
-  // Review Card
-  reviewCard: {
-    flexDirection: "row", alignItems: "center", gap: 12,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 16, padding: 12, marginBottom: 10,
-  },
-  reviewEmoji:    { width: 52, height: 52, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  reviewCategory: { fontSize: 8, fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5, color: Colors.text2 },
-  reviewName:     { fontSize: 13, fontWeight: "800", color: Colors.text },
-  reviewMeta:     { fontSize: 9, color: Colors.text3, marginTop: 2 },
-  reviewBtn: {
-    backgroundColor: Colors.accent,
-    paddingHorizontal: 10, paddingVertical: 8,
-    borderRadius: 12, alignItems: "center", gap: 2,
-  },
-  reviewBtnText:  { fontSize: 16 },
-  reviewBtnLabel: { fontSize: 9, fontWeight: "800", color: "#fff" },
-
-  // Empty
-  empty:      { alignItems: "center", paddingTop: 60, gap: 8 },
-  emptyEmoji: { fontSize: 56, marginBottom: 8 },
-  emptyTitle: { fontSize: 16, fontWeight: "800", color: Colors.text },
-  emptySub:   { fontSize: 13, color: Colors.text2, textAlign: "center" },
-});

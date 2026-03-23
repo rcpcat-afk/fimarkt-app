@@ -14,11 +14,9 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { type SearchResult } from "./SearchDropdown";
 import { BACKEND_URL } from "../../constants";
-
-const C = Colors.dark;
 
 const RECENT_KEY = "fimarkt_recent_searches";
 const MAX_RECENT  = 8;
@@ -38,11 +36,13 @@ async function saveRecent(q: string) {
 
 // ── Bölüm Başlığı ─────────────────────────────────────────────────────────────
 function SectionTitle({ text }: { text: string }) {
-  return <Text style={styles.sectionTitle}>{text}</Text>;
+  const { colors: C } = useTheme();
+  return <Text style={[styles.sectionTitle, { color: C.subtleForeground }]}>{text}</Text>;
 }
 
 // ── Skeleton Satırı ───────────────────────────────────────────────────────────
 function SkeletonRow() {
+  const { colors: C } = useTheme();
   return (
     <View style={styles.skeletonRow}>
       <View style={[styles.skeletonThumb, { backgroundColor: C.surface2 }]} />
@@ -59,6 +59,7 @@ function SkeletonRow() {
 // Klavye focus sorunu bu yapı sayesinde tamamen ortadan kalkar
 // ─────────────────────────────────────────────────────────────────────────────
 function SearchModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { colors: C } = useTheme();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
 
@@ -360,6 +361,7 @@ function SearchModal({ visible, onClose }: { visible: boolean; onClose: () => vo
 // Tıklanınca SearchModal açılır; klavye focus sorunu tamamen ortadan kalkar
 // ─────────────────────────────────────────────────────────────────────────────
 export default function SearchBar({ style }: { style?: object }) {
+  const { colors: C } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
@@ -410,7 +412,7 @@ const styles = StyleSheet.create({
 
   // Section
   sectionTitle: {
-    fontSize: 10, fontWeight: "800", color: C.subtleForeground,
+    fontSize: 10, fontWeight: "800",
     letterSpacing: 1.2, textTransform: "uppercase",
     paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6,
   },

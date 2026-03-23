@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Dimensions,
@@ -8,13 +8,40 @@ import Animated, {
   FadeIn, useSharedValue, useAnimatedStyle,
   withRepeat, withSequence, withTiming,
 } from "react-native-reanimated";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { type ThemeColors } from "@/constants/theme";
 
 const { width } = Dimensions.get("window");
-const C = Colors.dark;
 const REDIRECT_AFTER = 10;
 
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    container:       { flex: 1, backgroundColor: C.background, alignItems: "center", justifyContent: "center", padding: 24 },
+    glow:            { position: "absolute", top: "20%", width: 300, height: 300, borderRadius: 150, backgroundColor: C.accent, opacity: 0.04 },
+    content:         { maxWidth: 380, width: "100%", alignItems: "center" },
+    icon:            { fontSize: 80, marginBottom: 8 },
+    errorCode:       { fontSize: 64, fontWeight: "900", color: `${C.accent}30`, marginBottom: 4 },
+    title:           { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 8, textAlign: "center" },
+    subtitle:        { fontSize: 13, color: C.mutedForeground, lineHeight: 20, textAlign: "center", marginBottom: 24, maxWidth: 300 },
+    searchRow:       { flexDirection: "row", gap: 8, marginBottom: 16, width: "100%" },
+    searchInput:     { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 13, color: C.foreground },
+    searchBtn:       { width: 48, height: 48, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+    searchBtnText:   { fontSize: 20 },
+    btns:            { flexDirection: "row", gap: 10, marginBottom: 28 },
+    btnPrimary:      { flex: 1, backgroundColor: C.accent, paddingVertical: 13, borderRadius: 16, alignItems: "center" },
+    btnPrimaryText:  { fontSize: 13, fontWeight: "700", color: "#fff" },
+    btnSecondary:    { flex: 1, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, paddingVertical: 13, borderRadius: 16, alignItems: "center" },
+    btnSecondaryText:{ fontSize: 13, fontWeight: "600", color: C.foreground },
+    countdownRow:    { flexDirection: "row", alignItems: "center", gap: 8 },
+    countdownCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: `${C.accent}18`, borderWidth: 1.5, borderColor: C.accent, alignItems: "center", justifyContent: "center" },
+    countdownNum:    { fontSize: 11, fontWeight: "900", color: C.accent },
+    countdownText:   { fontSize: 11, color: C.mutedForeground, flex: 1 },
+  });
+}
+
 export default function NotFoundScreen() {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   const router = useRouter();
   const [query,     setQuery]     = useState("");
   const [countdown, setCountdown] = useState(REDIRECT_AFTER);
@@ -102,25 +129,3 @@ export default function NotFoundScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: C.background, alignItems: "center", justifyContent: "center", padding: 24 },
-  glow:            { position: "absolute", top: "20%", width: 300, height: 300, borderRadius: 150, backgroundColor: C.accent, opacity: 0.04 },
-  content:         { maxWidth: 380, width: "100%", alignItems: "center" },
-  icon:            { fontSize: 80, marginBottom: 8 },
-  errorCode:       { fontSize: 64, fontWeight: "900", color: `${C.accent}30`, marginBottom: 4 },
-  title:           { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 8, textAlign: "center" },
-  subtitle:        { fontSize: 13, color: C.mutedForeground, lineHeight: 20, textAlign: "center", marginBottom: 24, maxWidth: 300 },
-  searchRow:       { flexDirection: "row", gap: 8, marginBottom: 16, width: "100%" },
-  searchInput:     { flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, fontSize: 13, color: C.foreground },
-  searchBtn:       { width: 48, height: 48, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, alignItems: "center", justifyContent: "center" },
-  searchBtnText:   { fontSize: 20 },
-  btns:            { flexDirection: "row", gap: 10, marginBottom: 28 },
-  btnPrimary:      { flex: 1, backgroundColor: C.accent, paddingVertical: 13, borderRadius: 16, alignItems: "center" },
-  btnPrimaryText:  { fontSize: 13, fontWeight: "700", color: "#fff" },
-  btnSecondary:    { flex: 1, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, paddingVertical: 13, borderRadius: 16, alignItems: "center" },
-  btnSecondaryText:{ fontSize: 13, fontWeight: "600", color: C.foreground },
-  countdownRow:    { flexDirection: "row", alignItems: "center", gap: 8 },
-  countdownCircle: { width: 32, height: 32, borderRadius: 16, backgroundColor: `${C.accent}18`, borderWidth: 1.5, borderColor: C.accent, alignItems: "center", justifyContent: "center" },
-  countdownNum:    { fontSize: 11, fontWeight: "900", color: C.accent },
-  countdownText:   { fontSize: 11, color: C.mutedForeground, flex: 1 },
-});

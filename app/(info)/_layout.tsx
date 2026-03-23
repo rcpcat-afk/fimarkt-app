@@ -1,9 +1,8 @@
 import { Stack } from "expo-router";
-import { Colors } from "@/constants/theme";
-
-const C = Colors.dark;
+import { useTheme } from "@/hooks/useTheme";
 
 export default function InfoLayout() {
+  const { colors: C } = useTheme();
   return (
     <Stack
       screenOptions={{

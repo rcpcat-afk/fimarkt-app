@@ -2,7 +2,7 @@
 // 3 adımlı proje formu — react-hook-form + zod + expo-document-picker
 // KeyboardAvoidingView + ScrollView ile akıcı mobil deneyim
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
   KeyboardAvoidingView, Platform, StyleSheet, StatusBar,
@@ -15,9 +15,8 @@ import { z } from "zod";
 import * as DocumentPicker from "expo-document-picker";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
-import { Colors } from "../../constants/theme";
-
-const C = Colors.dark;
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 const schema = z.object({
@@ -41,7 +40,7 @@ const CATEGORIES = [
 
 const DELIVERY_OPTIONS = [
   { value: "7",     label: "7 İş Günü",  tag: "Acil",          tagColor: "#ef4444" },
-  { value: "14",    label: "14 İş Günü", tag: "Standart",       tagColor: C.accent },
+  { value: "14",    label: "14 İş Günü", tag: "Standart",       tagColor: "#ff6b2b" },
   { value: "30",    label: "30 İş Günü", tag: "Ekonomik",       tagColor: "#10b981" },
   { value: "esnek", label: "Esnek",       tag: "En Uygun Fiyat", tagColor: "#0ea5e9" },
 ];
@@ -58,6 +57,9 @@ type UploadedFile = {
 
 // ── Ana Sayfa ─────────────────────────────────────────────────────────────────
 export default function TasarimIsteScreen() {
+  const { colors: C, isDark } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
 
@@ -133,7 +135,7 @@ export default function TasarimIsteScreen() {
   if (success) {
     return (
       <View style={[s.root, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <Animated.View entering={FadeIn.duration(400)} style={s.successWrap}>
           <View style={s.successIcon}><Text style={s.successEmoji}>🎉</Text></View>
           <Text style={s.successTitle}>Projeniz Uzmanlara İletildi!</Text>
@@ -177,7 +179,7 @@ export default function TasarimIsteScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={insets.top}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <Animated.View
@@ -430,7 +432,7 @@ export default function TasarimIsteScreen() {
 }
 
 // ── Stiller ───────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
+function createStyles(C: ThemeColors) { return StyleSheet.create({
   root:    { flex: 1 },
   header:  { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1 },
   backBtn: { width: 36, height: 36, borderRadius: 10, borderWidth: 1, alignItems: "center", justifyContent: "center", marginRight: 12 },
@@ -550,4 +552,4 @@ const s = StyleSheet.create({
   primaryBtnText:   { fontSize: 15, fontWeight: "900", color: "#fff" },
   secondaryBtn:     { width: "100%", paddingVertical: 12, alignItems: "center" },
   secondaryBtnText: { fontSize: 13, fontWeight: "600" },
-});
+}); }

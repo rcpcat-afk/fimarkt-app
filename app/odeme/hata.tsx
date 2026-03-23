@@ -3,7 +3,7 @@
 // Iyzico hata kodu tablosu. BackHandler → sepete zorla.
 
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   BackHandler,
   ScrollView,
@@ -20,15 +20,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { Colors } from "../../constants/theme";
-
-const C = {
-  ...Colors.dark,
-  bg:    Colors.dark.background,
-  text:  Colors.dark.foreground,
-  text2: Colors.dark.mutedForeground,
-  text3: Colors.dark.subtleForeground,
-};
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 
 // ── Iyzico Hata Kodu Tablosu ──────────────────────────────────────────────────
 const IYZICO_ERRORS: Record<string, { title: string; desc: string; icon: string }> = {
@@ -57,8 +50,52 @@ const TIPS = [
   "Sorun devam ederse destek hattımıza yazabilirsin",
 ];
 
+function buildC(colors: ThemeColors) {
+  return { ...colors, bg: colors.background, text: colors.foreground, text2: colors.mutedForeground, text3: colors.subtleForeground };
+}
+type AliasedColors = ReturnType<typeof buildC>;
+
+function createStyles(C: AliasedColors) {
+  return StyleSheet.create({
+    container:        { flex: 1, backgroundColor: C.bg },
+    scroll:           { flexGrow: 1, alignItems: "center", padding: 24, paddingTop: 60 },
+
+    // Icon
+    iconCircle:       { width: 100, height: 100, borderRadius: 50, backgroundColor: "rgba(249,115,22,0.1)", borderWidth: 2, borderColor: "rgba(249,115,22,0.2)", alignItems: "center", justifyContent: "center", marginBottom: 20 },
+    iconEmoji:        { fontSize: 44 },
+
+    // Panik Yok rozeti
+    panicBadge:       { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(249,115,22,0.1)", borderWidth: 1, borderColor: "rgba(249,115,22,0.2)", borderRadius: 99, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 16 },
+    panicBadgeText:   { fontSize: 12, fontWeight: "700", color: "#fb923c" },
+
+    // Metinler
+    title:            { fontSize: 22, fontWeight: "900", color: C.text, textAlign: "center", marginBottom: 8 },
+    desc:             { fontSize: 14, color: C.text2, textAlign: "center", lineHeight: 22, maxWidth: 300, marginBottom: 4 },
+    errorCode:        { fontSize: 10, fontWeight: "600", color: C.text3, fontVariant: ["tabular-nums"], marginBottom: 24 },
+
+    // İpuçları
+    tipsBox:          { width: "100%", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 16, marginBottom: 24 },
+    tipsTitle:        { fontSize: 9, fontWeight: "800", color: C.text3, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 },
+    tipRow:           { flexDirection: "row", gap: 10, marginBottom: 8, alignItems: "flex-start" },
+    tipArrow:         { fontSize: 13, color: C.accent, fontWeight: "700", marginTop: 1 },
+    tipText:          { flex: 1, fontSize: 13, color: C.text2, lineHeight: 20 },
+
+    // CTA'lar
+    ctaGroup:         { width: "100%", gap: 12, alignItems: "center" },
+    primaryBtn:       { width: "100%", backgroundColor: C.accent, borderRadius: 14, paddingVertical: 16, alignItems: "center" },
+    primaryBtnText:   { fontSize: 15, fontWeight: "900", color: "#fff" },
+    secondaryBtn:     { width: "100%", backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, borderRadius: 14, paddingVertical: 14, alignItems: "center" },
+    secondaryBtnText: { fontSize: 14, fontWeight: "700", color: C.text },
+    supportLink:      { fontSize: 12, color: C.text3, marginTop: 4 },
+  });
+}
+
 // ── Animated Icon ──────────────────────────────────────────────────────────────
 function ErrorIcon({ icon }: { icon: string }) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const scale   = useSharedValue(0.3);
   const opacity = useSharedValue(0);
 
@@ -81,6 +118,10 @@ function ErrorIcon({ icon }: { icon: string }) {
 
 // ── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function HataScreen() {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const router = useRouter();
   const { code } = useLocalSearchParams<{ code?: string }>();
   const err = IYZICO_ERRORS[code ?? ""] ?? DEFAULT_ERROR;
@@ -96,7 +137,7 @@ export default function HataScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
@@ -176,37 +217,3 @@ export default function HataScreen() {
     </View>
   );
 }
-
-// ── Stiller ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: C.bg },
-  scroll:          { flexGrow: 1, alignItems: "center", padding: 24, paddingTop: 60 },
-
-  // Icon
-  iconCircle:      { width: 100, height: 100, borderRadius: 50, backgroundColor: "rgba(249,115,22,0.1)", borderWidth: 2, borderColor: "rgba(249,115,22,0.2)", alignItems: "center", justifyContent: "center", marginBottom: 20 },
-  iconEmoji:       { fontSize: 44 },
-
-  // Panik Yok rozeti
-  panicBadge:      { flexDirection: "row", alignItems: "center", backgroundColor: "rgba(249,115,22,0.1)", borderWidth: 1, borderColor: "rgba(249,115,22,0.2)", borderRadius: 99, paddingHorizontal: 14, paddingVertical: 6, marginBottom: 16 },
-  panicBadgeText:  { fontSize: 12, fontWeight: "700", color: "#fb923c" },
-
-  // Metinler
-  title:           { fontSize: 22, fontWeight: "900", color: C.text, textAlign: "center", marginBottom: 8 },
-  desc:            { fontSize: 14, color: C.text2, textAlign: "center", lineHeight: 22, maxWidth: 300, marginBottom: 4 },
-  errorCode:       { fontSize: 10, fontWeight: "600", color: C.text3, fontVariant: ["tabular-nums"], marginBottom: 24 },
-
-  // İpuçları
-  tipsBox:         { width: "100%", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 16, marginBottom: 24 },
-  tipsTitle:       { fontSize: 9, fontWeight: "800", color: C.text3, textTransform: "uppercase", letterSpacing: 1.2, marginBottom: 12 },
-  tipRow:          { flexDirection: "row", gap: 10, marginBottom: 8, alignItems: "flex-start" },
-  tipArrow:        { fontSize: 13, color: C.accent, fontWeight: "700", marginTop: 1 },
-  tipText:         { flex: 1, fontSize: 13, color: C.text2, lineHeight: 20 },
-
-  // CTA'lar
-  ctaGroup:        { width: "100%", gap: 12, alignItems: "center" },
-  primaryBtn:      { width: "100%", backgroundColor: C.accent, borderRadius: 14, paddingVertical: 16, alignItems: "center" },
-  primaryBtnText:  { fontSize: 15, fontWeight: "900", color: "#fff" },
-  secondaryBtn:    { width: "100%", backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, borderRadius: 14, paddingVertical: 14, alignItems: "center" },
-  secondaryBtnText:{ fontSize: 14, fontWeight: "700", color: C.text },
-  supportLink:     { fontSize: 12, color: C.text3, marginTop: 4 },
-});

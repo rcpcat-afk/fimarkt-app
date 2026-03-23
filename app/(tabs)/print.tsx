@@ -3,7 +3,6 @@
 // Sticky bottom CTA (ScrollView dışında, flex kolonunda).
 
 import { useRouter } from "expo-router";
-import { useColorScheme } from "react-native";
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -17,10 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Colors } from "../../constants/theme";
-
-// ── Tema ─────────────────────────────────────────────────────────────────────
-const C = Colors.dark;
+import { useTheme } from "../../hooks/useTheme";
 
 // ── Veri ─────────────────────────────────────────────────────────────────────
 const STEPS = [
@@ -31,7 +27,7 @@ const STEPS = [
 ];
 
 const TECHS = [
-  { id: "fdm",   name: "FDM",    sub: "Filament",  color: C.accent,    icon: "🖨️",  tag: "En Popüler" },
+  { id: "fdm",   name: "FDM",    sub: "Filament",  color: "#ff6b2b",   icon: "🖨️",  tag: "En Popüler" },
   { id: "sla",   name: "Reçine", sub: "SLA / DLP", color: "#0ea5e9",   icon: "💎",  tag: "Yüksek Detay" },
   { id: "sls",   name: "Toz",    sub: "SLS / MJF", color: "#a855f7",   icon: "🌪️",  tag: "Endüstriyel" },
   { id: "metal", name: "Metal",  sub: "DMLS",       color: "#f59e0b",   icon: "🔩",  tag: "Premium" },
@@ -46,6 +42,7 @@ const TRUSTS = [
 
 // ── Sayfa ─────────────────────────────────────────────────────────────────────
 export default function FidropScreen() {
+  const { colors: C } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();

@@ -16,7 +16,7 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants";
+import { FimarktColors, type ThemeColors } from "../../constants/theme";
 import { useTabBarHeight } from "../../hooks/useTabBarHeight";
 import { useTheme } from "../../hooks/useTheme";
 import { MOCK_DASHBOARD } from "../../lib/mock-data/dashboard";
@@ -165,10 +165,10 @@ const LiveTracker = () => {
 
 // ─── BentoStats (App) ─────────────────────────────────────────────────────────
 const BENTO_ITEMS = [
-  { key: "activeOrders",  label: "Aktif Sipariş",  icon: "📦", color: Colors.accent },
-  { key: "pendingQuotes", label: "Bekleyen Teklif", icon: "📋", color: Colors.yellow },
+  { key: "activeOrders",  label: "Aktif Sipariş",  icon: "📦", color: FimarktColors.accent },
+  { key: "pendingQuotes", label: "Bekleyen Teklif", icon: "📋", color: FimarktColors.warning },
   { key: "favorites",     label: "Favorilerim",     icon: "❤️", color: "#e879f9"     },
-  { key: "walletBalance", label: "Cüzdanım",        icon: "💰", color: Colors.green  },
+  { key: "walletBalance", label: "Cüzdanım",        icon: "💰", color: FimarktColors.success },
 ] as const;
 
 const BentoStats = () => {
@@ -516,14 +516,14 @@ export default function ProfileScreen() {
           <Text style={styles.sectionTitle}>Hesap</Text>
           <View style={styles.settingCard}>
             <SettingRow icon="👤" label="Kişisel Bilgiler"    onPress={() => router.push("/personal-info")}    />
-            <SettingRow icon="🔒" label="Şifre Değiştir"      onPress={() => router.push("/forgot-password")}  />
+            <SettingRow icon="🔒" label="Şifre Değiştir"      onPress={() => router.push("/(account)/change-password" as never)}  />
             <SettingRow icon="📍" label="Adreslerim"          onPress={() => router.push("/addresses")}        />
             <SettingRow icon="💳" label="Ödeme Yöntemlerim"   onPress={() => router.push("/payment-methods")}  />
             {!partnerRole && (
               <SettingRow
                 icon="🚀"
                 label="Çözüm Ortağı Ol"
-                onPress={() => router.push("/(seller)/onboarding" as never)}
+                onPress={() => router.push("/satici-ol" as never)}
               />
             )}
           </View>
@@ -559,7 +559,7 @@ export default function ProfileScreen() {
 
 // ─── StyleSheet Factory ───────────────────────────────────────────────────────
 // Tema tokenlarıyla çalışır; useMemo ile component içinde çağrılır.
-function createStyles(C: typeof Colors.dark) {
+function createStyles(C: ThemeColors) {
   return StyleSheet.create({
     container:    { flex: 1, backgroundColor: C.background },
 

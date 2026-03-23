@@ -1,7 +1,7 @@
 // ─── Kayıtlı Kartlarım — Premium Gradient Card Vault ────────────────────────
 // İyzico PCI-DSS güvenli altyapı. Yeni kart ekleme yoktur (İyzico checkout flow).
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -12,7 +12,168 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants";
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
+
+// ─── buildC helper ─────────────────────────────────────────────────────────────
+function buildC(colors: ThemeColors) {
+  return {
+    ...colors,
+    bg:    colors.background,
+    text:  colors.foreground,
+    text2: colors.mutedForeground,
+    text3: colors.subtleForeground,
+  };
+}
+type AliasedColors = ReturnType<typeof buildC>;
+
+// ─── createStyles factory ──────────────────────────────────────────────────────
+function createStyles(C: AliasedColors) {
+  return StyleSheet.create({
+    container:   { flex: 1, backgroundColor: C.bg },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    headerTitle: { fontSize: 17, fontWeight: "700", color: C.text },
+    backBtn: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    backArrow: { fontSize: 28, color: C.text, lineHeight: 32, marginTop: -2 },
+    content: { paddingHorizontal: 16, gap: 16 },
+
+    // ── Kart ──
+    cardWrapper: { gap: 8 },
+    cardVisual: {
+      borderRadius: 20,
+      padding: 20,
+      minHeight: 150,
+      overflow: "hidden",
+      position: "relative",
+    },
+    decCircle1: {
+      position: "absolute",
+      right: -30, top: -30,
+      width: 110, height: 110,
+      borderRadius: 55,
+      backgroundColor: "rgba(255,255,255,0.08)",
+    },
+    decCircle2: {
+      position: "absolute",
+      right: -10, top: 40,
+      width: 70, height: 70,
+      borderRadius: 35,
+      backgroundColor: "rgba(255,255,255,0.06)",
+    },
+    cardTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: 20,
+    },
+    cardBank: { fontSize: 15, fontWeight: "700", color: "#fff" },
+    cardType: { fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 2 },
+    defaultBadge: {
+      backgroundColor: "rgba(255,255,255,0.2)",
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      borderRadius: 99,
+    },
+    defaultBadgeText: { fontSize: 9, fontWeight: "700", color: "#fff" },
+    cardNumber: {
+      fontSize: 20,
+      fontWeight: "600",
+      color: "#fff",
+      letterSpacing: 3,
+      marginBottom: 20,
+      fontVariant: ["tabular-nums"],
+    },
+    cardBottom: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+    },
+    cardFieldLabel: { fontSize: 8, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 0.5 },
+    cardFieldValue: { fontSize: 12, fontWeight: "700", color: "#fff", marginTop: 2 },
+    networkLabel:   { fontSize: 11, fontWeight: "900", color: "rgba(255,255,255,0.75)", fontStyle: "italic", letterSpacing: -0.5 },
+
+    // ── Aksiyon Butonları ──
+    cardActions: { flexDirection: "row", gap: 8 },
+    actionBtnSecondary: {
+      flex: 1,
+      paddingVertical: 9,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: C.border,
+      backgroundColor: C.surface2,
+      alignItems: "center",
+    },
+    actionBtnSecondaryText: { fontSize: 12, fontWeight: "600", color: C.text2 },
+    actionBtnDelete: {
+      flex: 1,
+      paddingVertical: 9,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: "rgba(239,68,68,0.3)",
+      backgroundColor: "rgba(239,68,68,0.08)",
+      alignItems: "center",
+    },
+    actionBtnDeleteText: { fontSize: 12, fontWeight: "600", color: "#ef4444" },
+
+    // ── Boş Durum ──
+    emptyState: {
+      alignItems: "center",
+      paddingVertical: 50,
+      gap: 8,
+    },
+    emptyIcon:  { fontSize: 48, marginBottom: 4 },
+    emptyTitle: { fontSize: 16, fontWeight: "700", color: C.text },
+    emptyHint:  { fontSize: 13, color: C.text2, textAlign: "center", lineHeight: 20 },
+
+    // ── Ekleme Notu ──
+    addNoteCard: {
+      flexDirection: "row",
+      gap: 10,
+      backgroundColor: C.surface2,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 14,
+      padding: 14,
+      alignItems: "flex-start",
+    },
+    addNoteIcon: { fontSize: 16 },
+    addNoteText: { flex: 1, fontSize: 12, color: C.text2, lineHeight: 18 },
+
+    // ── Trust Badge ──
+    trustBadge: {
+      flexDirection: "row",
+      gap: 12,
+      backgroundColor: C.surface2,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 14,
+      padding: 14,
+      alignItems: "flex-start",
+    },
+    trustIconWrap: {
+      width: 36, height: 36,
+      borderRadius: 10,
+      backgroundColor: `${C.success}22`,
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    },
+    trustIcon:  { fontSize: 18 },
+    trustTitle: { fontSize: 13, fontWeight: "700", color: C.text, marginBottom: 4 },
+    trustText:  { fontSize: 11, color: C.text2, lineHeight: 17 },
+  });
+}
 
 // ─── Tip ──────────────────────────────────────────────────────────────────────
 interface SavedCard {
@@ -89,7 +250,11 @@ function CardItem({
   onDelete: (id: string) => void;
   onSetDefault: (id: string) => void;
 }) {
-  const [g1, g2] = BANK_GRADIENTS[card.bank] ?? [Colors.accent, "#cc4a15"];
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
+  const [g1, g2] = BANK_GRADIENTS[card.bank] ?? [C.accent, "#cc4a15"];
   const network  = detectNetwork(card.bin);
 
   return (
@@ -159,6 +324,10 @@ function CardItem({
 
 // ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function PaymentMethodsScreen() {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [cards, setCards] = useState<SavedCard[]>(MOCK_CARDS);
@@ -184,7 +353,7 @@ export default function PaymentMethodsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -247,149 +416,3 @@ export default function PaymentMethodsScreen() {
     </View>
   );
 }
-
-// ─── Stiller ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  backArrow: { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
-  content: { paddingHorizontal: 16, gap: 16 },
-
-  // ── Kart ──
-  cardWrapper: { gap: 8 },
-  cardVisual: {
-    borderRadius: 20,
-    padding: 20,
-    minHeight: 150,
-    overflow: "hidden",
-    position: "relative",
-  },
-  decCircle1: {
-    position: "absolute",
-    right: -30, top: -30,
-    width: 110, height: 110,
-    borderRadius: 55,
-    backgroundColor: "rgba(255,255,255,0.08)",
-  },
-  decCircle2: {
-    position: "absolute",
-    right: -10, top: 40,
-    width: 70, height: 70,
-    borderRadius: 35,
-    backgroundColor: "rgba(255,255,255,0.06)",
-  },
-  cardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 20,
-  },
-  cardBank: { fontSize: 15, fontWeight: "700", color: "#fff" },
-  cardType: { fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 2 },
-  defaultBadge: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 99,
-  },
-  defaultBadgeText: { fontSize: 9, fontWeight: "700", color: "#fff" },
-  cardNumber: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#fff",
-    letterSpacing: 3,
-    marginBottom: 20,
-    fontVariant: ["tabular-nums"],
-  },
-  cardBottom: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-  },
-  cardFieldLabel: { fontSize: 8, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: 0.5 },
-  cardFieldValue: { fontSize: 12, fontWeight: "700", color: "#fff", marginTop: 2 },
-  networkLabel:   { fontSize: 11, fontWeight: "900", color: "rgba(255,255,255,0.75)", fontStyle: "italic", letterSpacing: -0.5 },
-
-  // ── Aksiyon Butonları ──
-  cardActions: { flexDirection: "row", gap: 8 },
-  actionBtnSecondary: {
-    flex: 1,
-    paddingVertical: 9,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface2,
-    alignItems: "center",
-  },
-  actionBtnSecondaryText: { fontSize: 12, fontWeight: "600", color: Colors.text2 },
-  actionBtnDelete: {
-    flex: 1,
-    paddingVertical: 9,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.3)",
-    backgroundColor: "rgba(239,68,68,0.08)",
-    alignItems: "center",
-  },
-  actionBtnDeleteText: { fontSize: 12, fontWeight: "600", color: "#ef4444" },
-
-  // ── Boş Durum ──
-  emptyState: {
-    alignItems: "center",
-    paddingVertical: 50,
-    gap: 8,
-  },
-  emptyIcon:  { fontSize: 48, marginBottom: 4 },
-  emptyTitle: { fontSize: 16, fontWeight: "700", color: Colors.text },
-  emptyHint:  { fontSize: 13, color: Colors.text2, textAlign: "center", lineHeight: 20 },
-
-  // ── Ekleme Notu ──
-  addNoteCard: {
-    flexDirection: "row",
-    gap: 10,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 14,
-    alignItems: "flex-start",
-  },
-  addNoteIcon: { fontSize: 16 },
-  addNoteText: { flex: 1, fontSize: 12, color: Colors.text2, lineHeight: 18 },
-
-  // ── Trust Badge ──
-  trustBadge: {
-    flexDirection: "row",
-    gap: 12,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 14,
-    alignItems: "flex-start",
-  },
-  trustIconWrap: {
-    width: 36, height: 36,
-    borderRadius: 10,
-    backgroundColor: `${Colors.success}22`,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  trustIcon:  { fontSize: 18 },
-  trustTitle: { fontSize: 13, fontWeight: "700", color: Colors.text, marginBottom: 4 },
-  trustText:  { fontSize: 11, color: Colors.text2, lineHeight: 17 },
-});

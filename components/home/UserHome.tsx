@@ -4,7 +4,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { type ThemeColors } from "@/constants/theme";
 import BentoBanners from "@/components/home/BentoBanners";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
 
@@ -33,8 +34,7 @@ const QUICK_ACTIONS = [
 interface Props { userName: string; userRole?: string }
 
 export default function UserHome({ userName, userRole }: Props) {
-  // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
-  const C = Colors["dark"];
+  const { colors: C } = useTheme();
   const router       = useRouter();
   const tabBarHeight = useTabBarHeight();
   const s         = makeStyles(C);
@@ -170,7 +170,7 @@ export default function UserHome({ userName, userRole }: Props) {
 }
 
 // ── Dinamik stiller ───────────────────────────────────────────────────────────
-function makeStyles(C: typeof Colors.dark) {
+function makeStyles(C: ThemeColors) {
   return StyleSheet.create({
     container:       { flex: 1, backgroundColor: C.background },
 

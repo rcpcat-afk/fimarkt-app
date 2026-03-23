@@ -3,7 +3,7 @@
 // Inline editing: her satırda kalem butonu → TextInput + Kaydet/İptal (per-field)
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -19,8 +19,135 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants";
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { getMyCustomer, updateMyCustomer } from "../../src/services/api";
+
+// ─── buildC helper ─────────────────────────────────────────────────────────────
+function buildC(colors: ThemeColors) {
+  return {
+    ...colors,
+    bg:    colors.background,
+    text:  colors.foreground,
+    text2: colors.mutedForeground,
+    text3: colors.subtleForeground,
+  };
+}
+type AliasedColors = ReturnType<typeof buildC>;
+
+// ─── createStyles factory ──────────────────────────────────────────────────────
+function createStyles(C: AliasedColors) {
+  return StyleSheet.create({
+    container:   { flex: 1, backgroundColor: C.bg },
+
+    // Header
+    header: {
+      flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+      paddingHorizontal: 16, paddingVertical: 12,
+    },
+    backBtn: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    backArrow:   { fontSize: 28, color: C.text, lineHeight: 32, marginTop: -2 },
+    headerTitle: { fontSize: 17, fontWeight: "700", color: C.text },
+
+    scrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 },
+
+    // Card
+    card: {
+      backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      borderRadius: 20, overflow: "hidden", marginBottom: 14,
+    },
+    cardHeader: {
+      flexDirection: "row", alignItems: "center", gap: 10,
+      paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border,
+    },
+    cardHeaderIcon:  { fontSize: 15 },
+    cardHeaderTitle: { fontSize: 13, fontWeight: "700", color: C.text },
+    cardBody:        { paddingHorizontal: 16 },
+
+    // Avatar
+    avatarArea: { alignItems: "center", paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: C.border },
+    avatarWrap: { position: "relative" },
+    avatar: {
+      width: 76, height: 76, borderRadius: 20,
+      backgroundColor: C.accent, alignItems: "center", justifyContent: "center",
+    },
+    avatarText:        { fontSize: 26, fontWeight: "800", color: "#fff" },
+    avatarOverlay: {
+      position: "absolute", inset: 0 as any, borderRadius: 20,
+      backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center",
+    },
+    avatarOverlayText: { fontSize: 18 },
+    avatarHint:        { fontSize: 11, color: C.text3, marginTop: 8 },
+
+    // Row
+    row:       { paddingVertical: 14 },
+    rowBorder: { borderBottomWidth: 1, borderBottomColor: C.border },
+
+    rowReadMode:  { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+    rowReadLeft:  { flex: 1, minWidth: 0 },
+    rowReadRight: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 0 },
+
+    rowLabel: { fontSize: 10, fontWeight: "700", color: C.text3, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 2 },
+    rowValue: { fontSize: 14, fontWeight: "600", color: C.text },
+
+    editBtn:     { width: 32, height: 32, borderRadius: 10, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center" },
+    editBtnIcon: { fontSize: 13 },
+
+    lockedBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+    lockedBadgeText: { fontSize: 12 },
+
+    savedText: { fontSize: 10, fontWeight: "700", color: "#22c55e" },
+
+    // Badges
+    verifiedBadge:     { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: "#22c55e" + "18", borderWidth: 1, borderColor: "#22c55e" + "30" },
+    verifiedBadgeText: { fontSize: 10, fontWeight: "700", color: "#22c55e" },
+    comingSoonBadge:   { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+    comingSoonBadgeText: { fontSize: 10, fontWeight: "700", color: C.text3 },
+
+    // Edit mode
+    rowEditMode: { gap: 8 },
+    input: {
+      backgroundColor: C.surface, borderWidth: 1.5, borderColor: C.border,
+      borderRadius: 12, padding: 12, fontSize: 14, color: C.text,
+    },
+    inputError: { borderColor: "#ef4444" },
+    errorText:  { fontSize: 11, color: "#ef4444" },
+    rowActions: { flexDirection: "row", gap: 8 },
+    actionBtn:  { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center" },
+    actionBtnSave:       { backgroundColor: C.accent },
+    actionBtnCancel:     { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border },
+    actionBtnDisabled:   { opacity: 0.6 },
+    actionBtnSaveText:   { fontSize: 12, fontWeight: "700", color: "#fff" },
+    actionBtnCancelText: { fontSize: 12, fontWeight: "700", color: C.text2 },
+
+    // Password accordion
+    accordionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    accordionBtn:    { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+    accordionBtnActive: { backgroundColor: C.accent + "15", borderColor: C.accent + "30" },
+    accordionBtnText: { fontSize: 11, fontWeight: "700", color: C.text2 },
+    accordionBtnTextActive: { color: C.accent },
+    accordionBody:   { marginTop: 14, gap: 12 },
+    pwField:         { gap: 6 },
+    saveAllBtn:      { backgroundColor: C.accent, paddingVertical: 13, borderRadius: 12, alignItems: "center" },
+    saveAllBtnDisabled: { opacity: 0.6 },
+    saveAllBtnText:  { fontSize: 14, fontWeight: "700", color: "#fff" },
+
+    // Billing
+    maskedBadge:     { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+    maskedBadgeText: { fontSize: 10, color: C.text3 },
+    efaturaButtons:  { flexDirection: "row", gap: 8 },
+    efaturaBtn:      { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+    efaturaBtnActive:{ backgroundColor: C.accent + "18", borderColor: C.accent + "35" },
+    efaturaBtnText:  { fontSize: 12, fontWeight: "700", color: C.text2 },
+    efaturaBtnTextActive: { color: C.accent },
+    infoNote: { marginTop: 4, marginBottom: 8, padding: 10, borderRadius: 12, backgroundColor: "#f59e0b" + "10", borderWidth: 1, borderColor: "#f59e0b" + "25" },
+    infoNoteText: { fontSize: 11, color: C.text2, lineHeight: 16 },
+  });
+}
 
 // ─── Validation (sade, Alert tabanlı) ────────────────────────────────────────
 const validate = {
@@ -41,6 +168,10 @@ const validate = {
 
 // ─── AppCard ──────────────────────────────────────────────────────────────────
 function AppCard({ title, icon, children }: { title: string; icon: string; children: React.ReactNode }) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -72,6 +203,10 @@ function InlineRow({
   keyboardType = "default", secureTextEntry = false,
   placeholder, isLast, badge, locked,
 }: InlineRowProps) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   const [error, setError]           = useState<string | null>(null);
@@ -138,7 +273,7 @@ function InlineRow({
             keyboardType={keyboardType}
             secureTextEntry={secureTextEntry}
             placeholder={placeholder}
-            placeholderTextColor={Colors.text3}
+            placeholderTextColor={C.text3}
             autoFocus
           />
           {error && <Text style={styles.errorText}>{error}</Text>}
@@ -161,20 +296,34 @@ function InlineRow({
 }
 
 // ─── Rozet Bileşenleri ────────────────────────────────────────────────────────
-const VerifiedBadge = () => (
-  <View style={styles.verifiedBadge}>
-    <Text style={styles.verifiedBadgeText}>✓ Doğrulandı</Text>
-  </View>
-);
+const VerifiedBadge = () => {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+  return (
+    <View style={styles.verifiedBadge}>
+      <Text style={styles.verifiedBadgeText}>✓ Doğrulandı</Text>
+    </View>
+  );
+};
 
-const ComingSoonBadge = () => (
-  <View style={styles.comingSoonBadge}>
-    <Text style={styles.comingSoonBadgeText}>🔒 Yakında</Text>
-  </View>
-);
+const ComingSoonBadge = () => {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+  return (
+    <View style={styles.comingSoonBadge}>
+      <Text style={styles.comingSoonBadgeText}>🔒 Yakında</Text>
+    </View>
+  );
+};
 
 // ─── Ana Ekran ────────────────────────────────────────────────────────────────
 export default function PersonalInfoScreen() {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
@@ -250,7 +399,7 @@ export default function PersonalInfoScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator color={Colors.accent} size="large" />
+        <ActivityIndicator color={C.accent} size="large" />
       </View>
     );
   }
@@ -261,7 +410,7 @@ export default function PersonalInfoScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={[styles.container, { paddingTop: insets.top }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
         {/* Header */}
         <View style={styles.header}>
@@ -378,7 +527,7 @@ export default function PersonalInfoScreen() {
                         onChangeText={field.setter}
                         secureTextEntry
                         placeholder={field.placeholder}
-                        placeholderTextColor={Colors.text3}
+                        placeholderTextColor={C.text3}
                       />
                     </View>
                   ))}
@@ -415,7 +564,7 @@ export default function PersonalInfoScreen() {
                 <Switch
                   value={isKurumsal}
                   onValueChange={setIsKurumsal}
-                  trackColor={{ false: Colors.border, true: Colors.accent }}
+                  trackColor={{ false: C.border, true: C.accent }}
                   thumbColor="#fff"
                 />
               </View>
@@ -504,115 +653,3 @@ export default function PersonalInfoScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-// ─── StyleSheet ───────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: Colors.bg },
-
-  // Header
-  header: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 16, paddingVertical: 12,
-  },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  backArrow:   { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
-
-  scrollContent: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32 },
-
-  // Card
-  card: {
-    backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 20, overflow: "hidden", marginBottom: 14,
-  },
-  cardHeader: {
-    flexDirection: "row", alignItems: "center", gap: 10,
-    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Colors.border,
-  },
-  cardHeaderIcon:  { fontSize: 15 },
-  cardHeaderTitle: { fontSize: 13, fontWeight: "700", color: Colors.text },
-  cardBody:        { paddingHorizontal: 16 },
-
-  // Avatar
-  avatarArea: { alignItems: "center", paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  avatarWrap: { position: "relative" },
-  avatar: {
-    width: 76, height: 76, borderRadius: 20,
-    backgroundColor: Colors.accent, alignItems: "center", justifyContent: "center",
-  },
-  avatarText:        { fontSize: 26, fontWeight: "800", color: "#fff" },
-  avatarOverlay: {
-    position: "absolute", inset: 0 as any, borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center",
-  },
-  avatarOverlayText: { fontSize: 18 },
-  avatarHint:        { fontSize: 11, color: Colors.text3, marginTop: 8 },
-
-  // Row
-  row:       { paddingVertical: 14 },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-
-  rowReadMode:  { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
-  rowReadLeft:  { flex: 1, minWidth: 0 },
-  rowReadRight: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 0 },
-
-  rowLabel: { fontSize: 10, fontWeight: "700", color: Colors.text3, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 2 },
-  rowValue: { fontSize: 14, fontWeight: "600", color: Colors.text },
-
-  editBtn:     { width: 32, height: 32, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border, alignItems: "center", justifyContent: "center" },
-  editBtnIcon: { fontSize: 13 },
-
-  lockedBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
-  lockedBadgeText: { fontSize: 12 },
-
-  savedText: { fontSize: 10, fontWeight: "700", color: Colors.green },
-
-  // Badges
-  verifiedBadge:     { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.green + "18", borderWidth: 1, borderColor: Colors.green + "30" },
-  verifiedBadgeText: { fontSize: 10, fontWeight: "700", color: Colors.green },
-  comingSoonBadge:   { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
-  comingSoonBadgeText: { fontSize: 10, fontWeight: "700", color: Colors.text3 },
-
-  // Edit mode
-  rowEditMode: { gap: 8 },
-  input: {
-    backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.border,
-    borderRadius: 12, padding: 12, fontSize: 14, color: Colors.text,
-  },
-  inputError: { borderColor: Colors.red },
-  errorText:  { fontSize: 11, color: Colors.red },
-  rowActions: { flexDirection: "row", gap: 8 },
-  actionBtn:  { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: "center" },
-  actionBtnSave:       { backgroundColor: Colors.accent },
-  actionBtnCancel:     { backgroundColor: Colors.surface2, borderWidth: 1, borderColor: Colors.border },
-  actionBtnDisabled:   { opacity: 0.6 },
-  actionBtnSaveText:   { fontSize: 12, fontWeight: "700", color: "#fff" },
-  actionBtnCancelText: { fontSize: 12, fontWeight: "700", color: Colors.text2 },
-
-  // Password accordion
-  accordionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  accordionBtn:    { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
-  accordionBtnActive: { backgroundColor: Colors.accent + "15", borderColor: Colors.accent + "30" },
-  accordionBtnText: { fontSize: 11, fontWeight: "700", color: Colors.text2 },
-  accordionBtnTextActive: { color: Colors.accent },
-  accordionBody:   { marginTop: 14, gap: 12 },
-  pwField:         { gap: 6 },
-  saveAllBtn:      { backgroundColor: Colors.accent, paddingVertical: 13, borderRadius: 12, alignItems: "center" },
-  saveAllBtnDisabled: { opacity: 0.6 },
-  saveAllBtnText:  { fontSize: 14, fontWeight: "700", color: "#fff" },
-
-  // Billing
-  maskedBadge:     { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 99, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
-  maskedBadgeText: { fontSize: 10, color: Colors.text3 },
-  efaturaButtons:  { flexDirection: "row", gap: 8 },
-  efaturaBtn:      { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 10, backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border },
-  efaturaBtnActive:{ backgroundColor: Colors.accent + "18", borderColor: Colors.accent + "35" },
-  efaturaBtnText:  { fontSize: 12, fontWeight: "700", color: Colors.text2 },
-  efaturaBtnTextActive: { color: Colors.accent },
-  infoNote: { marginTop: 4, marginBottom: 8, padding: 10, borderRadius: 12, backgroundColor: Colors.yellow + "10", borderWidth: 1, borderColor: Colors.yellow + "25" },
-  infoNoteText: { fontSize: 11, color: Colors.text2, lineHeight: 16 },
-});

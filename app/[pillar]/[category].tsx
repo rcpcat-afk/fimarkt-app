@@ -6,15 +6,14 @@ import {
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors, FontSizes, LineHeights } from "@/constants/theme";
+import { FontSizes, LineHeights, type ThemeColors } from "@/constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { TOP_CATEGORIES }              from "@/constants/categories";
 import { getProductsByPillarCategory } from "@/lib/mock-data/products";
 import { getFilterConfig }             from "@/lib/filter-config";
 import AppProductCard                  from "@/components/product/AppProductCard";
 import FilterBottomSheet               from "@/components/ui/FilterBottomSheet";
 import type { ActiveFilters, Product } from "@/lib/types";
-
-const C = Colors.dark;
 
 type SortKey = "onerilen" | "fiyat-asc" | "fiyat-desc" | "puan" | "cok-satan";
 
@@ -64,6 +63,8 @@ function filterProducts(
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 function SkeletonGrid() {
+  const { colors: C } = useTheme();
+  const skeletonStyles = useMemo(() => createSkeletonStyles(C), [C]);
   return (
     <View style={skeletonStyles.row}>
       {[0, 1].map((i) => (
@@ -80,18 +81,20 @@ function SkeletonGrid() {
   );
 }
 
-const skeletonStyles = StyleSheet.create({
+function createSkeletonStyles(C: ThemeColors) { return StyleSheet.create({
   row:   { flexDirection: "row", gap: 10, marginBottom: 10 },
   card:  { flex: 1, backgroundColor: C.surface, borderRadius: 16, overflow: "hidden" },
   image: { aspectRatio: 1, backgroundColor: C.surface2 },
   body:  { padding: 10, gap: 6 },
   line:  { height: 10, width: "75%", backgroundColor: C.surface2, borderRadius: 4 },
-});
+}); }
 
 // ── Sort Bottom Sheet (Hafif) ─────────────────────────────────────────────────
 function SortSheet({
   current, onSelect, onClose,
 }: { current: SortKey; onSelect: (s: SortKey) => void; onClose: () => void }) {
+  const { colors: C } = useTheme();
+  const sortStyles = useMemo(() => createSortStyles(C), [C]);
   const insets = useSafeAreaInsets();
   return (
     <View style={[sortStyles.sheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
@@ -119,7 +122,7 @@ function SortSheet({
   );
 }
 
-const sortStyles = StyleSheet.create({
+function createSortStyles(C: ThemeColors) { return StyleSheet.create({
   sheet: {
     backgroundColor: C.surface,
     borderTopLeftRadius: 24, borderTopRightRadius: 24,
@@ -138,10 +141,13 @@ const sortStyles = StyleSheet.create({
   optionActive: { borderBottomColor: `${C.accent}30` },
   optionText: { fontSize: FontSizes.base, color: C.mutedForeground },
   optionTextActive: { color: C.foreground, fontWeight: "700" },
-});
+}); }
 
 // ── Ana Sayfa ─────────────────────────────────────────────────────────────────
 export default function CategoryScreen() {
+  const { colors: C } = useTheme();
+  const listStyles = useMemo(() => createListStyles(C), [C]);
+
   const { pillar: pillarSlug, category: categorySlug } =
     useLocalSearchParams<{ pillar: string; category: string }>();
   const router  = useRouter();
@@ -362,7 +368,7 @@ const sortSheetOverlayStyle = StyleSheet.create({
 });
 
 // ── List Styles ───────────────────────────────────────────────────────────────
-const listStyles = StyleSheet.create({
+function createListStyles(C: ThemeColors) { return StyleSheet.create({
   container: { flex: 1, backgroundColor: C.background },
 
   header: {
@@ -430,4 +436,4 @@ const listStyles = StyleSheet.create({
   },
   bottomBtnText: { fontSize: FontSizes.sm, fontWeight: "600", color: C.foreground },
   bottomDivider: { width: 1, backgroundColor: C.border, marginVertical: 4 },
-});
+}); }

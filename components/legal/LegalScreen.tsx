@@ -1,16 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
 } from "react-native";
 import { Stack } from "expo-router";
-import { Colors } from "@/constants/theme";
+import { type ThemeColors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import type { LegalDoc } from "@/lib/content-manager";
-
-const C = Colors.dark;
 
 interface Props { doc: LegalDoc }
 
 export default function LegalScreen({ doc }: Props) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   const [activeId, setActiveId] = useState(doc.sections[0]?.id ?? "");
 
   return (
@@ -68,24 +69,26 @@ export default function LegalScreen({ doc }: Props) {
   );
 }
 
-const s = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: C.background },
-  header:           { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border },
-  badge:            { fontSize: 9, fontWeight: "800", color: C.accent, letterSpacing: 1.5, marginBottom: 6 },
-  title:            { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 4 },
-  lastUpdated:      { fontSize: 11, color: C.mutedForeground },
-  tocSection:       { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
-  tocTitle:         { fontSize: 9, fontWeight: "800", color: C.mutedForeground, letterSpacing: 1.2, paddingHorizontal: 20, marginBottom: 8 },
-  tocRow:           { paddingHorizontal: 16, gap: 8 },
-  tocBtn:           { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, maxWidth: 200 },
-  tocBtnActive:     { backgroundColor: `${C.accent}18`, borderColor: `${C.accent}50` },
-  tocBtnText:       { fontSize: 10, fontWeight: "600", color: C.mutedForeground },
-  tocBtnTextActive: { color: C.accent },
-  content:          { paddingHorizontal: 20, paddingTop: 20 },
-  section:          { marginBottom: 24, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: C.border },
-  sectionHeading:   { fontSize: 14, fontWeight: "700", color: C.foreground, marginBottom: 8 },
-  sectionContent:   { fontSize: 12, color: C.mutedForeground, lineHeight: 20 },
-  footer:           { marginHorizontal: 16, marginTop: 4, marginBottom: 16, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 16 },
-  footerTitle:      { fontSize: 13, fontWeight: "700", color: C.foreground, marginBottom: 4 },
-  footerText:       { fontSize: 11, color: C.mutedForeground, lineHeight: 18 },
-});
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    container:        { flex: 1, backgroundColor: C.background },
+    header:           { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20, backgroundColor: C.surface, borderBottomWidth: 1, borderBottomColor: C.border },
+    badge:            { fontSize: 9, fontWeight: "800", color: C.accent, letterSpacing: 1.5, marginBottom: 6 },
+    title:            { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 4 },
+    lastUpdated:      { fontSize: 11, color: C.mutedForeground },
+    tocSection:       { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: C.border },
+    tocTitle:         { fontSize: 9, fontWeight: "800", color: C.mutedForeground, letterSpacing: 1.2, paddingHorizontal: 20, marginBottom: 8 },
+    tocRow:           { paddingHorizontal: 16, gap: 8 },
+    tocBtn:           { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, maxWidth: 200 },
+    tocBtnActive:     { backgroundColor: `${C.accent}18`, borderColor: `${C.accent}50` },
+    tocBtnText:       { fontSize: 10, fontWeight: "600", color: C.mutedForeground },
+    tocBtnTextActive: { color: C.accent },
+    content:          { paddingHorizontal: 20, paddingTop: 20 },
+    section:          { marginBottom: 24, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: C.border },
+    sectionHeading:   { fontSize: 14, fontWeight: "700", color: C.foreground, marginBottom: 8 },
+    sectionContent:   { fontSize: 12, color: C.mutedForeground, lineHeight: 20 },
+    footer:           { marginHorizontal: 16, marginTop: 4, marginBottom: 16, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 16 },
+    footerTitle:      { fontSize: 13, fontWeight: "700", color: C.foreground, marginBottom: 4 },
+    footerText:       { fontSize: 11, color: C.mutedForeground, lineHeight: 18 },
+  });
+}

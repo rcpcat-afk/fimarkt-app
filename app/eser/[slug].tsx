@@ -10,13 +10,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import { Colors, FontSizes, LineHeights } from "@/constants/theme";
+import { FontSizes, LineHeights, type ThemeColors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { getArtwork, getAllArtworks, artworkImageUrl } from "@/lib/mock-data/artworks";
 import { useCart } from "@/src/store/CartContext";
 
-const C = Colors.dark;
-
 export default function EserDetaySayfasi() {
+  const { colors: C, isDark } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const { slug }  = useLocalSearchParams<{ slug: string }>();
   const router    = useRouter();
   const insets    = useSafeAreaInsets();
@@ -68,7 +70,7 @@ export default function EserDetaySayfasi() {
   if (!artwork) {
     return (
       <View style={[s.notFound, { paddingTop: insets.top + 16 }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <Pressable onPress={() => router.back()} style={s.backBtnAbs} hitSlop={8}>
           <Ionicons name="arrow-back" size={22} color={C.foreground} />
         </Pressable>
@@ -91,7 +93,7 @@ export default function EserDetaySayfasi() {
 
   return (
     <View style={[s.root, { backgroundColor: C.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Back button — always visible over image */}
       <Pressable
@@ -354,142 +356,144 @@ export default function EserDetaySayfasi() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1 },
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    root: { flex: 1 },
 
-  // Back button
-  backBtn: {
-    position: "absolute", left: 14, zIndex: 10,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    alignItems: "center", justifyContent: "center",
-  },
+    // Back button
+    backBtn: {
+      position: "absolute", left: 14, zIndex: 10,
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      alignItems: "center", justifyContent: "center",
+    },
 
-  // Main image
-  mainImgWrap: { width: "100%", aspectRatio: 0.75, backgroundColor: C.surface2 },
-  mainImg:     { width: "100%", height: "100%" },
-  imgOverlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.1)" },
+    // Main image
+    mainImgWrap: { width: "100%", aspectRatio: 0.75, backgroundColor: C.surface2 },
+    mainImg:     { width: "100%", height: "100%" },
+    imgOverlay:  { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.1)" },
 
-  // Thumbnails
-  thumbStrip: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
-  thumb: {
-    width: 56, height: 56, borderRadius: 10,
-    overflow: "hidden", borderWidth: 2, borderColor: C.border,
-  },
-  thumbActive: { borderColor: C.accent },
-  thumbImg:    { width: "100%", height: "100%" },
+    // Thumbnails
+    thumbStrip: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+    thumb: {
+      width: 56, height: 56, borderRadius: 10,
+      overflow: "hidden", borderWidth: 2, borderColor: C.border,
+    },
+    thumbActive: { borderColor: C.accent },
+    thumbImg:    { width: "100%", height: "100%" },
 
-  // Body
-  body: { padding: 16, gap: 16 },
+    // Body
+    body: { padding: 16, gap: 16 },
 
-  // Title area
-  titleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  formatBadge: {
-    backgroundColor: `${C.accent}20`,
-    borderRadius: 6, borderWidth: 1, borderColor: `${C.accent}40`,
-    paddingHorizontal: 7, paddingVertical: 2,
-  },
-  formatBadgeText: { fontSize: 9, fontWeight: "800", color: C.accent, letterSpacing: 0.5 },
-  freeBadge: {
-    backgroundColor: "#10b98120",
-    borderRadius: 6, borderWidth: 1, borderColor: "#10b98140",
-    paddingHorizontal: 7, paddingVertical: 2,
-  },
-  freeBadgeText: { fontSize: 9, fontWeight: "800", color: "#10b981" },
-  likeBtn:  { marginLeft: "auto" as const },
-  likeIcon: { fontSize: 22, color: C.mutedForeground },
+    // Title area
+    titleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+    formatBadge: {
+      backgroundColor: `${C.accent}20`,
+      borderRadius: 6, borderWidth: 1, borderColor: `${C.accent}40`,
+      paddingHorizontal: 7, paddingVertical: 2,
+    },
+    formatBadgeText: { fontSize: 9, fontWeight: "800", color: C.accent, letterSpacing: 0.5 },
+    freeBadge: {
+      backgroundColor: "#10b98120",
+      borderRadius: 6, borderWidth: 1, borderColor: "#10b98140",
+      paddingHorizontal: 7, paddingVertical: 2,
+    },
+    freeBadgeText: { fontSize: 9, fontWeight: "800", color: "#10b981" },
+    likeBtn:  { marginLeft: "auto" as const },
+    likeIcon: { fontSize: 22, color: C.mutedForeground },
 
-  title:      { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground, lineHeight: 30 },
-  artistLink: { fontSize: FontSizes.sm, color: C.accent, fontWeight: "700" },
+    title:      { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground, lineHeight: 30 },
+    artistLink: { fontSize: FontSizes.sm, color: C.accent, fontWeight: "700" },
 
-  ratingRow:  { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
-  stars:      { color: "#f59e0b", fontSize: FontSizes.sm },
-  ratingText: { fontSize: FontSizes.xs, color: C.mutedForeground },
+    ratingRow:  { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
+    stars:      { color: "#f59e0b", fontSize: FontSizes.sm },
+    ratingText: { fontSize: FontSizes.xs, color: C.mutedForeground },
 
-  description: { fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.md },
+    description: { fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.md },
 
-  // Cards
-  card: {
-    backgroundColor: C.surface, borderRadius: 16,
-    borderWidth: 1, borderColor: C.border, padding: 16, gap: 10,
-  },
-  cardTitle: { fontSize: FontSizes.md, fontWeight: "800", color: C.foreground, marginBottom: 4 },
+    // Cards
+    card: {
+      backgroundColor: C.surface, borderRadius: 16,
+      borderWidth: 1, borderColor: C.border, padding: 16, gap: 10,
+    },
+    cardTitle: { fontSize: FontSizes.md, fontWeight: "800", color: C.foreground, marginBottom: 4 },
 
-  // Print specs grid
-  gridSpec: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  specItem: {
-    flex: 1, minWidth: "45%",
-    backgroundColor: C.surface2, borderRadius: 10,
-    borderWidth: 1, borderColor: C.border,
-    padding: 10,
-  },
-  specLabel: { fontSize: 9, color: C.mutedForeground, marginBottom: 2 },
-  specValue: { fontSize: FontSizes.sm, fontWeight: "700", color: C.foreground },
+    // Print specs grid
+    gridSpec: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+    specItem: {
+      flex: 1, minWidth: "45%",
+      backgroundColor: C.surface2, borderRadius: 10,
+      borderWidth: 1, borderColor: C.border,
+      padding: 10,
+    },
+    specLabel: { fontSize: 9, color: C.mutedForeground, marginBottom: 2 },
+    specValue: { fontSize: FontSizes.sm, fontWeight: "700", color: C.foreground },
 
-  // Info rows
-  infoRow:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  infoLabel: { fontSize: FontSizes.xs, color: C.mutedForeground },
-  infoValue: { fontSize: FontSizes.xs, fontWeight: "700", color: C.foreground },
+    // Info rows
+    infoRow:   { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    infoLabel: { fontSize: FontSizes.xs, color: C.mutedForeground },
+    infoValue: { fontSize: FontSizes.xs, fontWeight: "700", color: C.foreground },
 
-  // Makes
-  makesSection: { gap: 10 },
-  sectionTitle: { fontSize: FontSizes.md, fontWeight: "900", color: C.foreground },
-  sectionCount: { fontWeight: "600", color: C.mutedForeground },
-  makesScroll:  { gap: 10 },
-  makeCard: {
-    width: 110, borderRadius: 12,
-    overflow: "hidden", borderWidth: 1, borderColor: C.border,
-    backgroundColor: C.surface,
-  },
-  makeImg:    { width: "100%", aspectRatio: 1 },
-  makeFooter: { flexDirection: "row", alignItems: "center", gap: 6, padding: 6 },
-  makeAvatar: { width: 18, height: 18, borderRadius: 9 },
-  makeUsername: { flex: 1, fontSize: 9, color: C.mutedForeground, fontWeight: "600" },
-  makeMoreCard: {
-    alignItems: "center", justifyContent: "center",
-    aspectRatio: 1, backgroundColor: C.surface2,
-  },
-  makeMoreCount: { fontSize: FontSizes.xl, fontWeight: "900", color: C.mutedForeground },
-  makeMoreText:  { fontSize: 9, color: C.mutedForeground },
+    // Makes
+    makesSection: { gap: 10 },
+    sectionTitle: { fontSize: FontSizes.md, fontWeight: "900", color: C.foreground },
+    sectionCount: { fontWeight: "600", color: C.mutedForeground },
+    makesScroll:  { gap: 10 },
+    makeCard: {
+      width: 110, borderRadius: 12,
+      overflow: "hidden", borderWidth: 1, borderColor: C.border,
+      backgroundColor: C.surface,
+    },
+    makeImg:    { width: "100%", aspectRatio: 1 },
+    makeFooter: { flexDirection: "row", alignItems: "center", gap: 6, padding: 6 },
+    makeAvatar: { width: 18, height: 18, borderRadius: 9 },
+    makeUsername: { flex: 1, fontSize: 9, color: C.mutedForeground, fontWeight: "600" },
+    makeMoreCard: {
+      alignItems: "center", justifyContent: "center",
+      aspectRatio: 1, backgroundColor: C.surface2,
+    },
+    makeMoreCount: { fontSize: FontSizes.xl, fontWeight: "900", color: C.mutedForeground },
+    makeMoreText:  { fontSize: 9, color: C.mutedForeground },
 
-  // Related
-  relatedSection: { gap: 10 },
-  relatedScroll:  { gap: 10 },
-  relatedCard: {
-    width: 120, borderRadius: 12,
-    overflow: "hidden", borderWidth: 1, borderColor: C.border,
-    backgroundColor: C.surface,
-  },
-  relatedImg:   { width: "100%", aspectRatio: 0.75 },
-  relatedInfo:  { padding: 8, gap: 3 },
-  relatedTitle: { fontSize: 10, fontWeight: "700", color: C.foreground, lineHeight: 14 },
-  relatedPrice: { fontSize: FontSizes.xs, fontWeight: "900", color: C.accent },
+    // Related
+    relatedSection: { gap: 10 },
+    relatedScroll:  { gap: 10 },
+    relatedCard: {
+      width: 120, borderRadius: 12,
+      overflow: "hidden", borderWidth: 1, borderColor: C.border,
+      backgroundColor: C.surface,
+    },
+    relatedImg:   { width: "100%", aspectRatio: 0.75 },
+    relatedInfo:  { padding: 8, gap: 3 },
+    relatedTitle: { fontSize: 10, fontWeight: "700", color: C.foreground, lineHeight: 14 },
+    relatedPrice: { fontSize: FontSizes.xs, fontWeight: "900", color: C.accent },
 
-  // Sticky bar
-  stickyBar: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    backgroundColor: C.surface,
-    borderTopWidth: 1, borderTopColor: C.border,
-    paddingTop: 12,
-    paddingHorizontal: 16,
-  },
-  stickyInner: { flexDirection: "row", alignItems: "center", gap: 12 },
-  stickyOldPrice: { fontSize: 11, color: C.mutedForeground, textDecorationLine: "line-through" },
-  stickyPrice:    { fontSize: FontSizes.xl, fontWeight: "900", color: C.accent },
-  stickyBtn: {
-    flex: 1, paddingVertical: 14,
-    borderRadius: 14, backgroundColor: C.accent,
-    alignItems: "center",
-  },
-  stickyBtnAdded: { backgroundColor: "#059669" },
-  stickyBtnText:  { fontSize: FontSizes.md, fontWeight: "800", color: "#fff" },
+    // Sticky bar
+    stickyBar: {
+      position: "absolute", bottom: 0, left: 0, right: 0,
+      backgroundColor: C.surface,
+      borderTopWidth: 1, borderTopColor: C.border,
+      paddingTop: 12,
+      paddingHorizontal: 16,
+    },
+    stickyInner: { flexDirection: "row", alignItems: "center", gap: 12 },
+    stickyOldPrice: { fontSize: 11, color: C.mutedForeground, textDecorationLine: "line-through" },
+    stickyPrice:    { fontSize: FontSizes.xl, fontWeight: "900", color: C.accent },
+    stickyBtn: {
+      flex: 1, paddingVertical: 14,
+      borderRadius: 14, backgroundColor: C.accent,
+      alignItems: "center",
+    },
+    stickyBtnAdded: { backgroundColor: "#059669" },
+    stickyBtnText:  { fontSize: FontSizes.md, fontWeight: "800", color: "#fff" },
 
-  inlineCta: {},
+    inlineCta: {},
 
-  // Not found
-  notFound:      { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 24 },
-  backBtnAbs:    { position: "absolute", top: 16, left: 16 },
-  notFoundEmoji: { fontSize: 56 },
-  notFoundTitle: { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground },
-  notFoundSub:   { fontSize: FontSizes.sm, color: C.mutedForeground },
-});
+    // Not found
+    notFound:      { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 24 },
+    backBtnAbs:    { position: "absolute", top: 16, left: 16 },
+    notFoundEmoji: { fontSize: 56 },
+    notFoundTitle: { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground },
+    notFoundSub:   { fontSize: FontSizes.sm, color: C.mutedForeground },
+  });
+}

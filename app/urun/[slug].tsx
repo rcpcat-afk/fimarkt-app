@@ -21,15 +21,16 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { Colors, FontSizes, LineHeights } from "@/constants/theme";
+import { FontSizes, LineHeights, type ThemeColors } from "@/constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { getPdpProduct, type PdpProduct } from "@/lib/mock-data/pdp-product";
 import { useCart } from "../../src/store/CartContext";
 
-const C = Colors.dark;
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 // ── Yıldız bileşeni ───────────────────────────────────────────────────────────
 function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
+  const { colors: C } = useTheme();
   const full = Math.floor(rating);
   return (
     <Text style={{ fontSize: size, color: C.warning, letterSpacing: 1 }}>
@@ -41,6 +42,8 @@ function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
 
 // ── Nokta indikatörü ──────────────────────────────────────────────────────────
 function DotIndicator({ count, active }: { count: number; active: number }) {
+  const { colors: C } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
   return (
     <View style={styles.dotContainer}>
       {Array.from({ length: count }).map((_, i) => (
@@ -55,6 +58,9 @@ function DotIndicator({ count, active }: { count: number; active: number }) {
 
 // ── Ana Bileşen ───────────────────────────────────────────────────────────────
 export default function UrunDetaySayfasi() {
+  const { colors: C, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -157,7 +163,7 @@ export default function UrunDetaySayfasi() {
 
   return (
     <View style={[styles.root, { backgroundColor: C.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* ── Custom Header ─────────────────────────────────────────────── */}
       <View
@@ -631,7 +637,7 @@ export default function UrunDetaySayfasi() {
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
+function createStyles(C: ThemeColors) { return StyleSheet.create({
   root: { flex: 1 },
 
   // Not found
@@ -991,4 +997,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   stickyBtnText: { color: "#fff", fontSize: FontSizes.md, fontWeight: "900" },
-});
+}); }

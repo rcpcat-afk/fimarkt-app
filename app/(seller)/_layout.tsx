@@ -1,6 +1,6 @@
 // ─── (seller) Route Group Layout ─────────────────────────────────────────────
 // Satıcı paneli: 5 sekme (Komuta, Ürünlerim, Siparişler, Finans, Mesajlar).
-// Onboarding: sayfaya doğrudan route edilir, tab bar'da gizli.
+// Onboarding (satici-ol) → app/satici-ol.tsx olarak taşındı, bu layout dışında.
 import { Tabs } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import SellerTabBar from "../../components/nav/SellerTabBar";
@@ -22,7 +22,6 @@ export default function SellerLayout() {
       <Tabs.Screen name="orders"     options={{ title: "Siparişler"     }} />
       <Tabs.Screen name="finance"    options={{ title: "Finans"         }} />
       <Tabs.Screen name="messages"   options={{ title: "Mesajlar"       }} />
-      <Tabs.Screen name="onboarding" options={{ href: null              }} />
     </Tabs>
   );
 }

@@ -7,17 +7,18 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import { Colors, FontSizes, LineHeights } from "@/constants/theme";
+import { FontSizes, LineHeights, type ThemeColors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { getArtist }           from "@/lib/mock-data/artists";
 import { getArtworksByArtist } from "@/lib/mock-data/artworks";
 import type { Artwork }        from "@/lib/mock-data/artworks";
-
-const C = Colors.dark;
 
 type ProfileTab = "eserler" | "hakkinda";
 
 // ── Stat Kutusu ───────────────────────────────────────────────────────────────
 function StatBox({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   return (
     <View style={s.statBox}>
       <Text style={[s.statValue, accent && { color: C.accent }]}>{value}</Text>
@@ -28,6 +29,8 @@ function StatBox({ label, value, accent }: { label: string; value: string; accen
 
 // ── Küçük Eser Kartı ──────────────────────────────────────────────────────────
 function ArtworkThumb({ artwork, onPress }: { artwork: Artwork; onPress: () => void }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   const imgUrl = `https://picsum.photos/seed/${artwork.imageSeed}/400/500`;
   return (
     <Pressable onPress={onPress} style={s.thumbCard}>
@@ -48,6 +51,9 @@ function ArtworkThumb({ artwork, onPress }: { artwork: Artwork; onPress: () => v
 
 // ── Ana Sayfa ─────────────────────────────────────────────────────────────────
 export default function SanatciProfilSayfasi() {
+  const { colors: C, isDark } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const { slug }  = useLocalSearchParams<{ slug: string }>();
   const router    = useRouter();
   const insets    = useSafeAreaInsets();
@@ -208,12 +214,12 @@ export default function SanatciProfilSayfasi() {
         </View>
       )}
     </View>
-  ), [artist, initials, following, activeTab, artworks, insets.top]);
+  ), [artist, initials, following, activeTab, artworks, insets.top, s, C]);
 
   if (!artist) {
     return (
       <View style={[s.notFound, { paddingTop: insets.top + 16 }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <Pressable onPress={() => router.back()} style={s.backBtnPlain} hitSlop={8}>
           <Ionicons name="arrow-back" size={22} color={C.foreground} />
         </Pressable>
@@ -226,7 +232,7 @@ export default function SanatciProfilSayfasi() {
 
   return (
     <View style={[s.root, { backgroundColor: C.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <FlatList
         data={[]}
         renderItem={null}
@@ -238,126 +244,128 @@ export default function SanatciProfilSayfasi() {
   );
 }
 
-const s = StyleSheet.create({
-  root: { flex: 1 },
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    root: { flex: 1 },
 
-  coverWrap:    { height: 160, backgroundColor: C.surface2 },
-  coverImage:   { width: "100%", height: "100%" },
-  coverOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
-  backBtn: {
-    position: "absolute", left: 14,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    alignItems: "center", justifyContent: "center",
-  },
+    coverWrap:    { height: 160, backgroundColor: C.surface2 },
+    coverImage:   { width: "100%", height: "100%" },
+    coverOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
+    backBtn: {
+      position: "absolute", left: 14,
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: "rgba(0,0,0,0.45)",
+      alignItems: "center", justifyContent: "center",
+    },
 
-  avatarRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginTop: -28,
-    marginBottom: 10,
-  },
-  avatar: {
-    width: 64, height: 64, borderRadius: 16,
-    backgroundColor: `${C.accent}25`,
-    borderWidth: 3, borderColor: C.background,
-    alignItems: "center", justifyContent: "center",
-    zIndex: 1, elevation: 2,
-  },
-  avatarText:  { color: C.accent, fontSize: FontSizes.lg, fontWeight: "900" },
-  actionRow:   { flexDirection: "row", alignItems: "center", gap: 8 },
-  followBtn: {
-    paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 12, backgroundColor: C.accent,
-  },
-  followBtnActive: { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border },
-  followBtnText:   { color: "#fff", fontSize: FontSizes.sm, fontWeight: "700" },
-  msgBtn: {
-    width: 36, height: 36, borderRadius: 12,
-    backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  msgBtnText: { fontSize: 16 },
+    avatarRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      marginTop: -28,
+      marginBottom: 10,
+    },
+    avatar: {
+      width: 64, height: 64, borderRadius: 16,
+      backgroundColor: `${C.accent}25`,
+      borderWidth: 3, borderColor: C.background,
+      alignItems: "center", justifyContent: "center",
+      zIndex: 1, elevation: 2,
+    },
+    avatarText:  { color: C.accent, fontSize: FontSizes.lg, fontWeight: "900" },
+    actionRow:   { flexDirection: "row", alignItems: "center", gap: 8 },
+    followBtn: {
+      paddingHorizontal: 16, paddingVertical: 8,
+      borderRadius: 12, backgroundColor: C.accent,
+    },
+    followBtnActive: { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border },
+    followBtnText:   { color: "#fff", fontSize: FontSizes.sm, fontWeight: "700" },
+    msgBtn: {
+      width: 36, height: 36, borderRadius: 12,
+      backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    msgBtnText: { fontSize: 16 },
 
-  nameRow:      { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, paddingHorizontal: 16 },
-  artistName:   { fontSize: FontSizes.xl, fontWeight: "900", color: C.foreground },
-  verifiedBadge: { backgroundColor: C.accent, borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 },
-  verifiedText:  { color: "#fff", fontSize: 9, fontWeight: "800" },
-  artistMeta:   { fontSize: FontSizes.xs, color: C.mutedForeground, paddingHorizontal: 16, marginTop: 3 },
+    nameRow:      { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, paddingHorizontal: 16 },
+    artistName:   { fontSize: FontSizes.xl, fontWeight: "900", color: C.foreground },
+    verifiedBadge: { backgroundColor: C.accent, borderRadius: 20, paddingHorizontal: 7, paddingVertical: 2 },
+    verifiedText:  { color: "#fff", fontSize: 9, fontWeight: "800" },
+    artistMeta:   { fontSize: FontSizes.xs, color: C.mutedForeground, paddingHorizontal: 16, marginTop: 3 },
 
-  badgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 16, marginTop: 8 },
-  badge:    { backgroundColor: `${C.accent}18`, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText:{ color: C.accent, fontSize: 10, fontWeight: "700" },
+    badgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 16, marginTop: 8 },
+    badge:    { backgroundColor: `${C.accent}18`, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
+    badgeText:{ color: C.accent, fontSize: 10, fontWeight: "700" },
 
-  statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: 12 },
-  statBox: {
-    flex: 1, backgroundColor: C.surface,
-    borderRadius: 12, borderWidth: 1, borderColor: C.border,
-    padding: 10, alignItems: "center", gap: 2,
-  },
-  statValue: { fontSize: FontSizes.sm, fontWeight: "900", color: C.foreground },
-  statLabel: { fontSize: 9, color: C.mutedForeground },
+    statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginTop: 12 },
+    statBox: {
+      flex: 1, backgroundColor: C.surface,
+      borderRadius: 12, borderWidth: 1, borderColor: C.border,
+      padding: 10, alignItems: "center", gap: 2,
+    },
+    statValue: { fontSize: FontSizes.sm, fontWeight: "900", color: C.foreground },
+    statLabel: { fontSize: 9, color: C.mutedForeground },
 
-  tabRow: { flexDirection: "row", gap: 6, paddingHorizontal: 16, marginTop: 16, marginBottom: 4 },
-  tab: {
-    paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 20, borderWidth: 1, borderColor: C.border,
-    backgroundColor: C.surface2,
-  },
-  tabActive:     { backgroundColor: C.accent, borderColor: C.accent },
-  tabText:       { fontSize: FontSizes.sm, fontWeight: "600", color: C.mutedForeground },
-  tabTextActive: { color: "#fff", fontWeight: "700" },
+    tabRow: { flexDirection: "row", gap: 6, paddingHorizontal: 16, marginTop: 16, marginBottom: 4 },
+    tab: {
+      paddingHorizontal: 16, paddingVertical: 8,
+      borderRadius: 20, borderWidth: 1, borderColor: C.border,
+      backgroundColor: C.surface2,
+    },
+    tabActive:     { backgroundColor: C.accent, borderColor: C.accent },
+    tabText:       { fontSize: FontSizes.sm, fontWeight: "600", color: C.mutedForeground },
+    tabTextActive: { color: "#fff", fontWeight: "700" },
 
-  // Masonry
-  masonryRow: { flexDirection: "row", paddingHorizontal: 12, gap: 8, marginTop: 8 },
-  masonryCol: { flex: 1, gap: 8 },
+    // Masonry
+    masonryRow: { flexDirection: "row", paddingHorizontal: 12, gap: 8, marginTop: 8 },
+    masonryCol: { flex: 1, gap: 8 },
 
-  // Artwork thumb card
-  thumbCard:      { borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: C.border, backgroundColor: C.surface },
-  thumbImg:       { width: "100%", aspectRatio: 0.75 },
-  thumbOverlay:   { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
-  thumbFreeBadge: {
-    position: "absolute", top: 7, left: 7,
-    backgroundColor: "#10b981",
-    paddingHorizontal: 7, paddingVertical: 3,
-    borderRadius: 20,
-  },
-  thumbBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
-  thumbInfo: {
-    position: "absolute", bottom: 0, left: 0, right: 0,
-    padding: 8,
-    backgroundColor: "rgba(0,0,0,0.55)",
-  },
-  thumbTitle: { fontSize: 10, fontWeight: "700", color: "#fff", lineHeight: 14 },
-  thumbPrice: { fontSize: 11, fontWeight: "900", color: C.accent, marginTop: 2 },
+    // Artwork thumb card
+    thumbCard:      { borderRadius: 12, overflow: "hidden", borderWidth: 1, borderColor: C.border, backgroundColor: C.surface },
+    thumbImg:       { width: "100%", aspectRatio: 0.75 },
+    thumbOverlay:   { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
+    thumbFreeBadge: {
+      position: "absolute", top: 7, left: 7,
+      backgroundColor: "#10b981",
+      paddingHorizontal: 7, paddingVertical: 3,
+      borderRadius: 20,
+    },
+    thumbBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
+    thumbInfo: {
+      position: "absolute", bottom: 0, left: 0, right: 0,
+      padding: 8,
+      backgroundColor: "rgba(0,0,0,0.55)",
+    },
+    thumbTitle: { fontSize: 10, fontWeight: "700", color: "#fff", lineHeight: 14 },
+    thumbPrice: { fontSize: 11, fontWeight: "900", color: C.accent, marginTop: 2 },
 
-  // Empty
-  emptyWrap:  { paddingVertical: 32, alignItems: "center", gap: 8 },
-  emptyEmoji: { fontSize: 36 },
-  emptyTitle: { fontSize: FontSizes.md, fontWeight: "700", color: C.foreground },
+    // Empty
+    emptyWrap:  { paddingVertical: 32, alignItems: "center", gap: 8 },
+    emptyEmoji: { fontSize: 36 },
+    emptyTitle: { fontSize: FontSizes.md, fontWeight: "700", color: C.foreground },
 
-  // About
-  aboutWrap: { padding: 16, gap: 12 },
-  aboutCard: {
-    backgroundColor: C.surface, borderRadius: 16,
-    borderWidth: 1, borderColor: C.border, padding: 16, gap: 10,
-  },
-  aboutTitle:    { fontSize: FontSizes.md, fontWeight: "800", color: C.foreground },
-  aboutBio:      { fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.md },
-  specialtyRow:  { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  specialtyPill: {
-    backgroundColor: C.surface2, borderRadius: 20,
-    borderWidth: 1, borderColor: C.border,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  specialtyText: { fontSize: FontSizes.xs, color: C.mutedForeground, fontWeight: "600" },
+    // About
+    aboutWrap: { padding: 16, gap: 12 },
+    aboutCard: {
+      backgroundColor: C.surface, borderRadius: 16,
+      borderWidth: 1, borderColor: C.border, padding: 16, gap: 10,
+    },
+    aboutTitle:    { fontSize: FontSizes.md, fontWeight: "800", color: C.foreground },
+    aboutBio:      { fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.md },
+    specialtyRow:  { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+    specialtyPill: {
+      backgroundColor: C.surface2, borderRadius: 20,
+      borderWidth: 1, borderColor: C.border,
+      paddingHorizontal: 10, paddingVertical: 4,
+    },
+    specialtyText: { fontSize: FontSizes.xs, color: C.mutedForeground, fontWeight: "600" },
 
-  // Not found
-  notFound:      { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 24 },
-  backBtnPlain:  { position: "absolute", top: 16, left: 16 },
-  notFoundEmoji: { fontSize: 56 },
-  notFoundTitle: { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground },
-  notFoundSub:   { fontSize: FontSizes.sm, color: C.mutedForeground },
-});
+    // Not found
+    notFound:      { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 24 },
+    backBtnPlain:  { position: "absolute", top: 16, left: 16 },
+    notFoundEmoji: { fontSize: 56 },
+    notFoundTitle: { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground },
+    notFoundSub:   { fontSize: FontSizes.sm, color: C.mutedForeground },
+  });
+}

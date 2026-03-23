@@ -1,6 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,9 +16,8 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import STLViewer from "../../components/STLViewer";
 import { BACKEND_URL, COLOR_HEX } from "../../constants";
-import { Colors } from "../../constants/theme";
-
-const C = Colors.dark;
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 
 // ── Sabitler ───────────────────────────────────────────────────────────────────
 const ACCEPTED_FORMATS = [".stl", ".obj", ".stp", ".step", ".igs", ".iges"];
@@ -66,23 +65,29 @@ const StepIndicator = ({
 }: {
   currentStep: number;
   totalSteps: number;
-}) => (
-  <View style={s.stepContainer}>
-    {Array.from({ length: totalSteps }).map((_, i) => (
-      <View key={i} style={s.stepTrack}>
-        <View
-          style={[
-            s.stepFill,
-            { backgroundColor: i < currentStep ? C.accent : C.border },
-          ]}
-        />
-      </View>
-    ))}
-  </View>
-);
+}) => {
+  const { colors: C, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
+  return (
+    <View style={styles.stepContainer}>
+      {Array.from({ length: totalSteps }).map((_, i) => (
+        <View key={i} style={styles.stepTrack}>
+          <View
+            style={[
+              styles.stepFill,
+              { backgroundColor: i < currentStep ? C.accent : C.border },
+            ]}
+          />
+        </View>
+      ))}
+    </View>
+  );
+};
 
 // ── Ana ekran ──────────────────────────────────────────────────────────────────
 export default function PrintUploadScreen() {
+  const { colors: C, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { service } = useLocalSearchParams();
@@ -223,41 +228,41 @@ export default function PrintUploadScreen() {
       <View
         key={tech.id}
         style={[
-          s.techCard,
+          styles.techCard,
           isSelected && { borderColor: tech.color, borderWidth: 2 },
         ]}
       >
         <TouchableOpacity
-          style={s.techCardHeader}
+          style={styles.techCardHeader}
           onPress={() => handleTechSelect(tech.id)}
           activeOpacity={0.85}
         >
-          <View style={[s.techIconWrap, { backgroundColor: tech.color + "22" }]}>
-            <Text style={s.techIcon}>{tech.icon}</Text>
+          <View style={[styles.techIconWrap, { backgroundColor: tech.color + "22" }]}>
+            <Text style={styles.techIcon}>{tech.icon}</Text>
           </View>
-          <View style={s.techInfo}>
-            <Text style={s.techTitle}>{tech.name}</Text>
-            <Text style={s.techDesc}>{activeMaterials.length} malzeme mevcut</Text>
+          <View style={styles.techInfo}>
+            <Text style={styles.techTitle}>{tech.name}</Text>
+            <Text style={styles.techDesc}>{activeMaterials.length} malzeme mevcut</Text>
           </View>
           <View
             style={[
-              s.techRadio,
+              styles.techRadio,
               isSelected && { borderColor: tech.color, backgroundColor: tech.color },
             ]}
           >
-            {isSelected && <Text style={s.techRadioCheck}>✓</Text>}
+            {isSelected && <Text style={styles.techRadioCheck}>✓</Text>}
           </View>
         </TouchableOpacity>
 
         {isSelected && (
-          <View style={s.techExpanded}>
-            <Text style={s.expandedLabel}>Malzeme</Text>
-            <View style={s.chipRow}>
+          <View style={styles.techExpanded}>
+            <Text style={styles.expandedLabel}>Malzeme</Text>
+            <View style={styles.chipRow}>
               {activeMaterials.map((mat) => (
                 <TouchableOpacity
                   key={mat.id}
                   style={[
-                    s.chip,
+                    styles.chip,
                     selectedMaterial === mat.id && {
                       backgroundColor: tech.color,
                       borderColor:     tech.color,
@@ -268,7 +273,7 @@ export default function PrintUploadScreen() {
                 >
                   <Text
                     style={[
-                      s.chipText,
+                      styles.chipText,
                       selectedMaterial === mat.id && { color: "#fff" },
                     ]}
                   >
@@ -280,8 +285,8 @@ export default function PrintUploadScreen() {
 
             {selMat && (
               <>
-                <Text style={[s.expandedLabel, { marginTop: 16 }]}>Renk</Text>
-                <View style={s.colorRow}>
+                <Text style={[styles.expandedLabel, { marginTop: 16 }]}>Renk</Text>
+                <View style={styles.colorRow}>
                   {selMat.colors
                     .filter((c) => c.active)
                     .map((colorObj) => {
@@ -291,16 +296,16 @@ export default function PrintUploadScreen() {
                       return (
                       <TouchableOpacity
                         key={colorObj.name}
-                        style={s.colorItem}
+                        style={styles.colorItem}
                         onPress={() => setSelectedColor(colorObj.name)}
                         activeOpacity={0.8}
                       >
                         {/* Dış halka (seçildiğinde) */}
-                        <View style={[s.colorRingOuter, isColorSelected && { borderColor: tech.color }]}>
-                          <View style={s.colorRingInner}>
+                        <View style={[styles.colorRingOuter, isColorSelected && { borderColor: tech.color }]}>
+                          <View style={styles.colorRingInner}>
                             <View
                               style={[
-                                s.colorDot,
+                                styles.colorDot,
                                 {
                                   backgroundColor: dotHex,
                                   borderColor:     isLight ? C.border : "transparent",
@@ -312,7 +317,7 @@ export default function PrintUploadScreen() {
                         </View>
                         <Text
                           style={[
-                            s.colorName,
+                            styles.colorName,
                             isColorSelected && {
                               color:      tech.color,
                               fontWeight: "700",
@@ -323,8 +328,8 @@ export default function PrintUploadScreen() {
                           {colorObj.name}
                         </Text>
                         {isColorSelected && (
-                          <View style={[s.colorCheckBadge, { backgroundColor: tech.color }]}>
-                            <Text style={s.colorCheckText}>✓</Text>
+                          <View style={[styles.colorCheckBadge, { backgroundColor: tech.color }]}>
+                            <Text style={styles.colorCheckText}>✓</Text>
                           </View>
                         )}
                       </TouchableOpacity>
@@ -340,13 +345,13 @@ export default function PrintUploadScreen() {
                 "binder-jetting", "polyjet", "seramik", "karbon-fiber",
               ].includes(tech.id) && (
                 <>
-                  <Text style={[s.expandedLabel, { marginTop: 16 }]}>Dolgu Oranı</Text>
-                  <View style={s.infillRow}>
+                  <Text style={[styles.expandedLabel, { marginTop: 16 }]}>Dolgu Oranı</Text>
+                  <View style={styles.infillRow}>
                     {INFILL_OPTIONS.map((opt) => (
                       <TouchableOpacity
                         key={opt.value}
                         style={[
-                          s.infillBtn,
+                          styles.infillBtn,
                           selectedInfill === opt.value && {
                             borderColor:     tech.color,
                             backgroundColor: tech.color + "15",
@@ -356,13 +361,13 @@ export default function PrintUploadScreen() {
                         activeOpacity={0.8}
                       >
                         {opt.recommended && (
-                          <View style={s.infillRecommended}>
-                            <Text style={[s.infillRecommendedText, { color: tech.color }]}>✦</Text>
+                          <View style={styles.infillRecommended}>
+                            <Text style={[styles.infillRecommendedText, { color: tech.color }]}>✦</Text>
                           </View>
                         )}
                         <Text
                           style={[
-                            s.infillLabel,
+                            styles.infillLabel,
                             selectedInfill === opt.value && { color: tech.color },
                           ]}
                         >
@@ -370,7 +375,7 @@ export default function PrintUploadScreen() {
                         </Text>
                         <Text
                           style={[
-                            s.infillDesc,
+                            styles.infillDesc,
                             selectedInfill === opt.value && { color: tech.color },
                           ]}
                         >
@@ -384,25 +389,25 @@ export default function PrintUploadScreen() {
 
             {selectedColor && (
               <>
-                <Text style={[s.expandedLabel, { marginTop: 16 }]}>Adet</Text>
-                <View style={s.quantityRow}>
+                <Text style={[styles.expandedLabel, { marginTop: 16 }]}>Adet</Text>
+                <View style={styles.quantityRow}>
                   <TouchableOpacity
-                    style={[s.qtyBtn, quantity <= 1 && s.qtyBtnDisabled]}
+                    style={[styles.qtyBtn, quantity <= 1 && styles.qtyBtnDisabled]}
                     onPress={() => setQuantity(Math.max(1, quantity - 1))}
                     disabled={quantity <= 1}
                   >
-                    <Text style={s.qtyBtnText}>−</Text>
+                    <Text style={styles.qtyBtnText}>−</Text>
                   </TouchableOpacity>
-                  <View style={[s.qtyDisplay, { borderColor: tech.color + "44" }]}>
-                    <Text style={s.qtyNumber}>{quantity}</Text>
-                    <Text style={s.qtyUnit}>adet</Text>
+                  <View style={[styles.qtyDisplay, { borderColor: tech.color + "44" }]}>
+                    <Text style={styles.qtyNumber}>{quantity}</Text>
+                    <Text style={styles.qtyUnit}>adet</Text>
                   </View>
                   <TouchableOpacity
-                    style={[s.qtyBtn, quantity >= 999 && s.qtyBtnDisabled]}
+                    style={[styles.qtyBtn, quantity >= 999 && styles.qtyBtnDisabled]}
                     onPress={() => setQuantity(Math.min(999, quantity + 1))}
                     disabled={quantity >= 999}
                   >
-                    <Text style={s.qtyBtnText}>+</Text>
+                    <Text style={styles.qtyBtnText}>+</Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -415,47 +420,47 @@ export default function PrintUploadScreen() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <View style={[s.safe, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Header */}
-      <Animated.View entering={FadeInDown.duration(400)} style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <Text style={s.backArrow}>‹</Text>
+      <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={s.headerTitle}>3D Baskı Siparişi</Text>
-          <Text style={s.headerSub}>Model yükle ve ayarları seç</Text>
+          <Text style={styles.headerTitle}>3D Baskı Siparişi</Text>
+          <Text style={styles.headerSub}>Model yükle ve ayarları seç</Text>
         </View>
-        <View style={s.fidropBadge}>
-          <Text style={s.fidropText}>by fidrop</Text>
+        <View style={styles.fidropBadge}>
+          <Text style={styles.fidropText}>by fidrop</Text>
         </View>
       </Animated.View>
 
       {/* Adım göstergesi */}
       <StepIndicator currentStep={file ? 2 : 1} totalSteps={3} />
-      <View style={s.stepLabelRow}>
-        <Text style={s.stepLabel}>{file ? "Adım 2 / 3" : "Adım 1 / 3"}</Text>
-        <Text style={s.stepLabelRight}>
+      <View style={styles.stepLabelRow}>
+        <Text style={styles.stepLabel}>{file ? "Adım 2 / 3" : "Adım 1 / 3"}</Text>
+        <Text style={styles.stepLabelRight}>
           {file ? "Baskı Ayarları" : "Dosya Yükleme"}
         </Text>
       </View>
 
       {/* Viewer / Upload alanı */}
-      <View style={s.viewerWrapper}>
+      <View style={styles.viewerWrapper}>
         {!file ? (
           <TouchableOpacity
-            style={s.uploadPlaceholder}
+            style={styles.uploadPlaceholder}
             onPress={handleFilePick}
             activeOpacity={0.85}
           >
-            <Text style={s.uploadIcon}>📂</Text>
-            <Text style={s.uploadTitle}>Dosya Seç</Text>
-            <Text style={s.uploadHint}>STL, OBJ, STP, STEP, IGS</Text>
-            <View style={s.uploadFormatRow}>
+            <Text style={styles.uploadIcon}>📂</Text>
+            <Text style={styles.uploadTitle}>Dosya Seç</Text>
+            <Text style={styles.uploadHint}>STL, OBJ, STP, STEP, IGS</Text>
+            <View style={styles.uploadFormatRow}>
               {ACCEPTED_FORMATS.map((f) => (
-                <View key={f} style={s.formatBadge}>
-                  <Text style={s.formatBadgeText}>
+                <View key={f} style={styles.formatBadge}>
+                  <Text style={styles.formatBadgeText}>
                     {f.replace(".", "").toUpperCase()}
                   </Text>
                 </View>
@@ -491,23 +496,23 @@ export default function PrintUploadScreen() {
                 }
               />
             ) : (
-              <View style={s.nonStlPlaceholder}>
-                <Text style={s.nonStlIcon}>📄</Text>
-                <Text style={s.nonStlName} numberOfLines={1}>{file.name}</Text>
-                <Text style={s.nonStlSize}>{formatFileSize(file.size)}</Text>
+              <View style={styles.nonStlPlaceholder}>
+                <Text style={styles.nonStlIcon}>📄</Text>
+                <Text style={styles.nonStlName} numberOfLines={1}>{file.name}</Text>
+                <Text style={styles.nonStlSize}>{formatFileSize(file.size)}</Text>
               </View>
             )}
-            <View style={s.viewerBar}>
-              <TouchableOpacity onPress={handleFilePick} style={s.changeBtn}>
-                <Text style={s.changeBtnText}>✏️ Değiştir</Text>
+            <View style={styles.viewerBar}>
+              <TouchableOpacity onPress={handleFilePick} style={styles.changeBtn}>
+                <Text style={styles.changeBtnText}>✏️ Değiştir</Text>
               </TouchableOpacity>
-              <Text style={s.viewerFileName} numberOfLines={1}>{file.name}</Text>
+              <Text style={styles.viewerFileName} numberOfLines={1}>{file.name}</Text>
               {isSTL && (
                 <TouchableOpacity
                   onPress={() => setFullscreen(true)}
-                  style={s.fullscreenBtn}
+                  style={styles.fullscreenBtn}
                 >
-                  <Text style={s.fullscreenBtnText}>⛶</Text>
+                  <Text style={styles.fullscreenBtnText}>⛶</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -517,12 +522,12 @@ export default function PrintUploadScreen() {
 
       {/* Fullscreen modal */}
       <Modal visible={fullscreen} animationType="fade" statusBarTranslucent>
-        <View style={s.modalContainer}>
+        <View style={styles.modalContainer}>
           <TouchableOpacity
-            style={s.modalClose}
+            style={styles.modalClose}
             onPress={() => setFullscreen(false)}
           >
-            <Text style={s.modalCloseText}>✕</Text>
+            <Text style={styles.modalCloseText}>✕</Text>
           </TouchableOpacity>
           {file && isSTL && (
             <STLViewer uri={file.uri} color={modelColor} height={600} />
@@ -532,16 +537,16 @@ export default function PrintUploadScreen() {
 
       {/* Scroll içeriği */}
       <ScrollView
-        style={s.scroll}
-        contentContainerStyle={s.scrollContent}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {!file && (
-          <Animated.View entering={FadeInDown.delay(100).duration(500)} style={s.infoBox}>
-            <Text style={s.infoIcon}>💡</Text>
+          <Animated.View entering={FadeInDown.delay(100).duration(500)} style={styles.infoBox}>
+            <Text style={styles.infoIcon}>💡</Text>
             <View style={{ flex: 1 }}>
-              <Text style={s.infoTitle}>Nasıl Çalışır?</Text>
-              <Text style={s.infoText}>
+              <Text style={styles.infoTitle}>Nasıl Çalışır?</Text>
+              <Text style={styles.infoText}>
                 Yukarıdan 3D modelini seç → Teknoloji ve malzeme seç → Anında fiyat al → Sipariş ver
               </Text>
             </View>
@@ -551,23 +556,23 @@ export default function PrintUploadScreen() {
         {file && (
           <>
             {isSTL && (
-              <Animated.View entering={FadeInDown.delay(80).duration(400)} style={s.sectionBlock}>
-                <Text style={s.blockTitle}>Dosya Birimi</Text>
-                <View style={s.unitRow}>
+              <Animated.View entering={FadeInDown.delay(80).duration(400)} style={styles.sectionBlock}>
+                <Text style={styles.blockTitle}>Dosya Birimi</Text>
+                <View style={styles.unitRow}>
                   {[
                     { id: "mm",   label: "mm"  },
                     { id: "inch", label: "inç" },
                   ].map((opt) => (
                     <TouchableOpacity
                       key={opt.id}
-                      style={[s.unitBtn, unit === opt.id && s.unitBtnActive]}
+                      style={[styles.unitBtn, unit === opt.id && styles.unitBtnActive]}
                       onPress={() => setUnit(opt.id as "mm" | "inch")}
                       activeOpacity={0.8}
                     >
                       <Text
                         style={[
-                          s.unitLabel,
-                          unit === opt.id && s.unitLabelActive,
+                          styles.unitLabel,
+                          unit === opt.id && styles.unitLabelActive,
                         ]}
                       >
                         {opt.label}
@@ -580,7 +585,7 @@ export default function PrintUploadScreen() {
 
             {(!isSTL || modelReady) && (
               <Animated.View entering={FadeInDown.delay(160).duration(400)}>
-                <Text style={s.sectionTitle}>Üretim Teknolojisi</Text>
+                <Text style={styles.sectionTitle}>Üretim Teknolojisi</Text>
                 {techLoading ? (
                   <ActivityIndicator color={C.accent} style={{ marginVertical: 20 }} />
                 ) : (
@@ -591,7 +596,7 @@ export default function PrintUploadScreen() {
                     if (groupTechs.length === 0) return null;
                     return (
                       <View key={group.groupId}>
-                        <Text style={s.groupLabel}>{group.label}</Text>
+                        <Text style={styles.groupLabel}>{group.label}</Text>
                         {groupTechs.map((tech) => renderTechCard(tech))}
                       </View>
                     );
@@ -607,11 +612,11 @@ export default function PrintUploadScreen() {
       {/* Footer CTA */}
       <Animated.View
         entering={FadeInUp.duration(400)}
-        style={[s.footer, { paddingBottom: insets.bottom + 16 }]}
+        style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}
       >
         {canProceed && (
-          <View style={s.selectionSummary}>
-            <Text style={s.summaryText} numberOfLines={1}>
+          <View style={styles.selectionSummary}>
+            <Text style={styles.summaryText} numberOfLines={1}>
               {selectedTechData?.name} · {selectedMaterialData?.name} · {selectedColor} ·{" "}
               {FDM_TECHNOLOGIES.includes(selectedTech ?? "")
                 ? `%${selectedInfill} · `
@@ -619,19 +624,19 @@ export default function PrintUploadScreen() {
               {quantity} adet
             </Text>
             {priceResult && (
-              <Text style={[s.summaryPrice, { color: selectedTechData?.color ?? C.accent }]}>
+              <Text style={[styles.summaryPrice, { color: selectedTechData?.color ?? C.accent }]}>
                 ₺{priceResult.totalPrice.toLocaleString("tr-TR")}
               </Text>
             )}
           </View>
         )}
         <TouchableOpacity
-          style={[s.devamBtn, !canProceed && s.devamBtnDisabled]}
+          style={[styles.devamBtn, !canProceed && styles.devamBtnDisabled]}
           onPress={handleDevam}
           disabled={!canProceed}
           activeOpacity={0.85}
         >
-          <Text style={s.devamBtnText}>
+          <Text style={styles.devamBtnText}>
             {!file
               ? "Önce Dosya Seçiniz"
               : !canProceed
@@ -644,8 +649,9 @@ export default function PrintUploadScreen() {
   );
 }
 
-// ── Stiller (Colors.dark token'ları) ──────────────────────────────────────────
-const s = StyleSheet.create({
+// ── Stiller ───────────────────────────────────────────────────────────────────
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
   safe:       { flex: 1, backgroundColor: C.background },
   header: {
     flexDirection:    "row",
@@ -992,4 +998,5 @@ const s = StyleSheet.create({
   },
   devamBtnDisabled: { backgroundColor: C.surface2 },
   devamBtnText: { color: "#fff", fontSize: 15, fontWeight: "700", letterSpacing: 0.2 },
-});
+  });
+}

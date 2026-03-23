@@ -5,7 +5,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { type ThemeColors } from "@/constants/theme";
 import HeroSlider   from "@/components/home/HeroSlider";
 import BentoBanners from "@/components/home/BentoBanners";
 import { useTabBarHeight } from "@/hooks/useTabBarHeight";
@@ -43,16 +44,14 @@ const HOW_STEPS = [
 ];
 
 export default function VisitorHome() {
-  // Fimarkt şu an dark mode — sistem teması göz ardı edilir.
-  // App tema toggle'ı eklenince useColorScheme() devreye alınacak.
-  const C = Colors["dark"];
+  const { colors: C, isDark } = useTheme();
   const router       = useRouter();
   const tabBarHeight = useTabBarHeight();
   const s      = makeStyles(C);
 
   return (
     <ScrollView style={s.container} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: tabBarHeight }}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* ── 1. HERO SLİDER ──────────────────────────────────────────── */}
       <HeroSlider />
@@ -160,7 +159,7 @@ export default function VisitorHome() {
 }
 
 // ── Dinamik stiller ───────────────────────────────────────────────────────────
-function makeStyles(C: typeof Colors.dark) {
+function makeStyles(C: ThemeColors) {
   return StyleSheet.create({
     container:     { flex: 1, backgroundColor: C.background },
 

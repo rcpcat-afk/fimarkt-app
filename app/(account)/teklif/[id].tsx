@@ -2,7 +2,7 @@
 // B2B İletişim & Pazarlık Masası — Müşteri ↔ Mühendis güvenli sohbet.
 // KeyboardAvoidingView + inverted FlatList · OfferCard → CartContext entegrasyonu
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import {
   View, Text, TouchableOpacity, ScrollView, TextInput,
   KeyboardAvoidingView, Platform, StyleSheet, StatusBar,
@@ -12,10 +12,9 @@ import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeInDown, FadeIn } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "../../../constants/theme";
+import { type ThemeColors } from "../../../constants/theme";
+import { useTheme } from "../../../hooks/useTheme";
 import { useCart } from "../../../src/store/CartContext";
-
-const C = Colors.dark;
 
 // ── Tipler ────────────────────────────────────────────────────────────────────
 type MsgType = "user" | "engineer" | "system" | "offer";
@@ -73,6 +72,8 @@ const MOCK_MESSAGES: Message[] = [
 
 // ── SystemMessage ─────────────────────────────────────────────────────────────
 function SystemMessage({ msg }: { msg: Message }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   return (
     <View style={s.sysWrap}>
       <View style={[s.sysCard, { backgroundColor: C.surface, borderColor: C.border }]}>
@@ -88,6 +89,8 @@ function SystemMessage({ msg }: { msg: Message }) {
 
 // ── AttachmentChip ────────────────────────────────────────────────────────────
 function AttachmentChip({ att, isUser }: { att: Attachment; isUser: boolean }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   return (
     <View style={[
       s.attachChip,
@@ -107,6 +110,8 @@ function AttachmentChip({ att, isUser }: { att: Attachment; isUser: boolean }) {
 
 // ── MessageBubble ─────────────────────────────────────────────────────────────
 function MessageBubble({ msg }: { msg: Message }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   const isUser = msg.type === "user";
   return (
     <View style={[s.bubbleRow, isUser ? s.bubbleRowUser : s.bubbleRowEngineer]}>
@@ -141,6 +146,8 @@ function OfferCard({ offer, onAccept, onReject }: {
   onAccept: () => void;
   onReject: () => void;
 }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   const [status, setStatus] = useState<Offer["status"]>(offer.status);
 
   if (status === "accepted") {
@@ -238,6 +245,9 @@ function OfferCard({ offer, onAccept, onReject }: {
 
 // ── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function TeklifChatScreen() {
+  const { colors: C, isDark } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { addItem } = useCart();
@@ -267,7 +277,7 @@ export default function TeklifChatScreen() {
       style={[s.root, { backgroundColor: C.background }]}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* ── Header ──────────────────────────────────────────────────── */}
       <View style={[s.header, { paddingTop: insets.top + 8, borderBottomColor: C.border, backgroundColor: C.surface }]}>
@@ -338,7 +348,7 @@ export default function TeklifChatScreen() {
 }
 
 // ── Stiller ───────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
+function createStyles(C: ThemeColors) { return StyleSheet.create({
   root:   { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: { padding: 14, gap: 8 },
@@ -424,4 +434,4 @@ const s = StyleSheet.create({
   attachBtn:  { width: 40, height: 40, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   textInput:  { flex: 1, borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10, fontSize: 13, maxHeight: 100 },
   sendBtn:    { width: 40, height: 40, borderRadius: 12, borderWidth: 1, alignItems: "center", justifyContent: "center" },
-});
+}); }

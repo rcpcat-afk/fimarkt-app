@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -11,12 +11,11 @@ import {
 } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants/theme";
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { useAuth } from "../../src/store/AuthContext";
 import { useCart } from "../../src/store/CartContext";
 import AddToCartSuccessModal from "../../components/fidrop/AddToCartSuccessModal";
-
-const C = Colors.dark;
 
 // ── Sabitler ───────────────────────────────────────────────────────────────────
 const TECH_LABELS: Record<string, { title: string; icon: string; color: string }> = {
@@ -97,18 +96,24 @@ function AnimatedPriceText({ value, style }: { value: number; style?: any }) {
 }
 
 // ── Adım göstergesi ────────────────────────────────────────────────────────────
-const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => (
-  <View style={s.stepContainer}>
-    {Array.from({ length: totalSteps }).map((_, i) => (
-      <View key={i} style={s.stepTrack}>
-        <View style={[s.stepFill, { backgroundColor: i < currentStep ? C.accent : C.border }]} />
-      </View>
-    ))}
-  </View>
-);
+const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number; totalSteps: number }) => {
+  const { colors: C, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
+  return (
+    <View style={styles.stepContainer}>
+      {Array.from({ length: totalSteps }).map((_, i) => (
+        <View key={i} style={styles.stepTrack}>
+          <View style={[styles.stepFill, { backgroundColor: i < currentStep ? C.accent : C.border }]} />
+        </View>
+      ))}
+    </View>
+  );
+};
 
 // ── Ana ekran ──────────────────────────────────────────────────────────────────
 export default function PrintSummaryScreen() {
+  const { colors: C, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
   const router  = useRouter();
   const { user } = useAuth();
   const insets  = useSafeAreaInsets();
@@ -306,78 +311,78 @@ export default function PrintSummaryScreen() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <View style={[s.safe, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+    <View style={[styles.safe, { paddingTop: insets.top }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Header */}
-      <Animated.View entering={FadeInDown.duration(350)} style={s.header}>
-        <TouchableOpacity onPress={() => router.back()} style={s.backBtn}>
-          <Text style={s.backArrow}>‹</Text>
+      <Animated.View entering={FadeInDown.duration(350)} style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backArrow}>‹</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={s.headerTitle}>Fiyat Özeti</Text>
-          <Text style={s.headerSub}>Siparişini gözden geçir</Text>
+          <Text style={styles.headerTitle}>Fiyat Özeti</Text>
+          <Text style={styles.headerSub}>Siparişini gözden geçir</Text>
         </View>
-        <View style={s.fidropBadge}>
-          <Text style={s.fidropText}>by fidrop</Text>
+        <View style={styles.fidropBadge}>
+          <Text style={styles.fidropText}>by fidrop</Text>
         </View>
       </Animated.View>
 
       <StepIndicator currentStep={3} totalSteps={3} />
-      <View style={s.stepLabelRow}>
-        <Text style={s.stepLabel}>Adım 3 / 3</Text>
-        <Text style={s.stepLabelRight}>Fiyat Özeti</Text>
+      <View style={styles.stepLabelRow}>
+        <Text style={styles.stepLabel}>Adım 3 / 3</Text>
+        <Text style={styles.stepLabelRight}>Fiyat Özeti</Text>
       </View>
 
-      <ScrollView style={s.scroll} contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
         {/* Ana fiyat kartı */}
-        <Animated.View entering={FadeInDown.delay(80).duration(400)} style={[s.priceCard, { borderColor: (techData?.color ?? C.accent) + "55" }]}>
-          <View style={s.priceCardTop}>
-            <Text style={s.priceLabel}>Toplam Fiyat</Text>
+        <Animated.View entering={FadeInDown.delay(80).duration(400)} style={[styles.priceCard, { borderColor: (techData?.color ?? C.accent) + "55" }]}>
+          <View style={styles.priceCardTop}>
+            <Text style={styles.priceLabel}>Toplam Fiyat</Text>
             {sourceLabel && (
-              <View style={[s.priceBadge, { backgroundColor: (techData?.color ?? C.accent) + "22" }]}>
-                <Text style={[s.priceBadgeText, { color: techData?.color ?? C.accent }]}>{sourceLabel}</Text>
+              <View style={[styles.priceBadge, { backgroundColor: (techData?.color ?? C.accent) + "22" }]}>
+                <Text style={[styles.priceBadgeText, { color: techData?.color ?? C.accent }]}>{sourceLabel}</Text>
               </View>
             )}
           </View>
 
           {priceLoading ? (
-            <View style={s.priceLoadingRow}>
-              <Text style={s.priceLoadingText}>Hesaplanıyor</Text>
-              <View style={s.priceDots}>
-                <Text style={s.priceDot}>•</Text>
-                <Text style={s.priceDot}>•</Text>
-                <Text style={s.priceDot}>•</Text>
+            <View style={styles.priceLoadingRow}>
+              <Text style={styles.priceLoadingText}>Hesaplanıyor</Text>
+              <View style={styles.priceDots}>
+                <Text style={styles.priceDot}>•</Text>
+                <Text style={styles.priceDot}>•</Text>
+                <Text style={styles.priceDot}>•</Text>
               </View>
             </View>
           ) : (
             <AnimatedPriceText
               value={priceData?.totalPrice ?? 0}
-              style={[s.priceAmount, { color: techData?.color ?? C.accent }]}
+              style={[styles.priceAmount, { color: techData?.color ?? C.accent }]}
             />
           )}
 
-          <View style={s.priceBreakdown}>
-            <View style={s.priceRow}>
-              <Text style={s.priceRowLabel}>Birim Fiyat</Text>
-              <Text style={s.priceRowValue}>₺{(priceData?.unitPrice ?? 0).toLocaleString("tr-TR")}</Text>
+          <View style={styles.priceBreakdown}>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceRowLabel}>Birim Fiyat</Text>
+              <Text style={styles.priceRowValue}>₺{(priceData?.unitPrice ?? 0).toLocaleString("tr-TR")}</Text>
             </View>
-            <View style={s.priceRow}>
-              <Text style={s.priceRowLabel}>Adet</Text>
-              <Text style={s.priceRowValue}>{quantity}</Text>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceRowLabel}>Adet</Text>
+              <Text style={styles.priceRowValue}>{quantity}</Text>
             </View>
             {priceData && priceData.discount > 0 && (
-              <View style={s.priceRow}>
-                <Text style={[s.priceRowLabel, { color: C.success }]}>İndirim</Text>
-                <Text style={[s.priceRowValue, { color: C.success }]}>
+              <View style={styles.priceRow}>
+                <Text style={[styles.priceRowLabel, { color: C.success }]}>İndirim</Text>
+                <Text style={[styles.priceRowValue, { color: C.success }]}>
                   -₺{priceData.discount.toLocaleString("tr-TR")}
                 </Text>
               </View>
             )}
-            <View style={[s.priceRow, s.priceRowTotal]}>
-              <Text style={s.priceRowLabelTotal}>Toplam</Text>
-              <Text style={[s.priceRowValueTotal, { color: techData?.color ?? C.accent }]}>
+            <View style={[styles.priceRow, styles.priceRowTotal]}>
+              <Text style={styles.priceRowLabelTotal}>Toplam</Text>
+              <Text style={[styles.priceRowValueTotal, { color: techData?.color ?? C.accent }]}>
                 ₺{(priceData?.totalPrice ?? 0).toLocaleString("tr-TR")}
               </Text>
             </View>
@@ -385,74 +390,74 @@ export default function PrintSummaryScreen() {
         </Animated.View>
 
         {/* Teslimat */}
-        <Animated.View entering={FadeInDown.delay(160).duration(400)} style={s.deliveryCard}>
-          <Text style={s.deliveryIcon}>🚚</Text>
+        <Animated.View entering={FadeInDown.delay(160).duration(400)} style={styles.deliveryCard}>
+          <Text style={styles.deliveryIcon}>🚚</Text>
           <View style={{ flex: 1 }}>
-            <Text style={s.deliveryTitle}>Tahmini Teslimat</Text>
-            <Text style={[s.deliveryDays, { color: C.success }]}>{deliveryDays}</Text>
+            <Text style={styles.deliveryTitle}>Tahmini Teslimat</Text>
+            <Text style={[styles.deliveryDays, { color: C.success }]}>{deliveryDays}</Text>
           </View>
-          <Text style={s.deliveryNote}>Onay sonrası</Text>
+          <Text style={styles.deliveryNote}>Onay sonrası</Text>
         </Animated.View>
 
         {/* Baskı detayları */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-          <View style={s.detailCard}>
-            <View style={s.detailRow}>
-              <Text style={s.detailIcon}>🧊</Text>
-              <View style={s.detailInfo}>
-                <Text style={s.detailLabel}>Model & Baskı Detayları</Text>
+          <View style={styles.detailCard}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailIcon}>🧊</Text>
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailLabel}>Model & Baskı Detayları</Text>
               </View>
             </View>
-            <View style={s.detailRow}>
-              <Text style={s.detailIcon}>{techData?.icon}</Text>
-              <View style={s.detailInfo}>
-                <Text style={s.detailLabel}>Teknoloji</Text>
-                <Text style={[s.detailValue, { color: techData?.color ?? C.accent }]}>{techData?.title}</Text>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailIcon}>{techData?.icon}</Text>
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailLabel}>Teknoloji</Text>
+                <Text style={[styles.detailValue, { color: techData?.color ?? C.accent }]}>{techData?.title}</Text>
               </View>
-              <View style={[s.colorDotSmall, { backgroundColor: materialData?.hex, borderWidth: materialData?.hex === "#f1f5f9" ? 1 : 0, borderColor: C.border }]} />
-              <View style={s.detailInfo}>
-                <Text style={s.detailLabel}>Malzeme</Text>
-                <Text style={s.detailValue}>{materialData?.name} — {materialData?.color}</Text>
-              </View>
-            </View>
-            <View style={s.detailDivider} />
-            <View style={s.detailRow}>
-              <Text style={s.detailIcon}>⚖️</Text>
-              <View style={s.detailInfo}>
-                <Text style={s.detailLabel}>Ağırlık</Text>
-                <Text style={s.detailValue}>{priceData?.partWeightGram ?? priceData?.weightGram ?? "-"} g</Text>
-              </View>
-              <Text style={s.detailIcon}>⏱️</Text>
-              <View style={s.detailInfo}>
-                <Text style={s.detailLabel}>Baskı Süresi</Text>
-                <Text style={s.detailValue}>{priceData?.printHours ?? "-"} saat</Text>
+              <View style={[styles.colorDotSmall, { backgroundColor: materialData?.hex, borderWidth: materialData?.hex === "#f1f5f9" ? 1 : 0, borderColor: C.border }]} />
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailLabel}>Malzeme</Text>
+                <Text style={styles.detailValue}>{materialData?.name} — {materialData?.color}</Text>
               </View>
             </View>
-            <View style={s.detailDivider} />
-            <View style={s.detailRow}>
-              <Text style={s.detailIcon}>📦</Text>
-              <View style={s.detailInfo}>
-                <Text style={s.detailLabel}>Hacim</Text>
-                <Text style={s.detailValue}>{priceData?.volumeCm3 ?? "-"} cm³</Text>
+            <View style={styles.detailDivider} />
+            <View style={styles.detailRow}>
+              <Text style={styles.detailIcon}>⚖️</Text>
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailLabel}>Ağırlık</Text>
+                <Text style={styles.detailValue}>{priceData?.partWeightGram ?? priceData?.weightGram ?? "-"} g</Text>
+              </View>
+              <Text style={styles.detailIcon}>⏱️</Text>
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailLabel}>Baskı Süresi</Text>
+                <Text style={styles.detailValue}>{priceData?.printHours ?? "-"} saat</Text>
+              </View>
+            </View>
+            <View style={styles.detailDivider} />
+            <View style={styles.detailRow}>
+              <Text style={styles.detailIcon}>📦</Text>
+              <View style={styles.detailInfo}>
+                <Text style={styles.detailLabel}>Hacim</Text>
+                <Text style={styles.detailValue}>{priceData?.volumeCm3 ?? "-"} cm³</Text>
               </View>
               {FDM_TECHNOLOGIES.includes(tech) && (
                 <>
-                  <Text style={s.detailIcon}>⬛</Text>
-                  <View style={s.detailInfo}>
-                    <Text style={s.detailLabel}>Dolgu Oranı</Text>
-                    <Text style={s.detailValue}>%{infill}</Text>
+                  <Text style={styles.detailIcon}>⬛</Text>
+                  <View style={styles.detailInfo}>
+                    <Text style={styles.detailLabel}>Dolgu Oranı</Text>
+                    <Text style={styles.detailValue}>%{infill}</Text>
                   </View>
                 </>
               )}
             </View>
             {priceData?.dimensionsMm && (
               <>
-                <View style={s.detailDivider} />
-                <View style={s.detailRow}>
-                  <Text style={s.detailIcon}>📐</Text>
-                  <View style={s.detailInfo}>
-                    <Text style={s.detailLabel}>Boyutlar</Text>
-                    <Text style={s.detailValue}>
+                <View style={styles.detailDivider} />
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailIcon}>📐</Text>
+                  <View style={styles.detailInfo}>
+                    <Text style={styles.detailLabel}>Boyutlar</Text>
+                    <Text style={styles.detailValue}>
                       {priceData.dimensionsMm.x} × {priceData.dimensionsMm.y} × {priceData.dimensionsMm.z} mm
                     </Text>
                   </View>
@@ -463,53 +468,53 @@ export default function PrintSummaryScreen() {
         </Animated.View>
 
         {/* Sipariş detayları */}
-        <Text style={s.sectionTitle}>Sipariş Detayları</Text>
+        <Text style={styles.sectionTitle}>Sipariş Detayları</Text>
 
-        <Animated.View entering={FadeInDown.delay(260).duration(400)} style={s.detailCard}>
-          <View style={s.detailRow}>
-            <Text style={s.detailIcon}>📄</Text>
-            <View style={s.detailInfo}>
-              <Text style={s.detailLabel}>Dosya</Text>
-              <Text style={s.detailValue} numberOfLines={1}>{fileName}</Text>
+        <Animated.View entering={FadeInDown.delay(260).duration(400)} style={styles.detailCard}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>📄</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Dosya</Text>
+              <Text style={styles.detailValue} numberOfLines={1}>{fileName}</Text>
             </View>
-            <Text style={s.detailExtra}>{unit}</Text>
+            <Text style={styles.detailExtra}>{unit}</Text>
           </View>
-          <View style={s.detailDivider} />
-          <View style={s.detailRow}>
-            <Text style={s.detailIcon}>{techData?.icon}</Text>
-            <View style={s.detailInfo}>
-              <Text style={s.detailLabel}>Üretim Teknolojisi</Text>
-              <Text style={[s.detailValue, { color: techData?.color ?? C.accent }]}>{techData?.title}</Text>
-            </View>
-          </View>
-          <View style={s.detailDivider} />
-          <View style={s.detailRow}>
-            <View style={[s.colorDotSmall, { backgroundColor: materialData?.hex, borderWidth: (materialData?.hex === "#f1f5f9" || materialData?.hex === "#f8fafc") ? 1 : 0, borderColor: C.border }]} />
-            <View style={s.detailInfo}>
-              <Text style={s.detailLabel}>Malzeme & Renk</Text>
-              <Text style={s.detailValue}>{materialData?.name} — {materialData?.color}</Text>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>{techData?.icon}</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Üretim Teknolojisi</Text>
+              <Text style={[styles.detailValue, { color: techData?.color ?? C.accent }]}>{techData?.title}</Text>
             </View>
           </View>
-          <View style={s.detailDivider} />
-          <View style={s.detailRow}>
-            <Text style={s.detailIcon}>📦</Text>
-            <View style={s.detailInfo}>
-              <Text style={s.detailLabel}>Adet</Text>
-              <Text style={s.detailValue}>{quantity} adet</Text>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <View style={[styles.colorDotSmall, { backgroundColor: materialData?.hex, borderWidth: (materialData?.hex === "#f1f5f9" || materialData?.hex === "#f8fafc") ? 1 : 0, borderColor: C.border }]} />
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Malzeme & Renk</Text>
+              <Text style={styles.detailValue}>{materialData?.name} — {materialData?.color}</Text>
+            </View>
+          </View>
+          <View style={styles.detailDivider} />
+          <View style={styles.detailRow}>
+            <Text style={styles.detailIcon}>📦</Text>
+            <View style={styles.detailInfo}>
+              <Text style={styles.detailLabel}>Adet</Text>
+              <Text style={styles.detailValue}>{quantity} adet</Text>
             </View>
           </View>
         </Animated.View>
 
         {/* Uyarılar */}
         {priceData?.meshWarning && (
-          <View style={[s.warningBox, { borderColor: C.warning, marginBottom: 10 }]}>
-            <Text style={s.warningIcon}>⚠️</Text>
-            <Text style={[s.warningText, { color: C.warning }]}>{priceData.meshWarning}</Text>
+          <View style={[styles.warningBox, { borderColor: C.warning, marginBottom: 10 }]}>
+            <Text style={styles.warningIcon}>⚠️</Text>
+            <Text style={[styles.warningText, { color: C.warning }]}>{priceData.meshWarning}</Text>
           </View>
         )}
-        <View style={s.warningBox}>
-          <Text style={s.warningIcon}>ℹ️</Text>
-          <Text style={s.warningText}>
+        <View style={styles.warningBox}>
+          <Text style={styles.warningIcon}>ℹ️</Text>
+          <Text style={styles.warningText}>
             Fiyat, modelinizin gerçek geometrisine göre hesaplanmıştır. Sipariş onaylandıktan sonra üretim süreci başlar.
           </Text>
         </View>
@@ -518,29 +523,29 @@ export default function PrintSummaryScreen() {
       </ScrollView>
 
       {/* Footer */}
-      <Animated.View entering={FadeInUp.duration(400)} style={[s.footer, { paddingBottom: insets.bottom + 16 }]}>
-        <TouchableOpacity style={s.teklifBtn} onPress={handleTeklifIste} activeOpacity={0.85}>
-          <Text style={s.teklifBtnText}>Detaylı Teklif İste</Text>
+      <Animated.View entering={FadeInUp.duration(400)} style={[styles.footer, { paddingBottom: insets.bottom + 16 }]}>
+        <TouchableOpacity style={styles.teklifBtn} onPress={handleTeklifIste} activeOpacity={0.85}>
+          <Text style={styles.teklifBtnText}>Detaylı Teklif İste</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.siparisBtn, { backgroundColor: techData?.color ?? C.accent }, (priceLoading || !priceData) && { opacity: 0.7 }]}
+          style={[styles.siparisBtn, { backgroundColor: techData?.color ?? C.accent }, (priceLoading || !priceData) && { opacity: 0.7 }]}
           onPress={handleSepeteEkle}
           disabled={priceLoading || !priceData}
           activeOpacity={0.85}
         >
-          <Text style={s.siparisBtnText}>
+          <Text style={styles.siparisBtnText}>
             {priceLoading
               ? "Hesaplanıyor..."
               : `🛒 Sepete Ekle — ₺${(priceData?.totalPrice ?? 0).toLocaleString("tr-TR")}`}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[s.siparisBtn, { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border }, (ordering || priceLoading) && { opacity: 0.5 }]}
+          style={[styles.siparisBtn, { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border }, (ordering || priceLoading) && { opacity: 0.5 }]}
           onPress={handleSiparisVer}
           disabled={ordering || priceLoading}
           activeOpacity={0.85}
         >
-          <Text style={[s.siparisBtnText, { color: C.mutedForeground }]}>
+          <Text style={[styles.siparisBtnText, { color: C.mutedForeground }]}>
             {ordering ? "İşleniyor..." : "veya Direkt Sipariş Ver →"}
           </Text>
         </TouchableOpacity>
@@ -557,8 +562,9 @@ export default function PrintSummaryScreen() {
   );
 }
 
-// ── Stiller (Colors.dark token'ları) ──────────────────────────────────────────
-const s = StyleSheet.create({
+// ── Stiller ───────────────────────────────────────────────────────────────────
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
   safe:   { flex: 1, backgroundColor: C.background },
   header: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 12, gap: 12 },
   backBtn: {
@@ -650,4 +656,5 @@ const s = StyleSheet.create({
   teklifBtnText: { color: C.mutedForeground, fontSize: 14, fontWeight: "600" },
   siparisBtn:    { borderRadius: 14, paddingVertical: 16, alignItems: "center" },
   siparisBtnText:{ color: "#fff", fontSize: 15, fontWeight: "700", letterSpacing: 0.2 },
-});
+  });
+}

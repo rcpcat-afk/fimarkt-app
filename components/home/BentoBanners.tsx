@@ -4,7 +4,8 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { Colors } from "@/constants/theme";
+import { useTheme, } from "@/hooks/useTheme";
+import { type ThemeColors } from "@/constants/theme";
 import { CAMPAIGNS, sortCampaignsForRole } from "@/lib/campaigns";
 
 const { width } = Dimensions.get("window");
@@ -16,7 +17,7 @@ const SM_W      = (INNER - GAP) / 2;
 interface Props { userRole?: string }
 
 export default function BentoBanners({ userRole }: Props) {
-  const C = Colors["dark"];
+  const { colors: C } = useTheme();
   const router = useRouter();
   const [large, topRight, bottomRight] = sortCampaignsForRole(CAMPAIGNS, userRole).slice(0, 3);
   const s = makeStyles(C);
@@ -70,7 +71,7 @@ export default function BentoBanners({ userRole }: Props) {
   );
 }
 
-function makeStyles(C: typeof Colors.dark) {
+function makeStyles(C: ThemeColors) {
   return StyleSheet.create({
     container:     { paddingHorizontal: CARD_PAD, paddingVertical: 10, gap: GAP },
     // Large card

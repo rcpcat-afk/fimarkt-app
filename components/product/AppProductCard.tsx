@@ -1,24 +1,23 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   View, Text, Image, Pressable, StyleSheet,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, FontSizes, LineHeights } from "@/constants/theme";
+import { type ThemeColors, FontSizes, LineHeights } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import type { Product, ProductBadge } from "@/lib/types";
-
-const C = Colors.dark;
 
 // ── Badge ─────────────────────────────────────────────────────────────────────
 const BADGE_STYLE: Record<ProductBadge, { label: string; color: string; bg: string }> = {
   "yeni":       { label: "Yeni",       color: "#fff", bg: "#3b82f6" },
-  "indirim":    { label: "İndirim",    color: "#fff", bg: C.accent  },
-  "cok-satan":  { label: "Çok Satan",  color: "#fff", bg: C.success },
-  "stokta-az":  { label: "Stokta Az", color: "#fff", bg: C.warning },
+  "indirim":    { label: "İndirim",    color: "#fff", bg: "#ff6b2b"  },
+  "cok-satan":  { label: "Çok Satan",  color: "#fff", bg: "#22c55e" },
+  "stokta-az":  { label: "Stokta Az", color: "#fff", bg: "#f59e0b" },
 };
 
 // ── Yıldız ────────────────────────────────────────────────────────────────────
-function Stars({ rating }: { rating: number }) {
+function Stars({ rating, styles }: { rating: number; styles: ReturnType<typeof createStyles> }) {
   return (
     <Text style={styles.stars}>
       {"★".repeat(Math.floor(rating))}
@@ -29,7 +28,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 // ── İndirim yüzdesi ───────────────────────────────────────────────────────────
-function DiscountChip({ original, current }: { original: number; current: number }) {
+function DiscountChip({ original, current, styles }: { original: number; current: number; styles: ReturnType<typeof createStyles> }) {
   const pct = Math.round((1 - current / original) * 100);
   return (
     <View style={styles.discountChip}>
@@ -46,6 +45,8 @@ interface AppProductCardProps {
 
 // ── Kart ─────────────────────────────────────────────────────────────────────
 export default function AppProductCard({ product, layout = "grid" }: AppProductCardProps) {
+  const { colors: C } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
   const router  = useRouter();
   const [fav, setFav] = useState(false);
 
@@ -82,7 +83,7 @@ export default function AppProductCard({ product, layout = "grid" }: AppProductC
         <View style={styles.listInfo}>
           <Text style={styles.brand}>{product.brand}</Text>
           <Text style={styles.listTitle} numberOfLines={2}>{product.title}</Text>
-          <Stars rating={product.rating} />
+          <Stars rating={product.rating} styles={styles} />
           <Text style={styles.seller} numberOfLines={1}>{product.seller.name}</Text>
 
           <View style={styles.priceRow}>
@@ -94,7 +95,7 @@ export default function AppProductCard({ product, layout = "grid" }: AppProductC
                 <Text style={styles.originalPrice}>
                   {product.originalPrice!.toLocaleString("tr-TR")} ₺
                 </Text>
-                <DiscountChip original={product.originalPrice!} current={product.price} />
+                <DiscountChip original={product.originalPrice!} current={product.price} styles={styles} />
               </>
             )}
           </View>
@@ -156,13 +157,13 @@ export default function AppProductCard({ product, layout = "grid" }: AppProductC
       <View style={styles.gridInfo}>
         <Text style={styles.brand}>{product.brand}</Text>
         <Text style={styles.gridTitle} numberOfLines={2}>{product.title}</Text>
-        <Stars rating={product.rating} />
+        <Stars rating={product.rating} styles={styles} />
         <View style={styles.priceRow}>
           <Text style={styles.price}>
             {product.price.toLocaleString("tr-TR")} ₺
           </Text>
           {hasDiscount && (
-            <DiscountChip original={product.originalPrice!} current={product.price} />
+            <DiscountChip original={product.originalPrice!} current={product.price} styles={styles} />
           )}
         </View>
         {hasDiscount && (
@@ -176,80 +177,82 @@ export default function AppProductCard({ product, layout = "grid" }: AppProductC
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  // Genel
-  brand: {
-    fontSize: FontSizes.xs, color: C.accent,
-    fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5,
-  },
-  stars: {
-    fontSize: FontSizes.xs, color: C.warning, marginTop: 2,
-  },
-  seller: {
-    fontSize: FontSizes.xs, color: C.mutedForeground, marginTop: 2,
-  },
-  badge: {
-    position: "absolute", top: 6, left: 6,
-    borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2,
-  },
-  badgeText: { fontSize: 9, fontWeight: "800" },
-  priceRow:  { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
-  price:     { fontSize: FontSizes.md, fontWeight: "900", color: C.foreground },
-  originalPrice: {
-    fontSize: FontSizes.xs, color: C.mutedForeground,
-    textDecorationLine: "line-through",
-  },
-  discountChip: {
-    backgroundColor: `${C.accent}20`, borderRadius: 4,
-    paddingHorizontal: 4, paddingVertical: 1,
-  },
-  discountText: { fontSize: 9, fontWeight: "800", color: C.accent },
-  outOfStock: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(17,17,24,0.65)",
-    alignItems: "center", justifyContent: "center", borderRadius: 12,
-  },
-  outOfStockText: {
-    fontSize: FontSizes.xs, fontWeight: "700",
-    color: C.mutedForeground, borderWidth: 1,
-    borderColor: C.border, borderRadius: 20,
-    paddingHorizontal: 8, paddingVertical: 3,
-    backgroundColor: C.surface,
-  },
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    // Genel
+    brand: {
+      fontSize: FontSizes.xs, color: C.accent,
+      fontWeight: "700", textTransform: "uppercase", letterSpacing: 0.5,
+    },
+    stars: {
+      fontSize: FontSizes.xs, color: C.warning, marginTop: 2,
+    },
+    seller: {
+      fontSize: FontSizes.xs, color: C.mutedForeground, marginTop: 2,
+    },
+    badge: {
+      position: "absolute", top: 6, left: 6,
+      borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2,
+    },
+    badgeText: { fontSize: 9, fontWeight: "800" },
+    priceRow:  { flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 },
+    price:     { fontSize: FontSizes.md, fontWeight: "900", color: C.foreground },
+    originalPrice: {
+      fontSize: FontSizes.xs, color: C.mutedForeground,
+      textDecorationLine: "line-through",
+    },
+    discountChip: {
+      backgroundColor: `${C.accent}20`, borderRadius: 4,
+      paddingHorizontal: 4, paddingVertical: 1,
+    },
+    discountText: { fontSize: 9, fontWeight: "800", color: C.accent },
+    outOfStock: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: "rgba(17,17,24,0.65)",
+      alignItems: "center", justifyContent: "center", borderRadius: 12,
+    },
+    outOfStockText: {
+      fontSize: FontSizes.xs, fontWeight: "700",
+      color: C.mutedForeground, borderWidth: 1,
+      borderColor: C.border, borderRadius: 20,
+      paddingHorizontal: 8, paddingVertical: 3,
+      backgroundColor: C.surface,
+    },
 
-  // Grid
-  gridCard: {
-    flex: 1, backgroundColor: C.surface,
-    borderRadius: 16, borderWidth: 1, borderColor: C.border,
-    overflow: "hidden",
-  },
-  gridImageWrap: { aspectRatio: 1, backgroundColor: C.surface2 },
-  gridImage:     { width: "100%", height: "100%", borderRadius: 0 },
-  gridInfo:      { padding: 10, gap: 2 },
-  gridTitle: {
-    fontSize: FontSizes.sm, fontWeight: "600",
-    color: C.foreground, lineHeight: LineHeights.sm, marginTop: 2,
-  },
-  favBtn: {
-    position: "absolute", top: 6, right: 6,
-    width: 28, height: 28, borderRadius: 14,
-    backgroundColor: "rgba(17,17,24,0.75)",
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 1, borderColor: C.border,
-  },
+    // Grid
+    gridCard: {
+      flex: 1, backgroundColor: C.surface,
+      borderRadius: 16, borderWidth: 1, borderColor: C.border,
+      overflow: "hidden",
+    },
+    gridImageWrap: { aspectRatio: 1, backgroundColor: C.surface2 },
+    gridImage:     { width: "100%", height: "100%", borderRadius: 0 },
+    gridInfo:      { padding: 10, gap: 2 },
+    gridTitle: {
+      fontSize: FontSizes.sm, fontWeight: "600",
+      color: C.foreground, lineHeight: LineHeights.sm, marginTop: 2,
+    },
+    favBtn: {
+      position: "absolute", top: 6, right: 6,
+      width: 28, height: 28, borderRadius: 14,
+      backgroundColor: "rgba(17,17,24,0.75)",
+      alignItems: "center", justifyContent: "center",
+      borderWidth: 1, borderColor: C.border,
+    },
 
-  // List
-  listCard: {
-    flexDirection: "row", backgroundColor: C.surface,
-    borderRadius: 16, borderWidth: 1, borderColor: C.border,
-    overflow: "hidden", alignItems: "center",
-  },
-  listImageWrap: { width: 100, height: 100, backgroundColor: C.surface2, flexShrink: 0 },
-  listImage:     { width: "100%", height: "100%" },
-  listInfo:      { flex: 1, padding: 10, gap: 2 },
-  listTitle: {
-    fontSize: FontSizes.sm, fontWeight: "600",
-    color: C.foreground, lineHeight: LineHeights.sm,
-  },
-  listFavBtn: { padding: 12 },
-});
+    // List
+    listCard: {
+      flexDirection: "row", backgroundColor: C.surface,
+      borderRadius: 16, borderWidth: 1, borderColor: C.border,
+      overflow: "hidden", alignItems: "center",
+    },
+    listImageWrap: { width: 100, height: 100, backgroundColor: C.surface2, flexShrink: 0 },
+    listImage:     { width: "100%", height: "100%" },
+    listInfo:      { flex: 1, padding: 10, gap: 2 },
+    listTitle: {
+      fontSize: FontSizes.sm, fontWeight: "600",
+      color: C.foreground, lineHeight: LineHeights.sm,
+    },
+    listFavBtn: { padding: 12 },
+  });
+}

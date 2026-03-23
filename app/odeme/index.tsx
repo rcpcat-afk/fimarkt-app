@@ -5,7 +5,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -22,17 +22,9 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
-import { Colors } from "../../constants/theme";
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { useCart } from "../../src/store/CartContext";
-
-const C = {
-  ...Colors.dark,
-  // Kısaltma aliasları — diğer ekranlarla uyumluluk
-  bg:    Colors.dark.background,
-  text:  Colors.dark.foreground,
-  text2: Colors.dark.mutedForeground,
-  text3: Colors.dark.subtleForeground,
-};
 
 // ── Yardımcı ──────────────────────────────────────────────────────────────────
 function fmt(n: number) {
@@ -52,6 +44,11 @@ function formatExpiry(val: string): string {
   if (digits.length >= 3) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   return digits;
 }
+
+function buildC(colors: ThemeColors) {
+  return { ...colors, bg: colors.background, text: colors.foreground, text2: colors.mutedForeground, text3: colors.subtleForeground };
+}
+type AliasedColors = ReturnType<typeof buildC>;
 
 // ── Zod Şemaları ──────────────────────────────────────────────────────────────
 const addressSchema = z.object({
@@ -110,6 +107,9 @@ const BIN_TABLE: Record<string, { network: string; installments: number[] }> = {
 function WizardHeader({
   title, onBack,
 }: { title: string; onBack: () => void }) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
   return (
     <View style={styles.header}>
       <TouchableOpacity style={styles.backBtn} onPress={onBack}>
@@ -123,6 +123,9 @@ function WizardHeader({
 
 // ── StepIndicator ─────────────────────────────────────────────────────────────
 function StepIndicator({ steps, current }: { steps: string[]; current: number }) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
   return (
     <View style={styles.stepRow}>
       {steps.map((label, i) => (
@@ -154,6 +157,9 @@ function AddressStep({
   onNext: (data: AddressData) => void;
   defaultValues?: Partial<AddressData>;
 }) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
   const [selected, setSelected] = useState<number | null>(MOCK_ADDRESSES[0]?.id ?? null);
   const [mode, setMode] = useState<"saved" | "new">("saved");
 
@@ -279,6 +285,9 @@ function ShippingStep({
   onBack: () => void;
   shippingTotal: number;
 }) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
   const [selected, setSelected] = useState("standard");
 
   return (
@@ -341,6 +350,9 @@ function PaymentStep({
   loading: boolean;
   isAllDigital: boolean;
 }) {
+  const { colors } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
   const { control, handleSubmit, watch, setValue, formState: { errors } } =
     useForm<PaymentData>({
       resolver: zodResolver(paymentSchema),
@@ -661,6 +673,9 @@ function PaymentStep({
 
 // ── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function OdemeScreen() {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
   const router = useRouter();
   const { items, totalPrice, shippingTotal, grandTotal, clearCart } = useCart();
 
@@ -731,7 +746,7 @@ export default function OdemeScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={0}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <WizardHeader title={currentTitle} onBack={handleBack} />
 
       <ScrollView
@@ -797,7 +812,8 @@ export default function OdemeScreen() {
 }
 
 // ── Stiller ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
+function createStyles(C: AliasedColors) {
+  return StyleSheet.create({
   scrollContent:  { padding: 16, paddingTop: 8 },
   header:         { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 12, paddingTop: 12, paddingBottom: 10 },
   backBtn:        { width: 40, height: 40, borderRadius: 12, backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border, alignItems: "center", justifyContent: "center" },
@@ -908,4 +924,5 @@ const styles = StyleSheet.create({
   primaryBtnText: { fontSize: 15, fontWeight: "900", color: "#fff" },
   secondaryBtn:   { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border },
   secondaryBtnText: { fontSize: 14, fontWeight: "700", color: C.text },
-});
+  });
+}

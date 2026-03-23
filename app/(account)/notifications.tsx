@@ -2,7 +2,7 @@
 // 6 konu × 3 kanal (Push / E-posta / SMS) = 18 native Switch
 // Kaydet butonu YOK — her değişimde anında state + Animated fade Toast
 import { useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   ScrollView,
@@ -14,7 +14,8 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants";
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 
 // ─── Tipler ────────────────────────────────────────────────────────────────────
 type Channel = "push" | "email" | "sms";
@@ -70,14 +71,105 @@ const INITIAL_PREFS: Prefs = {
   price_drop:     { push: true,  email: false, sms: false },
 };
 
-// ─── Animated Toast ───────────────────────────────────────────────────────────
-function ToastBanner({ insetBottom }: { insetBottom: number }) {
-  // exported as a hook-friendly component that receives the animated value externally
-  return null; // rendered inline in parent
+// ─── Theme helpers ────────────────────────────────────────────────────────────
+function buildC(colors: ThemeColors) {
+  return {
+    ...colors,
+    bg:    colors.background,
+    text:  colors.foreground,
+    text2: colors.mutedForeground,
+    text3: colors.subtleForeground,
+  };
+}
+type AliasedColors = ReturnType<typeof buildC>;
+
+function createStyles(C: AliasedColors) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: C.bg },
+
+    // Header
+    header: {
+      flexDirection: "row", alignItems: "center",
+      paddingHorizontal: 16, paddingVertical: 12, gap: 12,
+    },
+    backBtn: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    backArrow:    { fontSize: 28, color: C.text, lineHeight: 32, marginTop: -2 },
+    headerCenter: { flex: 1 },
+    title:        { fontSize: 18, fontWeight: "800", color: C.text },
+    subtitle:     { fontSize: 11, color: C.text2, marginTop: 1 },
+
+    // List
+    listContent: { paddingHorizontal: 16, paddingTop: 4 },
+
+    // Section
+    section:       { marginBottom: 24 },
+    sectionHeader: {
+      flexDirection: "row", alignItems: "center", gap: 8,
+      paddingHorizontal: 4, marginBottom: 8,
+    },
+    sectionIcon:  { fontSize: 16 },
+    sectionLabel: { fontSize: 13, fontWeight: "800", color: C.text, textTransform: "uppercase", letterSpacing: 0.5 },
+
+    // Card
+    card: {
+      backgroundColor: C.surface2,
+      borderRadius: 16,
+      borderWidth: 1, borderColor: C.border,
+      overflow: "hidden",
+    },
+
+    // Topic header (konu başlığı + hint — kanallara üst başlık)
+    topicHeader: {
+      paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8,
+    },
+    topicLabel:   { fontSize: 13, fontWeight: "700", color: C.text },
+    topicHint:    { fontSize: 11, color: C.text2, marginTop: 2, lineHeight: 16 },
+    topicDivider: { height: 1, backgroundColor: C.border, marginHorizontal: 16, marginTop: 4 },
+
+    // Toggle satırı
+    row: {
+      flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+      paddingHorizontal: 16, paddingVertical: 12,
+    },
+    rowBorder: { borderBottomWidth: 1, borderBottomColor: C.border },
+    rowLeft:   { flexDirection: "row", alignItems: "center", gap: 10 },
+    rowIcon:   { fontSize: 15, width: 22, textAlign: "center" },
+    rowLabel:  { fontSize: 13, fontWeight: "600", color: C.text },
+
+    // Footer
+    footerNote: {
+      fontSize: 11, color: C.text3, textAlign: "center",
+      lineHeight: 17, paddingHorizontal: 16, marginTop: 4,
+    },
+
+    // Toast
+    toast: {
+      position: "absolute",
+      alignSelf: "center",
+      backgroundColor: "#22c55e",
+      paddingHorizontal: 20, paddingVertical: 10,
+      borderRadius: 99,
+      shadowColor: "#22c55e",
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.35,
+      shadowRadius: 8,
+      elevation: 8,
+    },
+    toastText: { fontSize: 13, fontWeight: "800", color: "#fff" },
+  });
 }
 
 // ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function NotificationsScreen() {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const [prefs, setPrefs] = useState<Prefs>(INITIAL_PREFS);
@@ -111,7 +203,7 @@ export default function NotificationsScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {/* Header */}
       <View style={styles.header}>
@@ -165,9 +257,9 @@ export default function NotificationsScreen() {
                         <Switch
                           value={prefs[topic.key][ch.key]}
                           onValueChange={() => handleToggle(topic.key, ch.key)}
-                          trackColor={{ false: Colors.border, true: `${Colors.accent}99` }}
-                          thumbColor={prefs[topic.key][ch.key] ? Colors.accent : Colors.text3}
-                          ios_backgroundColor={Colors.border}
+                          trackColor={{ false: C.border, true: `${C.accent}99` }}
+                          thumbColor={prefs[topic.key][ch.key] ? C.accent : C.text3}
+                          ios_backgroundColor={C.border}
                         />
                       </View>
                     );
@@ -207,83 +299,3 @@ export default function NotificationsScreen() {
     </View>
   );
 }
-
-// ─── Stiller ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-
-  // Header
-  header: {
-    flexDirection: "row", alignItems: "center",
-    paddingHorizontal: 16, paddingVertical: 12, gap: 12,
-  },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  backArrow:    { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
-  headerCenter: { flex: 1 },
-  title:        { fontSize: 18, fontWeight: "800", color: Colors.text },
-  subtitle:     { fontSize: 11, color: Colors.text2, marginTop: 1 },
-
-  // List
-  listContent: { paddingHorizontal: 16, paddingTop: 4 },
-
-  // Section
-  section:       { marginBottom: 24 },
-  sectionHeader: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    paddingHorizontal: 4, marginBottom: 8,
-  },
-  sectionIcon:  { fontSize: 16 },
-  sectionLabel: { fontSize: 13, fontWeight: "800", color: Colors.text, textTransform: "uppercase", letterSpacing: 0.5 },
-
-  // Card
-  card: {
-    backgroundColor: Colors.surface2,
-    borderRadius: 16,
-    borderWidth: 1, borderColor: Colors.border,
-    overflow: "hidden",
-  },
-
-  // Topic header (konu başlığı + hint — kanallara üst başlık)
-  topicHeader: {
-    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8,
-  },
-  topicLabel:   { fontSize: 13, fontWeight: "700", color: Colors.text },
-  topicHint:    { fontSize: 11, color: Colors.text2, marginTop: 2, lineHeight: 16 },
-  topicDivider: { height: 1, backgroundColor: Colors.border, marginHorizontal: 16, marginTop: 4 },
-
-  // Toggle satırı
-  row: {
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
-    paddingHorizontal: 16, paddingVertical: 12,
-  },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-  rowLeft:   { flexDirection: "row", alignItems: "center", gap: 10 },
-  rowIcon:   { fontSize: 15, width: 22, textAlign: "center" },
-  rowLabel:  { fontSize: 13, fontWeight: "600", color: Colors.text },
-
-  // Footer
-  footerNote: {
-    fontSize: 11, color: Colors.text3, textAlign: "center",
-    lineHeight: 17, paddingHorizontal: 16, marginTop: 4,
-  },
-
-  // Toast
-  toast: {
-    position: "absolute",
-    alignSelf: "center",
-    backgroundColor: Colors.green,
-    paddingHorizontal: 20, paddingVertical: 10,
-    borderRadius: 99,
-    shadowColor: Colors.green,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  toastText: { fontSize: 13, fontWeight: "800", color: "#fff" },
-});

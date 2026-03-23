@@ -4,7 +4,8 @@ import {
   StyleSheet, NativeSyntheticEvent, NativeScrollEvent,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Colors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
+import { type ThemeColors } from "@/constants/theme";
 import { CAMPAIGNS, sortCampaignsForRole, type Campaign } from "@/lib/campaigns";
 
 const { width } = Dimensions.get("window");
@@ -13,7 +14,7 @@ const SLIDE_HEIGHT = 380;
 interface Props { userRole?: string }
 
 export default function HeroSlider({ userRole }: Props) {
-  const C       = Colors["dark"];
+  const { colors: C } = useTheme();
   const router  = useRouter();
   const slides  = sortCampaignsForRole(CAMPAIGNS, userRole);
   const flatRef = useRef<FlatList<Campaign>>(null);
@@ -128,7 +129,7 @@ export default function HeroSlider({ userRole }: Props) {
   );
 }
 
-function makeStyles(C: typeof Colors.dark) {
+function makeStyles(C: ThemeColors) {
   return StyleSheet.create({
     container:      { width, height: SLIDE_HEIGHT, position: "relative" },
     slide:          { width, height: SLIDE_HEIGHT, overflow: "hidden", justifyContent: "flex-end" },

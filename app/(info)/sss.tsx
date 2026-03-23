@@ -4,14 +4,16 @@ import {
   StyleSheet, LayoutAnimation, Platform, UIManager,
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
-import { Colors } from "@/constants/theme";
+import { type ThemeColors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { FAQ } from "@/lib/content-manager";
 
 if (Platform.OS === "android") UIManager.setLayoutAnimationEnabledExperimental?.(true);
 
-const C = Colors.dark;
-
 export default function SssScreen() {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const router = useRouter();
   const [query,     setQuery]     = useState("");
   const [activeCat, setActiveCat] = useState("all");
@@ -123,33 +125,35 @@ export default function SssScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container:          { flex: 1, backgroundColor: C.background },
-  searchSection:      { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.surface },
-  pageTitle:          { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 12 },
-  searchBox:          { flexDirection: "row", alignItems: "center", backgroundColor: C.background, borderWidth: 1, borderColor: C.border, borderRadius: 16, paddingHorizontal: 12 },
-  searchIcon:         { fontSize: 16, marginRight: 8 },
-  searchInput:        { flex: 1, height: 44, fontSize: 13, color: C.foreground },
-  catsRow:            { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
-  catBtn:             { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
-  catBtnActive:       { backgroundColor: C.accent, borderColor: C.accent },
-  catBtnText:         { fontSize: 12, fontWeight: "600", color: C.mutedForeground },
-  catBtnTextActive:   { color: "#fff" },
-  list:               { paddingHorizontal: 16, paddingTop: 8 },
-  empty:              { alignItems: "center", paddingVertical: 40 },
-  emptyIcon:          { fontSize: 36, marginBottom: 8 },
-  emptyText:          { fontSize: 13, color: C.mutedForeground },
-  catGroup:           { marginBottom: 20 },
-  catHeader:          { fontSize: 10, fontWeight: "800", color: C.mutedForeground, letterSpacing: 1.2, marginBottom: 8, textTransform: "uppercase" },
-  accordionItem:      { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, marginBottom: 8, overflow: "hidden" },
-  accordionQ:         { flexDirection: "row", alignItems: "center", padding: 14, gap: 8 },
-  accordionQText:     { flex: 1, fontSize: 13, fontWeight: "600", color: C.foreground, lineHeight: 18 },
-  accordionChevron:   { fontSize: 9, color: C.mutedForeground },
-  accordionA:         { paddingHorizontal: 14, paddingBottom: 14 },
-  accordionDivider:   { height: 1, backgroundColor: C.border, marginBottom: 10 },
-  accordionAText:     { fontSize: 12, color: C.mutedForeground, lineHeight: 19 },
-  ctaBanner:          { margin: 16, borderRadius: 20, borderWidth: 1, borderColor: `${C.accent}30`, backgroundColor: `${C.accent}10`, padding: 20, alignItems: "center" },
-  ctaEmoji:           { fontSize: 28, marginBottom: 6 },
-  ctaTitle:           { fontSize: 15, fontWeight: "800", color: C.foreground, marginBottom: 4 },
-  ctaSub:             { fontSize: 12, color: C.accent, fontWeight: "600" },
-});
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    container:          { flex: 1, backgroundColor: C.background },
+    searchSection:      { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.surface },
+    pageTitle:          { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 12 },
+    searchBox:          { flexDirection: "row", alignItems: "center", backgroundColor: C.background, borderWidth: 1, borderColor: C.border, borderRadius: 16, paddingHorizontal: 12 },
+    searchIcon:         { fontSize: 16, marginRight: 8 },
+    searchInput:        { flex: 1, height: 44, fontSize: 13, color: C.foreground },
+    catsRow:            { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+    catBtn:             { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
+    catBtnActive:       { backgroundColor: C.accent, borderColor: C.accent },
+    catBtnText:         { fontSize: 12, fontWeight: "600", color: C.mutedForeground },
+    catBtnTextActive:   { color: "#fff" },
+    list:               { paddingHorizontal: 16, paddingTop: 8 },
+    empty:              { alignItems: "center", paddingVertical: 40 },
+    emptyIcon:          { fontSize: 36, marginBottom: 8 },
+    emptyText:          { fontSize: 13, color: C.mutedForeground },
+    catGroup:           { marginBottom: 20 },
+    catHeader:          { fontSize: 10, fontWeight: "800", color: C.mutedForeground, letterSpacing: 1.2, marginBottom: 8, textTransform: "uppercase" },
+    accordionItem:      { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, marginBottom: 8, overflow: "hidden" },
+    accordionQ:         { flexDirection: "row", alignItems: "center", padding: 14, gap: 8 },
+    accordionQText:     { flex: 1, fontSize: 13, fontWeight: "600", color: C.foreground, lineHeight: 18 },
+    accordionChevron:   { fontSize: 9, color: C.mutedForeground },
+    accordionA:         { paddingHorizontal: 14, paddingBottom: 14 },
+    accordionDivider:   { height: 1, backgroundColor: C.border, marginBottom: 10 },
+    accordionAText:     { fontSize: 12, color: C.mutedForeground, lineHeight: 19 },
+    ctaBanner:          { margin: 16, borderRadius: 20, borderWidth: 1, borderColor: `${C.accent}30`, backgroundColor: `${C.accent}10`, padding: 20, alignItems: "center" },
+    ctaEmoji:           { fontSize: 28, marginBottom: 6 },
+    ctaTitle:           { fontSize: 15, fontWeight: "800", color: C.foreground, marginBottom: 4 },
+    ctaSub:             { fontSize: 12, color: C.accent, fontWeight: "600" },
+  });
+}

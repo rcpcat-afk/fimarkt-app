@@ -17,9 +17,9 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useTheme } from "../../hooks/useTheme";
-import type { PartnerType } from "../../lib/types/partner";
-import { PARTNER_TYPE_META } from "../../lib/types/partner";
+import { useTheme } from "../hooks/useTheme";
+import type { PartnerType } from "../lib/types/partner";
+import { PARTNER_TYPE_META } from "../lib/types/partner";
 
 type Step = 1 | 2 | 3;
 

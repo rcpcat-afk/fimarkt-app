@@ -1,7 +1,7 @@
 // ─── Adreslerim — Premium Kargo Etiketi Tasarımı ────────────────────────────
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -17,7 +17,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ILLER } from "../../constants/cities";
-import { Colors } from "../../constants";
+import { type ThemeColors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { getMyCustomer, updateMyCustomer } from "../../src/services/api";
 
 // ─── Tip ──────────────────────────────────────────────────────────────────────
@@ -44,6 +45,168 @@ const EMPTY_ADDR: Addr = {
 
 const IL_LIST = Object.keys(ILLER).sort();
 
+// ─── Theme helpers ────────────────────────────────────────────────────────────
+function buildC(colors: ThemeColors) {
+  return {
+    ...colors,
+    bg:    colors.background,
+    text:  colors.foreground,
+    text2: colors.mutedForeground,
+    text3: colors.subtleForeground,
+  };
+}
+type AliasedColors = ReturnType<typeof buildC>;
+
+function createStyles(C: AliasedColors) {
+  return StyleSheet.create({
+    container:    { flex: 1, backgroundColor: C.bg },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+    },
+    backBtn: {
+      width: 40, height: 40, borderRadius: 20,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    backArrow: { fontSize: 28, color: C.text, lineHeight: 32, marginTop: -2 },
+    headerTitle: { fontSize: 17, fontWeight: "700", color: C.text },
+
+    content: { paddingHorizontal: 16, paddingBottom: 40 },
+
+    // ── Address Card ──
+    addressCard: {
+      backgroundColor: C.surface2,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 16,
+      overflow: "hidden",
+    },
+    cardHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 14,
+      paddingTop: 14,
+      paddingBottom: 10,
+    },
+    cardHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
+    cardIcon: { fontSize: 22 },
+    cardLabel:  { fontSize: 13, fontWeight: "700", color: C.text },
+    defaultBadge: {
+      marginTop: 3,
+      backgroundColor: `${C.success}22`,
+      borderRadius: 99,
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      alignSelf: "flex-start",
+    },
+    defaultBadgeText: { fontSize: 10, fontWeight: "700", color: C.success },
+    editBtn: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: C.border,
+      backgroundColor: C.bg,
+    },
+    editBtnText: { fontSize: 12, fontWeight: "600", color: C.accent },
+    cardBody: {
+      paddingHorizontal: 14,
+      paddingBottom: 14,
+      gap: 3,
+      borderTopWidth: 1,
+      borderTopColor: C.border,
+    },
+    cardName:   { fontSize: 14, fontWeight: "600", color: C.text, marginTop: 10 },
+    cardDetail: { fontSize: 12, color: C.text2, lineHeight: 18 },
+    emptyState: {
+      paddingHorizontal: 14,
+      paddingBottom: 16,
+      paddingTop: 8,
+      borderTopWidth: 1,
+      borderTopColor: C.border,
+      alignItems: "center",
+    },
+    emptyText: { fontSize: 13, fontWeight: "600", color: C.text3 },
+    emptyHint: { fontSize: 11, color: C.text3, marginTop: 4, textAlign: "center" },
+
+    // ── Form ──
+    formCard: {
+      backgroundColor: C.surface2,
+      borderWidth: 1,
+      borderColor: C.border,
+      borderRadius: 16,
+      padding: 16,
+      gap: 14,
+    },
+    formTitle: { fontSize: 15, fontWeight: "700", color: C.text },
+    row2: { flexDirection: "row", gap: 10 },
+    inputGroup: { gap: 6 },
+    inputLabel: {
+      fontSize: 10, fontWeight: "700", color: C.text2,
+      textTransform: "uppercase", letterSpacing: 0.5,
+    },
+    input: {
+      backgroundColor: C.bg,
+      borderWidth: 1, borderColor: C.border,
+      borderRadius: 10, padding: 12,
+      fontSize: 14, color: C.text,
+    },
+    inputMultiline: { minHeight: 80 },
+
+    // ── Picker (il/ilçe) ──
+    pickerBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: C.bg,
+      borderWidth: 1, borderColor: C.border,
+      borderRadius: 10, padding: 12,
+    },
+    pickerText:    { fontSize: 14, color: C.text, flex: 1 },
+    pickerChevron: { fontSize: 10, color: C.text2 },
+    dropdown: {
+      maxHeight: 180,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      borderRadius: 10, marginTop: 4,
+    },
+    dropdownItem: {
+      paddingHorizontal: 14, paddingVertical: 10,
+      borderBottomWidth: 1, borderBottomColor: C.border,
+    },
+    dropdownItemActive: { backgroundColor: `${C.accent}15` },
+    dropdownText: { fontSize: 13, color: C.text },
+
+    // ── Buttons ──
+    formActions: { flexDirection: "row", gap: 10, marginTop: 4 },
+    btn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: "center" },
+    btnPrimary: { backgroundColor: C.accent },
+    btnPrimaryText: { fontSize: 15, fontWeight: "700", color: "#fff" },
+    btnSecondary: {
+      backgroundColor: C.bg,
+      borderWidth: 1, borderColor: C.border,
+    },
+    btnSecondaryText: { fontSize: 15, fontWeight: "600", color: C.text2 },
+
+    // ── Info Note ──
+    infoNote: {
+      flexDirection: "row",
+      gap: 10,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      borderRadius: 12, padding: 12,
+    },
+    infoNoteIcon: { fontSize: 14 },
+    infoNoteText: { flex: 1, fontSize: 11, color: C.text2, lineHeight: 17 },
+  });
+}
+
 // ─── Kargo Etiketi Kartı ───────────────────────────────────────────────────
 function AddressCard({
   type,
@@ -54,8 +217,12 @@ function AddressCard({
   addr: Addr;
   onEdit: () => void;
 }) {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const isShipping = type === "shipping";
-  const stripeColor = isShipping ? Colors.accent : Colors.success;
+  const stripeColor = isShipping ? C.accent : C.success;
   const icon = isShipping ? "🚚" : "🧾";
   const label = isShipping ? "Teslimat Adresi" : "Fatura Adresi";
   const hasAddr = addr.address_1 && addr.city;
@@ -122,6 +289,10 @@ function CityRow({
   onIlChange: (il: string) => void;
   onIlceChange: (ilce: string) => void;
 }) {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const [ilOpen, setIlOpen] = useState(false);
   const [ilceOpen, setIlceOpen] = useState(false);
   const ilceler = selectedIl ? (ILLER[selectedIl] ?? []) : [];
@@ -135,7 +306,7 @@ function CityRow({
           style={styles.pickerBtn}
           onPress={() => { setIlOpen(!ilOpen); setIlceOpen(false); }}
         >
-          <Text style={[styles.pickerText, !selectedIl && { color: Colors.text3 }]}>
+          <Text style={[styles.pickerText, !selectedIl && { color: C.text3 }]}>
             {selectedIl || "Şehir seçin..."}
           </Text>
           <Text style={styles.pickerChevron}>{ilOpen ? "▲" : "▼"}</Text>
@@ -152,7 +323,7 @@ function CityRow({
                   setIlOpen(false);
                 }}
               >
-                <Text style={[styles.dropdownText, selectedIl === il && { color: Colors.accent }]}>
+                <Text style={[styles.dropdownText, selectedIl === il && { color: C.accent }]}>
                   {il}
                 </Text>
               </TouchableOpacity>
@@ -169,7 +340,7 @@ function CityRow({
           onPress={() => { if (!selectedIl) return; setIlceOpen(!ilceOpen); setIlOpen(false); }}
           disabled={!selectedIl}
         >
-          <Text style={[styles.pickerText, !selectedIlce && { color: Colors.text3 }]}>
+          <Text style={[styles.pickerText, !selectedIlce && { color: C.text3 }]}>
             {selectedIlce || (selectedIl ? "İlçe seçin..." : "Önce şehir seçin")}
           </Text>
           <Text style={styles.pickerChevron}>{ilceOpen ? "▲" : "▼"}</Text>
@@ -182,7 +353,7 @@ function CityRow({
                 style={[styles.dropdownItem, selectedIlce === ilce && styles.dropdownItemActive]}
                 onPress={() => { onIlceChange(ilce); setIlceOpen(false); }}
               >
-                <Text style={[styles.dropdownText, selectedIlce === ilce && { color: Colors.accent }]}>
+                <Text style={[styles.dropdownText, selectedIlce === ilce && { color: C.accent }]}>
                   {ilce}
                 </Text>
               </TouchableOpacity>
@@ -196,6 +367,10 @@ function CityRow({
 
 // ─── Ana Ekran ─────────────────────────────────────────────────────────────────
 export default function AddressesScreen() {
+  const { colors, isDark } = useTheme();
+  const C      = useMemo(() => buildC(colors), [colors]);
+  const styles = useMemo(() => createStyles(C), [C]);
+
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const [loading, setLoading]       = useState(true);
@@ -266,7 +441,7 @@ export default function AddressesScreen() {
   if (loading) {
     return (
       <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
-        <ActivityIndicator color={Colors.accent} size="large" />
+        <ActivityIndicator color={C.accent} size="large" />
       </View>
     );
   }
@@ -276,7 +451,7 @@ export default function AddressesScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={[styles.container, { paddingTop: insets.top }]}>
 
         {/* Header */}
@@ -316,7 +491,7 @@ export default function AddressesScreen() {
                     value={form.first_name}
                     onChangeText={v => updateForm("first_name", v)}
                     placeholder="Adınız"
-                    placeholderTextColor={Colors.text3}
+                    placeholderTextColor={C.text3}
                   />
                 </View>
                 <View style={[styles.inputGroup, { flex: 1 }]}>
@@ -326,7 +501,7 @@ export default function AddressesScreen() {
                     value={form.last_name}
                     onChangeText={v => updateForm("last_name", v)}
                     placeholder="Soyadınız"
-                    placeholderTextColor={Colors.text3}
+                    placeholderTextColor={C.text3}
                   />
                 </View>
               </View>
@@ -339,7 +514,7 @@ export default function AddressesScreen() {
                   value={form.phone}
                   onChangeText={v => updateForm("phone", v)}
                   placeholder="05XX XXX XX XX"
-                  placeholderTextColor={Colors.text3}
+                  placeholderTextColor={C.text3}
                   keyboardType="phone-pad"
                 />
               </View>
@@ -360,7 +535,7 @@ export default function AddressesScreen() {
                   value={form.postcode}
                   onChangeText={v => updateForm("postcode", v)}
                   placeholder="34000"
-                  placeholderTextColor={Colors.text3}
+                  placeholderTextColor={C.text3}
                   keyboardType="numeric"
                   maxLength={5}
                 />
@@ -374,7 +549,7 @@ export default function AddressesScreen() {
                   value={form.address_1}
                   onChangeText={v => updateForm("address_1", v)}
                   placeholder="Mahalle, sokak, bina no, daire..."
-                  placeholderTextColor={Colors.text3}
+                  placeholderTextColor={C.text3}
                   multiline
                   numberOfLines={3}
                   textAlignVertical="top"
@@ -422,152 +597,3 @@ export default function AddressesScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-// ─── Stiller ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: Colors.bg },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  backArrow: { fontSize: 28, color: Colors.text, lineHeight: 32, marginTop: -2 },
-  headerTitle: { fontSize: 17, fontWeight: "700", color: Colors.text },
-
-  content: { paddingHorizontal: 16, paddingBottom: 40 },
-
-  // ── Address Card ──
-  addressCard: {
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 16,
-    overflow: "hidden",
-  },
-  cardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingTop: 14,
-    paddingBottom: 10,
-  },
-  cardHeaderLeft: { flexDirection: "row", alignItems: "center", gap: 10 },
-  cardIcon: { fontSize: 22 },
-  cardLabel:  { fontSize: 13, fontWeight: "700", color: Colors.text },
-  defaultBadge: {
-    marginTop: 3,
-    backgroundColor: `${Colors.success}22`,
-    borderRadius: 99,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    alignSelf: "flex-start",
-  },
-  defaultBadgeText: { fontSize: 10, fontWeight: "700", color: Colors.success },
-  editBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bg,
-  },
-  editBtnText: { fontSize: 12, fontWeight: "600", color: Colors.accent },
-  cardBody: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-    gap: 3,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  cardName:   { fontSize: 14, fontWeight: "600", color: Colors.text, marginTop: 10 },
-  cardDetail: { fontSize: 12, color: Colors.text2, lineHeight: 18 },
-  emptyState: {
-    paddingHorizontal: 14,
-    paddingBottom: 16,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    alignItems: "center",
-  },
-  emptyText: { fontSize: 13, fontWeight: "600", color: Colors.text3 },
-  emptyHint: { fontSize: 11, color: Colors.text3, marginTop: 4, textAlign: "center" },
-
-  // ── Form ──
-  formCard: {
-    backgroundColor: Colors.surface2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 16,
-    padding: 16,
-    gap: 14,
-  },
-  formTitle: { fontSize: 15, fontWeight: "700", color: Colors.text },
-  row2: { flexDirection: "row", gap: 10 },
-  inputGroup: { gap: 6 },
-  inputLabel: {
-    fontSize: 10, fontWeight: "700", color: Colors.text2,
-    textTransform: "uppercase", letterSpacing: 0.5,
-  },
-  input: {
-    backgroundColor: Colors.bg,
-    borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 10, padding: 12,
-    fontSize: 14, color: Colors.text,
-  },
-  inputMultiline: { minHeight: 80 },
-
-  // ── Picker (il/ilçe) ──
-  pickerBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.bg,
-    borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 10, padding: 12,
-  },
-  pickerText:    { fontSize: 14, color: Colors.text, flex: 1 },
-  pickerChevron: { fontSize: 10, color: Colors.text2 },
-  dropdown: {
-    maxHeight: 180,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 10, marginTop: 4,
-  },
-  dropdownItem: {
-    paddingHorizontal: 14, paddingVertical: 10,
-    borderBottomWidth: 1, borderBottomColor: Colors.border,
-  },
-  dropdownItemActive: { backgroundColor: `${Colors.accent}15` },
-  dropdownText: { fontSize: 13, color: Colors.text },
-
-  // ── Buttons ──
-  formActions: { flexDirection: "row", gap: 10, marginTop: 4 },
-  btn: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: "center" },
-  btnPrimary: { backgroundColor: Colors.accent },
-  btnPrimaryText: { fontSize: 15, fontWeight: "700", color: "#fff" },
-  btnSecondary: {
-    backgroundColor: Colors.bg,
-    borderWidth: 1, borderColor: Colors.border,
-  },
-  btnSecondaryText: { fontSize: 15, fontWeight: "600", color: Colors.text2 },
-
-  // ── Info Note ──
-  infoNote: {
-    flexDirection: "row",
-    gap: 10,
-    backgroundColor: Colors.surface2,
-    borderWidth: 1, borderColor: Colors.border,
-    borderRadius: 12, padding: 12,
-  },
-  infoNoteIcon: { fontSize: 14 },
-  infoNoteText: { flex: 1, fontSize: 11, color: Colors.text2, lineHeight: 17 },
-});

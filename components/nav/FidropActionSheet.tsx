@@ -11,9 +11,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors } from "../../constants/theme";
-
-const C = Colors.dark;
+import { useTheme } from "../../hooks/useTheme";
 
 interface Props {
   visible: boolean;
@@ -26,7 +24,7 @@ const ACTIONS = [
     icon:    "cloud-upload-outline" as const,
     label:   "STL Dosyası Yükle",
     sub:     "Hızlı teklif al",
-    color:   C.accent,
+    color:   "#ff6b2b",
     href:    "/(print)/print-upload",
   },
   {
@@ -56,6 +54,7 @@ const ACTIONS = [
 ] as const;
 
 export default function FidropActionSheet({ visible, onClose }: Props) {
+  const { colors: C } = useTheme();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const slideY  = useRef(new Animated.Value(300)).current;

@@ -1,16 +1,19 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View, Text, ScrollView, StyleSheet, Dimensions, Animated,
 } from "react-native";
 import { Stack } from "expo-router";
-import { Colors } from "@/constants/theme";
+import { type ThemeColors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { ABOUT } from "@/lib/content-manager";
 
 const { width } = Dimensions.get("window");
-const C = Colors.dark;
 
 // ── Animated Counter ─────────────────────────────────────────────────────────
 function Counter({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const anim   = useRef(new Animated.Value(0)).current;
   const [display, setDisplay] = useState(0);
 
@@ -33,6 +36,9 @@ function Counter({ value, suffix, label }: { value: number; suffix: string; labe
 }
 
 export default function HakkimizdaScreen() {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   return (
     <>
       <Stack.Screen options={{ title: "Hakkımızda" }} />
@@ -98,39 +104,41 @@ export default function HakkimizdaScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: C.background },
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    container:      { flex: 1, backgroundColor: C.background },
 
-  // Hero
-  heroSection:    { paddingHorizontal: 20, paddingTop: 32, paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: C.border },
-  heroBadge:      { alignSelf: "flex-start", backgroundColor: `${C.accent}18`, borderWidth: 1, borderColor: `${C.accent}40`, borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 12 },
-  heroBadgeText:  { fontSize: 10, fontWeight: "700", color: C.accent },
-  heroTitle:      { fontSize: 24, fontWeight: "900", color: C.foreground, letterSpacing: -0.5, marginBottom: 8 },
-  heroSub:        { fontSize: 13, color: C.mutedForeground, lineHeight: 20 },
+    // Hero
+    heroSection:    { paddingHorizontal: 20, paddingTop: 32, paddingBottom: 24, borderBottomWidth: 1, borderBottomColor: C.border },
+    heroBadge:      { alignSelf: "flex-start", backgroundColor: `${C.accent}18`, borderWidth: 1, borderColor: `${C.accent}40`, borderRadius: 99, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 12 },
+    heroBadgeText:  { fontSize: 10, fontWeight: "700", color: C.accent },
+    heroTitle:      { fontSize: 24, fontWeight: "900", color: C.foreground, letterSpacing: -0.5, marginBottom: 8 },
+    heroSub:        { fontSize: 13, color: C.mutedForeground, lineHeight: 20 },
 
-  // Stats
-  statsSection:   { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 20, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.surface },
-  statItem:       { width: "50%", alignItems: "center", paddingVertical: 12 },
-  statValue:      { fontSize: 28, fontWeight: "900", color: C.accent, marginBottom: 2 },
-  statLabel:      { fontSize: 11, color: C.mutedForeground },
+    // Stats
+    statsSection:   { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 20, paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.surface },
+    statItem:       { width: "50%", alignItems: "center", paddingVertical: 12 },
+    statValue:      { fontSize: 28, fontWeight: "900", color: C.accent, marginBottom: 2 },
+    statLabel:      { fontSize: 11, color: C.mutedForeground },
 
-  // Sections
-  section:        { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 8 },
-  sectionBadge:   { fontSize: 9, fontWeight: "800", color: C.accent, letterSpacing: 1.5, marginBottom: 6 },
-  sectionTitle:   { fontSize: 18, fontWeight: "900", color: C.foreground, marginBottom: 12 },
-  bodyText:       { fontSize: 13, color: C.mutedForeground, lineHeight: 21, marginBottom: 10 },
-  locationText:   { fontSize: 11, color: C.subtleForeground, marginTop: 4 },
+    // Sections
+    section:        { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 8 },
+    sectionBadge:   { fontSize: 9, fontWeight: "800", color: C.accent, letterSpacing: 1.5, marginBottom: 6 },
+    sectionTitle:   { fontSize: 18, fontWeight: "900", color: C.foreground, marginBottom: 12 },
+    bodyText:       { fontSize: 13, color: C.mutedForeground, lineHeight: 21, marginBottom: 10 },
+    locationText:   { fontSize: 11, color: C.subtleForeground, marginTop: 4 },
 
-  // Vizyon & Misyon
-  vmCard:         { borderRadius: 20, borderWidth: 1, padding: 18, marginBottom: 10 },
-  vmIcon:         { fontSize: 28, marginBottom: 6 },
-  vmLabel:        { fontSize: 10, fontWeight: "700", letterSpacing: 1, marginBottom: 6 },
-  vmText:         { fontSize: 12, color: C.mutedForeground, lineHeight: 19 },
+    // Vizyon & Misyon
+    vmCard:         { borderRadius: 20, borderWidth: 1, padding: 18, marginBottom: 10 },
+    vmIcon:         { fontSize: 28, marginBottom: 6 },
+    vmLabel:        { fontSize: 10, fontWeight: "700", letterSpacing: 1, marginBottom: 6 },
+    vmText:         { fontSize: 12, color: C.mutedForeground, lineHeight: 19 },
 
-  // Değerler
-  valuesGrid:     { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  valueCard:      { width: (width - 50) / 2, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 18, padding: 14 },
-  valueIcon:      { fontSize: 24, marginBottom: 6 },
-  valueTitle:     { fontSize: 13, fontWeight: "700", color: C.foreground, marginBottom: 4 },
-  valueDesc:      { fontSize: 10, color: C.mutedForeground, lineHeight: 15 },
-});
+    // Değerler
+    valuesGrid:     { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    valueCard:      { width: (width - 50) / 2, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 18, padding: 14 },
+    valueIcon:      { fontSize: 24, marginBottom: 6 },
+    valueTitle:     { fontSize: 13, fontWeight: "700", color: C.foreground, marginBottom: 4 },
+    valueDesc:      { fontSize: 10, color: C.mutedForeground, lineHeight: 15 },
+  });
+}

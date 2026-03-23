@@ -95,7 +95,10 @@ export const getMyOrders = async (
     const response = await fetch(`${BACKEND_URL}/api/orders?store=${store}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!response.ok) throw new Error("Siparişler yüklenemedi");
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      throw new Error(`${response.status} – ${body || "Siparişler yüklenemedi"}`);
+    }
     return await response.json();
   } catch (error) {
     console.error("getMyOrders hatası:", error);

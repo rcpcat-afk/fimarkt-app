@@ -2,7 +2,7 @@
 // react-native-reanimated tabanlı, dışarıdan paket bağımlılığı yok.
 // Kullanım: <FilterBottomSheet visible={open} onClose={() => setOpen(false)} .../>
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   View, Text, Pressable, ScrollView, StyleSheet,
   Modal, TouchableWithoutFeedback, Platform,
@@ -13,10 +13,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, FontSizes, LineHeights } from "@/constants/theme";
+import { type ThemeColors, FontSizes, LineHeights } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import type { FilterGroup, ActiveFilters } from "@/lib/types";
-
-const C = Colors.dark;
 
 const SPRING_CONFIG = {
   damping:   20,
@@ -48,10 +47,12 @@ interface FilterBottomSheetProps {
   onClose:        () => void;
 }
 
+type Styles = ReturnType<typeof createStyles>;
+
 // ── Checkbox Seçenek ──────────────────────────────────────────────────────────
 function CheckboxOption({
-  label, count, checked, onToggle,
-}: { label: string; count?: number; checked: boolean; onToggle: () => void }) {
+  label, count, checked, onToggle, styles,
+}: { label: string; count?: number; checked: boolean; onToggle: () => void; styles: Styles }) {
   return (
     <Pressable onPress={onToggle} style={styles.option}>
       <View style={[styles.checkbox, checked && styles.checkboxActive]}>
@@ -69,8 +70,8 @@ function CheckboxOption({
 
 // ── Renk Seçeneği ─────────────────────────────────────────────────────────────
 function ColorOption({
-  label, value, checked, onToggle,
-}: { label: string; value: string; checked: boolean; onToggle: () => void }) {
+  label, value, checked, onToggle, styles,
+}: { label: string; value: string; checked: boolean; onToggle: () => void; styles: Styles }) {
   return (
     <Pressable onPress={onToggle} style={styles.colorOption} accessibilityLabel={label}>
       <View style={[
@@ -80,18 +81,19 @@ function ColorOption({
       ]}>
         {checked && <Ionicons name="checkmark" size={10} color={value === "beyaz" ? "#111" : "#fff"} />}
       </View>
-      <Text style={[styles.colorLabel, checked && { color: C.foreground }]}>{label}</Text>
+      <Text style={[styles.colorLabel, checked && styles.colorLabelActive]}>{label}</Text>
     </Pressable>
   );
 }
 
 // ── Filtre Grubu ──────────────────────────────────────────────────────────────
 function FilterGroupSection({
-  group, active, onFilterChange,
+  group, active, onFilterChange, styles,
 }: {
   group:          FilterGroup;
   active:         ActiveFilters;
   onFilterChange: FilterBottomSheetProps["onFilterChange"];
+  styles:         Styles;
 }) {
   const selected = active[group.id] ?? [];
 
@@ -117,6 +119,7 @@ function FilterGroupSection({
               onToggle={() =>
                 onFilterChange(group.id, opt.value, !selected.includes(opt.value))
               }
+              styles={styles}
             />
           ))}
         </View>
@@ -130,6 +133,7 @@ function FilterGroupSection({
             onToggle={() =>
               onFilterChange(group.id, opt.value, !selected.includes(opt.value))
             }
+            styles={styles}
           />
         ))
       )}
@@ -142,6 +146,8 @@ export default function FilterBottomSheet({
   visible, filters, active, priceRange,
   totalActive, onFilterChange, onClear, onClose,
 }: FilterBottomSheetProps) {
+  const { colors: C } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
   const insets     = useSafeAreaInsets();
   const translateY = useSharedValue(600);
   const opacity    = useSharedValue(0);
@@ -221,6 +227,7 @@ export default function FilterBottomSheet({
               group={group}
               active={active}
               onFilterChange={onFilterChange}
+              styles={styles}
             />
           ))}
         </ScrollView>
@@ -240,100 +247,103 @@ export default function FilterBottomSheet({
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  backdrop: { backgroundColor: "rgba(0,0,0,0.6)" },
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    backdrop: { backgroundColor: "rgba(0,0,0,0.6)" },
 
-  sheet: {
-    position:        "absolute",
-    bottom:          0, left: 0, right: 0,
-    height:          "85%",
-    backgroundColor: C.surface,
-    borderTopLeftRadius:  24,
-    borderTopRightRadius: 24,
-    borderWidth:     1,
-    borderBottomWidth: 0,
-    borderColor:     C.border,
-    overflow:        "hidden",
-  },
+    sheet: {
+      position:        "absolute",
+      bottom:          0, left: 0, right: 0,
+      height:          "85%",
+      backgroundColor: C.surface,
+      borderTopLeftRadius:  24,
+      borderTopRightRadius: 24,
+      borderWidth:     1,
+      borderBottomWidth: 0,
+      borderColor:     C.border,
+      overflow:        "hidden",
+    },
 
-  handle: {
-    width: 40, height: 4,
-    backgroundColor: C.border,
-    borderRadius:    2,
-    alignSelf:       "center",
-    marginTop:       12, marginBottom: 4,
-  },
+    handle: {
+      width: 40, height: 4,
+      backgroundColor: C.border,
+      borderRadius:    2,
+      alignSelf:       "center",
+      marginTop:       12, marginBottom: 4,
+    },
 
-  sheetHeader: {
-    flexDirection:   "row",
-    alignItems:      "center",
-    justifyContent:  "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-    backgroundColor: C.surface2,
-  },
-  sheetHeaderLeft:  { flexDirection: "row", alignItems: "center", gap: 8 },
-  sheetHeaderRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  sheetTitle:       { fontSize: FontSizes.md, fontWeight: "700", color: C.foreground },
-  activeBadge: {
-    backgroundColor: C.accent,
-    borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2,
-  },
-  activeBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
-  clearBtn:     { paddingVertical: 4, paddingHorizontal: 8 },
-  clearBtnText: { fontSize: FontSizes.sm, color: C.accent, fontWeight: "600" },
-  closeBtn: {
-    width: 26, height: 26, borderRadius: 8,
-    backgroundColor: C.surface,
-    borderWidth: 1, borderColor: C.border,
-    alignItems: "center", justifyContent: "center",
-  },
+    sheetHeader: {
+      flexDirection:   "row",
+      alignItems:      "center",
+      justifyContent:  "space-between",
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: C.border,
+      backgroundColor: C.surface2,
+    },
+    sheetHeaderLeft:  { flexDirection: "row", alignItems: "center", gap: 8 },
+    sheetHeaderRight: { flexDirection: "row", alignItems: "center", gap: 8 },
+    sheetTitle:       { fontSize: FontSizes.md, fontWeight: "700", color: C.foreground },
+    activeBadge: {
+      backgroundColor: C.accent,
+      borderRadius: 20, paddingHorizontal: 6, paddingVertical: 2,
+    },
+    activeBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
+    clearBtn:     { paddingVertical: 4, paddingHorizontal: 8 },
+    clearBtnText: { fontSize: FontSizes.sm, color: C.accent, fontWeight: "600" },
+    closeBtn: {
+      width: 26, height: 26, borderRadius: 8,
+      backgroundColor: C.surface,
+      borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
 
-  scrollArea: { flex: 1, paddingHorizontal: 16 },
+    scrollArea: { flex: 1, paddingHorizontal: 16 },
 
-  // Grup
-  groupSection:  { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.border },
-  groupHeader:   { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
-  groupLabel:    { fontSize: FontSizes.sm, fontWeight: "700", color: C.foreground },
-  groupBadge: {
-    backgroundColor: C.accent, borderRadius: 20,
-    paddingHorizontal: 5, paddingVertical: 1,
-  },
-  groupBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
+    // Grup
+    groupSection:  { paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.border },
+    groupHeader:   { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
+    groupLabel:    { fontSize: FontSizes.sm, fontWeight: "700", color: C.foreground },
+    groupBadge: {
+      backgroundColor: C.accent, borderRadius: 20,
+      paddingHorizontal: 5, paddingVertical: 1,
+    },
+    groupBadgeText: { fontSize: 9, fontWeight: "800", color: "#fff" },
 
-  // Checkbox
-  option: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 },
-  checkbox: {
-    width: 18, height: 18, borderRadius: 5,
-    borderWidth: 1.5, borderColor: C.border,
-    backgroundColor: C.surface2,
-    alignItems: "center", justifyContent: "center",
-  },
-  checkboxActive: { backgroundColor: C.accent, borderColor: C.accent },
-  optionLabel:      { flex: 1, fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.sm },
-  optionLabelActive: { color: C.foreground, fontWeight: "600" },
-  optionCount:      { fontSize: FontSizes.xs, color: C.subtleForeground },
+    // Checkbox
+    option: { flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 6 },
+    checkbox: {
+      width: 18, height: 18, borderRadius: 5,
+      borderWidth: 1.5, borderColor: C.border,
+      backgroundColor: C.surface2,
+      alignItems: "center", justifyContent: "center",
+    },
+    checkboxActive: { backgroundColor: C.accent, borderColor: C.accent },
+    optionLabel:      { flex: 1, fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.sm },
+    optionLabelActive: { color: C.foreground, fontWeight: "600" },
+    optionCount:      { fontSize: FontSizes.xs, color: C.subtleForeground },
 
-  // Renk
-  colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  colorOption:  { alignItems: "center", gap: 4, minWidth: 44 },
-  colorSwatch: {
-    width: 30, height: 30, borderRadius: 15,
-    borderWidth: 2, borderColor: C.border,
-    alignItems: "center", justifyContent: "center",
-  },
-  colorSwatchActive: { borderColor: C.accent, transform: [{ scale: 1.15 }] },
-  colorLabel: { fontSize: 9, color: C.mutedForeground, textAlign: "center" },
+    // Renk
+    colorRow: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+    colorOption:  { alignItems: "center", gap: 4, minWidth: 44 },
+    colorSwatch: {
+      width: 30, height: 30, borderRadius: 15,
+      borderWidth: 2, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
+    colorSwatchActive: { borderColor: C.accent, transform: [{ scale: 1.15 }] },
+    colorLabel: { fontSize: 9, color: C.mutedForeground, textAlign: "center" },
+    colorLabelActive: { color: C.foreground },
 
-  // Uygula
-  applyBtn: {
-    marginHorizontal: 16, marginTop: 12,
-    backgroundColor: C.accent,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: "center",
-  },
-  applyBtnText: { fontSize: FontSizes.md, fontWeight: "800", color: "#fff" },
-});
+    // Uygula
+    applyBtn: {
+      marginHorizontal: 16, marginTop: 12,
+      backgroundColor: C.accent,
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: "center",
+    },
+    applyBtnText: { fontSize: FontSizes.md, fontWeight: "800", color: "#fff" },
+  });
+}

@@ -7,18 +7,19 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
-import { Colors, FontSizes, LineHeights } from "@/constants/theme";
+import { FontSizes, LineHeights, type ThemeColors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { getSeller }           from "@/lib/mock-data/seller";
 import { getProductsBySeller } from "@/lib/mock-data/products";
 import AppProductCard          from "@/components/product/AppProductCard";
 import type { Product }        from "@/lib/types";
 
-const C = Colors.dark;
-
 type StoreTab = "urunler" | "hakkinda";
 
 // ── Stat Kutusu ───────────────────────────────────────────────────────────────
 function StatBox({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
   return (
     <View style={s.statBox}>
       <Text style={[s.statValue, accent && { color: C.accent }]}>{value}</Text>
@@ -29,6 +30,9 @@ function StatBox({ label, value, accent }: { label: string; value: string; accen
 
 // ── Ana Sayfa ─────────────────────────────────────────────────────────────────
 export default function SaticiVitrinSayfasi() {
+  const { colors: C, isDark } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const { "seller-slug": slug } = useLocalSearchParams<{ "seller-slug": string }>();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
@@ -187,12 +191,12 @@ export default function SaticiVitrinSayfasi() {
         </View>
       )}
     </View>
-  ), [seller, initials, following, activeTab, searchText, products.length, insets.top]);
+  ), [seller, initials, following, activeTab, searchText, products.length, insets.top, s, C]);
 
   if (!seller) {
     return (
       <View style={[s.notFound, { paddingTop: insets.top + 16 }]}>
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
         <Pressable onPress={() => router.back()} style={s.backBtnPlain} hitSlop={8}>
           <Ionicons name="arrow-back" size={22} color={C.foreground} />
         </Pressable>
@@ -205,7 +209,7 @@ export default function SaticiVitrinSayfasi() {
 
   return (
     <View style={[s.root, { backgroundColor: C.background }]}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       {activeTab === "urunler" ? (
         <FlatList
@@ -246,139 +250,141 @@ export default function SaticiVitrinSayfasi() {
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-  root: { flex: 1 },
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    root: { flex: 1 },
 
-  // Cover
-  coverWrap:    { height: 160, backgroundColor: C.surface2 },
-  coverImage:   { width: "100%", height: "100%" },
-  coverOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
-  backBtn: {
-    position: "absolute", left: 14,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    alignItems: "center", justifyContent: "center",
-  },
+    // Cover
+    coverWrap:    { height: 160, backgroundColor: C.surface2 },
+    coverImage:   { width: "100%", height: "100%" },
+    coverOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.3)" },
+    backBtn: {
+      position: "absolute", left: 14,
+      width: 36, height: 36, borderRadius: 18,
+      backgroundColor: "rgba(0,0,0,0.45)",
+      alignItems: "center", justifyContent: "center",
+    },
 
-  // Avatar
-  avatarRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    marginTop: -28,
-    marginBottom: 10,
-  },
-  avatar: {
-    width: 64, height: 64, borderRadius: 16,
-    backgroundColor: `${C.accent}25`,
-    borderWidth: 3, borderColor: C.background,
-    alignItems: "center", justifyContent: "center",
-    zIndex: 1, elevation: 2,
-  },
-  avatarText: { color: C.accent, fontSize: FontSizes.lg, fontWeight: "900" },
-  actionRow:  { flexDirection: "row", alignItems: "center", gap: 8 },
-  followBtn: {
-    paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 12, backgroundColor: C.accent,
-  },
-  followBtnActive: { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border },
-  followBtnText:   { color: "#fff", fontSize: FontSizes.sm, fontWeight: "700" },
-  msgBtn: {
-    width: 36, height: 36, borderRadius: 12,
-    backgroundColor: C.surface2,
-    borderWidth: 1, borderColor: C.border,
-    alignItems: "center", justifyContent: "center",
-  },
+    // Avatar
+    avatarRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      marginTop: -28,
+      marginBottom: 10,
+    },
+    avatar: {
+      width: 64, height: 64, borderRadius: 16,
+      backgroundColor: `${C.accent}25`,
+      borderWidth: 3, borderColor: C.background,
+      alignItems: "center", justifyContent: "center",
+      zIndex: 1, elevation: 2,
+    },
+    avatarText: { color: C.accent, fontSize: FontSizes.lg, fontWeight: "900" },
+    actionRow:  { flexDirection: "row", alignItems: "center", gap: 8 },
+    followBtn: {
+      paddingHorizontal: 16, paddingVertical: 8,
+      borderRadius: 12, backgroundColor: C.accent,
+    },
+    followBtnActive: { backgroundColor: C.surface2, borderWidth: 1, borderColor: C.border },
+    followBtnText:   { color: "#fff", fontSize: FontSizes.sm, fontWeight: "700" },
+    msgBtn: {
+      width: 36, height: 36, borderRadius: 12,
+      backgroundColor: C.surface2,
+      borderWidth: 1, borderColor: C.border,
+      alignItems: "center", justifyContent: "center",
+    },
 
-  // İsim
-  nameRow:     { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16 },
-  storeName:   { fontSize: FontSizes.xl, fontWeight: "900", color: C.foreground },
-  verifiedBadge: {
-    backgroundColor: C.accent, borderRadius: 20,
-    paddingHorizontal: 7, paddingVertical: 2,
-  },
-  verifiedText: { color: "#fff", fontSize: 10, fontWeight: "800" },
-  storeMeta:    { fontSize: FontSizes.xs, color: C.mutedForeground, paddingHorizontal: 16, marginTop: 3 },
+    // İsim
+    nameRow:     { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16 },
+    storeName:   { fontSize: FontSizes.xl, fontWeight: "900", color: C.foreground },
+    verifiedBadge: {
+      backgroundColor: C.accent, borderRadius: 20,
+      paddingHorizontal: 7, paddingVertical: 2,
+    },
+    verifiedText: { color: "#fff", fontSize: 10, fontWeight: "800" },
+    storeMeta:    { fontSize: FontSizes.xs, color: C.mutedForeground, paddingHorizontal: 16, marginTop: 3 },
 
-  // Rozetler
-  badgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 16, marginTop: 8 },
-  badge:    { backgroundColor: `${C.accent}18`, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText:{ color: C.accent, fontSize: 11, fontWeight: "700" },
+    // Rozetler
+    badgeRow: { flexDirection: "row", flexWrap: "wrap", gap: 6, paddingHorizontal: 16, marginTop: 8 },
+    badge:    { backgroundColor: `${C.accent}18`, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3 },
+    badgeText:{ color: C.accent, fontSize: 11, fontWeight: "700" },
 
-  // İstatistikler
-  statsRow: {
-    flexDirection: "row",
-    gap: 8,
-    paddingHorizontal: 16,
-    marginTop: 12,
-  },
-  statBox: {
-    flex: 1, backgroundColor: C.surface,
-    borderRadius: 12, borderWidth: 1, borderColor: C.border,
-    padding: 10, alignItems: "center", gap: 2,
-  },
-  statValue: { fontSize: FontSizes.sm, fontWeight: "900", color: C.foreground },
-  statLabel: { fontSize: 9, color: C.mutedForeground },
+    // İstatistikler
+    statsRow: {
+      flexDirection: "row",
+      gap: 8,
+      paddingHorizontal: 16,
+      marginTop: 12,
+    },
+    statBox: {
+      flex: 1, backgroundColor: C.surface,
+      borderRadius: 12, borderWidth: 1, borderColor: C.border,
+      padding: 10, alignItems: "center", gap: 2,
+    },
+    statValue: { fontSize: FontSizes.sm, fontWeight: "900", color: C.foreground },
+    statLabel: { fontSize: 9, color: C.mutedForeground },
 
-  // Sekmeler
-  tabRow: {
-    flexDirection: "row",
-    gap: 6,
-    paddingHorizontal: 16,
-    marginTop: 16,
-    marginBottom: 4,
-  },
-  tab: {
-    paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 20, borderWidth: 1, borderColor: C.border,
-    backgroundColor: C.surface2,
-  },
-  tabActive:     { backgroundColor: C.accent, borderColor: C.accent },
-  tabText:       { fontSize: FontSizes.sm, fontWeight: "600", color: C.mutedForeground },
-  tabTextActive: { color: "#fff", fontWeight: "700" },
+    // Sekmeler
+    tabRow: {
+      flexDirection: "row",
+      gap: 6,
+      paddingHorizontal: 16,
+      marginTop: 16,
+      marginBottom: 4,
+    },
+    tab: {
+      paddingHorizontal: 16, paddingVertical: 8,
+      borderRadius: 20, borderWidth: 1, borderColor: C.border,
+      backgroundColor: C.surface2,
+    },
+    tabActive:     { backgroundColor: C.accent, borderColor: C.accent },
+    tabText:       { fontSize: FontSizes.sm, fontWeight: "600", color: C.mutedForeground },
+    tabTextActive: { color: "#fff", fontWeight: "700" },
 
-  // Arama
-  searchWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginTop: 12,
-    marginBottom: 4,
-    backgroundColor: C.surface,
-    borderWidth: 1, borderColor: C.border,
-    borderRadius: 14,
-    paddingHorizontal: 12, paddingVertical: 10,
-    gap: 8,
-  },
-  searchIcon:  {},
-  searchInput: { flex: 1, fontSize: FontSizes.sm, color: C.foreground },
+    // Arama
+    searchWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginHorizontal: 16,
+      marginTop: 12,
+      marginBottom: 4,
+      backgroundColor: C.surface,
+      borderWidth: 1, borderColor: C.border,
+      borderRadius: 14,
+      paddingHorizontal: 12, paddingVertical: 10,
+      gap: 8,
+    },
+    searchIcon:  {},
+    searchInput: { flex: 1, fontSize: FontSizes.sm, color: C.foreground },
 
-  // Grid
-  columnWrapper: { paddingHorizontal: 16, marginTop: 8 },
-  gridItem:      { flex: 1 },
+    // Grid
+    columnWrapper: { paddingHorizontal: 16, marginTop: 8 },
+    gridItem:      { flex: 1 },
 
-  // Boş
-  emptyWrap: { padding: 32, alignItems: "center" },
-  emptyText: { color: C.mutedForeground, fontSize: FontSizes.sm, textAlign: "center" },
+    // Boş
+    emptyWrap: { padding: 32, alignItems: "center" },
+    emptyText: { color: C.mutedForeground, fontSize: FontSizes.sm, textAlign: "center" },
 
-  // Hakkında
-  aboutWrap: { padding: 16, gap: 12 },
-  aboutCard: {
-    backgroundColor: C.surface, borderRadius: 16,
-    borderWidth: 1, borderColor: C.border, padding: 16, gap: 10,
-  },
-  aboutTitle: { fontSize: FontSizes.md, fontWeight: "800", color: C.foreground },
-  aboutBio:   { fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.md },
-  infoRow:    { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  infoIcon:   { width: 20, fontSize: FontSizes.sm },
-  infoLabel:  { width: 60, fontSize: FontSizes.xs, color: C.mutedForeground, fontWeight: "600" },
-  infoValue:  { flex: 1, fontSize: FontSizes.xs, color: C.foreground, fontWeight: "600" },
+    // Hakkında
+    aboutWrap: { padding: 16, gap: 12 },
+    aboutCard: {
+      backgroundColor: C.surface, borderRadius: 16,
+      borderWidth: 1, borderColor: C.border, padding: 16, gap: 10,
+    },
+    aboutTitle: { fontSize: FontSizes.md, fontWeight: "800", color: C.foreground },
+    aboutBio:   { fontSize: FontSizes.sm, color: C.mutedForeground, lineHeight: LineHeights.md },
+    infoRow:    { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+    infoIcon:   { width: 20, fontSize: FontSizes.sm },
+    infoLabel:  { width: 60, fontSize: FontSizes.xs, color: C.mutedForeground, fontWeight: "600" },
+    infoValue:  { flex: 1, fontSize: FontSizes.xs, color: C.foreground, fontWeight: "600" },
 
-  // Not found
-  notFound: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 24 },
-  backBtnPlain: { position: "absolute", top: 16, left: 16 },
-  notFoundEmoji: { fontSize: 56 },
-  notFoundTitle: { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground },
-  notFoundSub:   { fontSize: FontSizes.sm, color: C.mutedForeground },
-});
+    // Not found
+    notFound: { flex: 1, alignItems: "center", justifyContent: "center", gap: 8, padding: 24 },
+    backBtnPlain: { position: "absolute", top: 16, left: 16 },
+    notFoundEmoji: { fontSize: 56 },
+    notFoundTitle: { fontSize: FontSizes["2xl"], fontWeight: "900", color: C.foreground },
+    notFoundSub:   { fontSize: FontSizes.sm, color: C.mutedForeground },
+  });
+}

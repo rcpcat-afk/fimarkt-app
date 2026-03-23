@@ -1,9 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { WebView } from "react-native-webview";
-import { Colors } from "../constants/theme";
+import { type ThemeColors } from "../constants/theme";
+import { useTheme } from "../hooks/useTheme";
 
-const C = Colors.dark;
 interface STLViewerProps {
   uri: string;
   color?: string;
@@ -52,6 +52,8 @@ export default function STLViewer({
   onNormalsReady,
   priceParams,
 }: STLViewerProps) {
+  const { colors: C } = useTheme();
+  const styles = useMemo(() => createStyles(C), [C]);
   const webViewRef = useRef<WebView>(null);
 
   const [loading, setLoading] = useState(true);
@@ -209,7 +211,7 @@ export default function STLViewer({
       const triangleCount = view.getUint32(80, true);
       const step = Math.max(1, Math.floor(triangleCount / MAX_TRIANGLES));
       const usedTriangles = Math.ceil(triangleCount / step);
-      
+
       const positions = new Float32Array(usedTriangles * 9);
       const normals = new Float32Array(usedTriangles * 9);
       let idx = 0;
@@ -217,7 +219,7 @@ export default function STLViewer({
       for (let i = 0; i < triangleCount; i += step) {
         const offset = 84 + i * 50;
         if (offset + 50 > buffer.byteLength) break;
-        
+
         const nx = view.getFloat32(offset, true);
         const ny = view.getFloat32(offset + 4, true);
         const nz = view.getFloat32(offset + 8, true);
@@ -281,7 +283,7 @@ export default function STLViewer({
         let parsed;
         const header = new Uint8Array(buffer, 0, 5);
         const isAscii = String.fromCharCode(...header) === 'solid';
-        
+
         if (isAscii) {
           parsed = parseSTLAscii(binary);
         } else {
@@ -314,7 +316,7 @@ export default function STLViewer({
     function buildMesh(positions, normals) {
       if (loadingBox) { scene.remove(loadingBox); loadingBox.geometry.dispose(); loadingBox = null; }
       if (mesh) { scene.remove(mesh); mesh.geometry.dispose(); }
-      
+
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
@@ -441,39 +443,41 @@ if (cachedVertices && cachedNormals) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    borderRadius: 16,
-    overflow: "hidden",
-    backgroundColor: C.background,
-  },
-  webview: {
-    flex: 1,
-    backgroundColor: "transparent",
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-    backgroundColor: C.background,
-    gap: 12,
-  },
-  loadingText: {
-    color: C.mutedForeground,
-    fontSize: 12,
-    textAlign: "center",
-    fontWeight: "600",
-    letterSpacing: 0.3,
-  },
-  errorText: {
-    color: C.mutedForeground,
-    fontSize: 13,
-    textAlign: "center",
-  },
-});
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      width: "100%",
+      borderRadius: 16,
+      overflow: "hidden",
+      backgroundColor: C.background,
+    },
+    webview: {
+      flex: 1,
+      backgroundColor: "transparent",
+    },
+    loadingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 10,
+      backgroundColor: C.background,
+      gap: 12,
+    },
+    loadingText: {
+      color: C.mutedForeground,
+      fontSize: 12,
+      textAlign: "center",
+      fontWeight: "600",
+      letterSpacing: 0.3,
+    },
+    errorText: {
+      color: C.mutedForeground,
+      fontSize: 13,
+      textAlign: "center",
+    },
+  });
+}

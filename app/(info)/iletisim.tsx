@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View, Text, ScrollView, TextInput, TouchableOpacity,
   StyleSheet, Linking, Modal, Animated,
 } from "react-native";
 import { Stack } from "expo-router";
-import { Colors } from "@/constants/theme";
+import { type ThemeColors } from "@/constants/theme";
+import { useTheme } from "@/hooks/useTheme";
 import { CONTACT } from "@/lib/content-manager";
-
-const C = Colors.dark;
 
 interface FormState { name: string; email: string; subject: string; message: string }
 
@@ -19,6 +18,9 @@ const QUICK_CARDS = [
 ];
 
 export default function IletisimScreen() {
+  const { colors: C } = useTheme();
+  const s = useMemo(() => createStyles(C), [C]);
+
   const [form,    setForm]    = useState<FormState>({ name: "", email: "", subject: "", message: "" });
   const [errors,  setErrors]  = useState<Partial<FormState>>({});
   const [success, setSuccess] = useState(false);
@@ -139,36 +141,38 @@ export default function IletisimScreen() {
   );
 }
 
-const s = StyleSheet.create({
-  container:        { flex: 1, backgroundColor: C.background },
-  hero:             { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.surface },
-  heroTitle:        { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 4 },
-  heroSub:          { fontSize: 12, color: C.mutedForeground },
-  section:          { paddingHorizontal: 16, marginTop: 20 },
-  sectionTitle:     { fontSize: 11, fontWeight: "800", color: C.mutedForeground, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 },
-  quickCard:        { flexDirection: "row", alignItems: "center", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 14, marginBottom: 8, gap: 12 },
-  quickIcon:        { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  quickIconText:    { fontSize: 20 },
-  quickInfo:        { flex: 1 },
-  quickLabel:       { fontSize: 10, color: C.mutedForeground, marginBottom: 2 },
-  quickValue:       { fontSize: 13, fontWeight: "600" },
-  quickArrow:       { fontSize: 20, color: C.subtleForeground },
-  formCard:         { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 20, padding: 16, gap: 12 },
-  fieldWrap:        { gap: 4 },
-  fieldLabel:       { fontSize: 11, fontWeight: "600", color: C.foreground },
-  input:            { backgroundColor: C.background, borderWidth: 1, borderColor: C.border, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 13, color: C.foreground },
-  inputMulti:       { height: 100, textAlignVertical: "top" },
-  inputError:       { borderColor: C.error },
-  errorText:        { fontSize: 10, color: C.error },
-  submitBtn:        { backgroundColor: C.accent, borderRadius: 16, paddingVertical: 14, alignItems: "center" },
-  submitBtnDisabled:{ opacity: 0.6 },
-  submitBtnText:    { fontSize: 14, fontWeight: "700", color: "#fff" },
-  // Modal
-  modalOverlay:     { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", padding: 24 },
-  modalCard:        { backgroundColor: C.surface, borderRadius: 28, padding: 32, alignItems: "center", width: "100%" },
-  modalEmoji:       { fontSize: 48, marginBottom: 12 },
-  modalTitle:       { fontSize: 20, fontWeight: "900", color: C.foreground, marginBottom: 8 },
-  modalSub:         { fontSize: 13, color: C.mutedForeground, textAlign: "center", lineHeight: 20, marginBottom: 24 },
-  modalBtn:         { backgroundColor: C.accent, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 16 },
-  modalBtnText:     { fontSize: 14, fontWeight: "700", color: "#fff" },
-});
+function createStyles(C: ThemeColors) {
+  return StyleSheet.create({
+    container:        { flex: 1, backgroundColor: C.background },
+    hero:             { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.surface },
+    heroTitle:        { fontSize: 22, fontWeight: "900", color: C.foreground, marginBottom: 4 },
+    heroSub:          { fontSize: 12, color: C.mutedForeground },
+    section:          { paddingHorizontal: 16, marginTop: 20 },
+    sectionTitle:     { fontSize: 11, fontWeight: "800", color: C.mutedForeground, letterSpacing: 1, textTransform: "uppercase", marginBottom: 10 },
+    quickCard:        { flexDirection: "row", alignItems: "center", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 14, marginBottom: 8, gap: 12 },
+    quickIcon:        { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+    quickIconText:    { fontSize: 20 },
+    quickInfo:        { flex: 1 },
+    quickLabel:       { fontSize: 10, color: C.mutedForeground, marginBottom: 2 },
+    quickValue:       { fontSize: 13, fontWeight: "600" },
+    quickArrow:       { fontSize: 20, color: C.subtleForeground },
+    formCard:         { backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 20, padding: 16, gap: 12 },
+    fieldWrap:        { gap: 4 },
+    fieldLabel:       { fontSize: 11, fontWeight: "600", color: C.foreground },
+    input:            { backgroundColor: C.background, borderWidth: 1, borderColor: C.border, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, fontSize: 13, color: C.foreground },
+    inputMulti:       { height: 100, textAlignVertical: "top" },
+    inputError:       { borderColor: C.error },
+    errorText:        { fontSize: 10, color: C.error },
+    submitBtn:        { backgroundColor: C.accent, borderRadius: 16, paddingVertical: 14, alignItems: "center" },
+    submitBtnDisabled:{ opacity: 0.6 },
+    submitBtnText:    { fontSize: 14, fontWeight: "700", color: "#fff" },
+    // Modal
+    modalOverlay:     { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", alignItems: "center", justifyContent: "center", padding: 24 },
+    modalCard:        { backgroundColor: C.surface, borderRadius: 28, padding: 32, alignItems: "center", width: "100%" },
+    modalEmoji:       { fontSize: 48, marginBottom: 12 },
+    modalTitle:       { fontSize: 20, fontWeight: "900", color: C.foreground, marginBottom: 8 },
+    modalSub:         { fontSize: 13, color: C.mutedForeground, textAlign: "center", lineHeight: 20, marginBottom: 24 },
+    modalBtn:         { backgroundColor: C.accent, paddingHorizontal: 32, paddingVertical: 14, borderRadius: 16 },
+    modalBtnText:     { fontSize: 14, fontWeight: "700", color: "#fff" },
+  });
+}

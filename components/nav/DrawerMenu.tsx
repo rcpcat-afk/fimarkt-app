@@ -11,11 +11,10 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Colors } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 import { TOP_CATEGORIES } from "../../constants/categories";
 import { useAuth } from "../../src/store/AuthContext";
 
-const C = Colors.dark;
 const DRAWER_W = Math.min(Dimensions.get("window").width * 0.85, 360);
 
 interface Props {
@@ -40,6 +39,7 @@ const CORPORATE_LINKS = [
 ];
 
 export default function DrawerMenu({ visible, onClose }: Props) {
+  const { colors: C } = useTheme();
   const router  = useRouter();
   const insets  = useSafeAreaInsets();
   const { user } = useAuth();

@@ -3,12 +3,11 @@
 // Oturum yoksa kullanıcıyı /(auth)/login?redirect=<mevcut-sayfa>'ya yönlendirir.
 import { Redirect, Stack, usePathname } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
-import { Colors } from "../../constants/theme";
 import { useAuth } from "../../src/store/AuthContext";
-
-const C = Colors.dark;
+import { useTheme } from "../../hooks/useTheme";
 
 export default function AccountLayout() {
+  const { colors: C } = useTheme();
   const { user, isLoading } = useAuth();
   const pathname            = usePathname();
 
