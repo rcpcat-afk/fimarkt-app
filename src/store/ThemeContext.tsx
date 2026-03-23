@@ -25,7 +25,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const [scheme, setScheme] = useState<Scheme>(systemScheme === "light" ? "light" : "dark");
+  const [scheme, setScheme] = useState<Scheme>(systemScheme === "dark" ? "dark" : "light");
 
   // AsyncStorage'dan kaydedilmiş tercihi oku
   useEffect(() => {
