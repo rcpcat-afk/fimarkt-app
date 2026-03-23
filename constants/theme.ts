@@ -38,10 +38,10 @@ export const FimarktColors = {
 
 // ─── Light Moda Özel Değerler ────────────────────────────────────────────────
 const LightValues = {
-  background:       '#FFFFFF',
-  surface:          '#F3F4F6',
-  surface2:         '#E5E7EB',
-  border:           '#D1D5DB',
+  background:       '#FFFCFA',
+  surface:          '#F7F3F0',
+  surface2:         '#EDE8E3',
+  border:           '#DDD5CC',
   foreground:       '#111827',
   mutedForeground:  '#4B5563',
   subtleForeground: '#9CA3AF',
