@@ -120,8 +120,8 @@ export type ThemeColors = typeof Colors.dark;
 // Sistemi büyütmek/küçültmek için sadece bu değerleri değiştir.
 export const FontSizes = {
   xs:   12,   // etiket, badge, yardımcı metin
-  sm:   13,   // ikincil metin, input label
-  base: 15,   // gövde metni (temel birim)
+  sm:   15,   // ikincil metin, input label
+  base: 17,   // gövde metni (temel birim)
   md:   16,   // vurgulu gövde, kart başlığı
   lg:   18,   // section başlığı
   xl:   20,   // sayfa alt başlığı
